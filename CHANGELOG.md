@@ -1,6 +1,3 @@
-# 4.2.1:
-* Fix: 64px logo in index.js
-
 # 4.2.0:
 * +: Theme preferences can now be changed from the panel directly
 * Fix: Default color on theme
