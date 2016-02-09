@@ -1,0 +1,188 @@
+{
+	"extName": {
+		"message": "Live notifier",
+		"description": ""
+	},
+	"extShortDesc": {
+		"message": "Be notified of streams from Dailymotion, Hitbox and Twitch.",
+		"description": "this will be used as short description in web stores: MUST BE 132 characters OR LESS"
+	},
+	"Stream_online": {
+		"message": "Stream en ligne"
+	},
+	"Stream_offline": {
+		"message": "Stream hors ligne"
+	},
+	"No_stream_online": {
+		"message": "Aucun stream en ligne"
+	},
+	"No_stream_offline": {
+		"message": "Aucun stream hors ligne"
+	},
+	"count_stream_online": {
+		"message": "$count$ stream(s) en ligne",
+		"placeholders": {
+			"count": {
+				"content": "$1"
+			}
+		}
+	},
+	"count_stream_offline": {
+		"message": "$count$ stream(s) hors ligne",
+		"placeholders": {
+			"count": {
+				"content": "$1"
+			}
+		}
+	},
+	"is_already_configured": {
+		"message": "est déjà configuré."
+	},
+	"wasnt_configured_but_not_detected_as_channel": {
+		"message": "n'était pas configuré, mais n'est pas détecté comme chaîne."
+	},
+	"wasnt_configured_and_have_been_added": {
+		"message": "n'était pas configuré, et a été ajouté."
+	},
+	"wasnt_configured_and_can_be_added": {
+		"message": "n'était pas configuré, et peut être ajouté."
+	},
+	"click_to_confirm": {
+		"message": "cliquer pour confirmer"
+	},
+	"have_been_added": {
+		"message": "a été ajouté."
+	},
+	"No_supported_stream_detected_in_the_current_tab_so_nothing_to_add": {
+		"message": "Aucun stream supporté détecté dans l'onglet actuel, donc, rien à ajouter."
+	},
+	"delete_stream_mode": {
+		"message": "Cliquer sur un stream le supprimera des paramètres."
+	},
+	"will_be_deleted_are_you_sure": {
+		"message": "va être supprimer, êtes-vous certain(e)?"
+	},
+	"has_been_deleted": {
+		"message": "a été supprimé."
+	},
+	"dailymotion_keys_list_title": {
+		"message": "Clés Dailymotion keys à notifier"
+	},
+	"dailymotion_keys_list_description": {
+		"message": "Liste des streams dans une liste séparée par des virgules."
+	},
+	"hitbox_keys_list_title": {
+		"message": "Clés Hitbox keys à notifier"
+	},
+	"hitbox_keys_list_description": {
+		"message": "Liste des streams dans une liste séparée par des virgules."
+	},
+	"hitbox_user_id_description": {
+		"message": "Entrez votre id Hitbox id pour pouvoir importer les streameurs que vous suivez"
+	},
+	"hitbox_import": {
+		"message": "Importer"
+	},
+	"twitch_keys_list_title": {
+		"message": "Clés Twitch keys à notifier"
+	},
+	"twitch_keys_list_description": {
+		"message": "Liste des streams dans une liste séparée par des virgules."
+	},
+	"twitch_user_id_description": {
+		"message": "Entrez votre id Twitch id pour pouvoir importer les streameurs que vous suivez"
+	},
+	"twitch_import": {
+		"message": "Importer"
+	},
+	"check_delay_title": {
+		"message": "Délais de status des streams"
+	},
+	"check_delay_description": {
+		"message": "Délai entre chaque vérification, en minute"
+	},
+	"notify_online_title": {
+		"message": "Affiche une notification lorsqu'un stream commence"
+	},
+	"notify_online_description": {
+		"message": "Notification quand cochée"
+	},
+	"notify_offline_title": {
+		"message": "Affiche une notification lorsqu'un stream se finit"
+	},
+	"notify_offline_description": {
+		"message": "Notification quand cochée"
+	},
+	"show_offline_in_panel_title": {
+		"message": "Afficher les stream hors ligne dans le panel"
+	},
+	"show_offline_in_panel_description": {
+		"message": "Affiché quand coché"
+	},
+	"confirm_addStreamFromPanel_title": {
+		"message": "Confirmation pour ajouter des streams"
+	},
+	"confirm_addStreamFromPanel_description": {
+		"message": "Affiche une notification pour confirmer lors d'un ajout de stream de configuration (depuis le panel)"
+	},
+	"confirm_deleteStreamFromPanel_title": {
+		"message": "Confirmation pour supprimer des streams"
+	},
+	"confirm_deleteStreamFromPanel_description": {
+		"message": "Affiche une notification pour confirmer lors d'un ajout de stream de configuration (depuis le panel)"
+	},
+	"panel_theme_title": {
+		"message": "Thème du panel"
+	},
+	"panel_theme_description": {
+		"message": "Choix du thème pour le panel"
+	},
+	"panel_theme_dark": {
+		"message": "Sombre"
+	},
+	"panel_theme_light": {
+		"message": "Clair"
+	},
+	"background_color_title": {
+		"message": "Couleur du panel"
+	},
+	"background_color_description": {
+		"message": "Choix du la couleur de base du panel"
+	},
+	"livestreamer_cmd_to_clipboard_title": {
+		"message": "Copier la commande Livestreamer."
+	},
+	"livestreamer_cmd_to_clipboard_description": {
+		"message": "Cocher pour activer la copie dans le presse-papier la commande Livestreamer lors d'un clic sur un stream en ligne"
+	},
+	"livestreamer_cmd_quality_title": {
+		"message": "Qualité Livestreamer"
+	},
+	"livestreamer_cmd_quality_description": {
+		"message": "Plus d'information sur la page de Livestreamer."
+	},
+	"options_saved": {
+		"message": "Options enregistrées."
+	},
+	"options_saved_sync": {
+		"message": "Options enregistrées dans la synchronisation."
+	},
+	"save": {
+		"message": "Enregistrer"
+	},
+	"sync_title": {
+		"message": "Enregistrer / Restaurer les préférences depuis/vers la synchronization"
+	},
+	"restaure_sync": {
+		"message": "Restaurer"
+	},
+	"save_sync": {
+		"message": "Enregistrer"
+	},
+	"footer_title": {
+		"message": "Addon sous licence GPL v3."
+	},
+	"footer_by": {
+		"message": "par"
+	}
+}

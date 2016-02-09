@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Live notifier - Preferences</title>
+	<link rel="stylesheet" type="text/css" media="all" href="/data/css/options.css" />
+</head>
+<!-- Source code from: https://developer.chrome.com/extensions/options -->
+<body>
+
+<p id="dailymotion" class="pref_group website_pref">
+	<label class="preference flex_input_text" title="Stream list in a comma separated list.">
+		<span id="dailymotion_keys_list_title" class="translate">Dailymotion keys to notify</span>: 
+		<input type="text" id="dailymotion_keys_list" class="preferenceInput">
+	</label>
+</p>
+
+<p id="hitbox" class="website_pref">
+	<label class="preference flex_input_text" title="Stream list in a comma separated list.">
+		<span id="hitbox_keys_list_title" class="translate">Hitbox keys to notify</span>: 
+		<input type="text" id="hitbox_keys_list" class="preferenceInput">
+	</label>
+	
+	<label class="preference import_container" title="Enter your Hitbox id to be able to import the stream(s) you follow">
+		<span class="label"><span id="hitbox_user_id_description" class="translate">Enter your Hitbox id to be able to import the stream(s) you follow</span>:</span>
+		<span class="pref_container">
+			<input type="text" id="hitbox_user_id" class="preferenceInput">
+			<button id="hitbox_import" class="translate">Import</button>
+		</span>
+	</label>
+</p>
+
+<p id="twitch" class="website_pref">
+	<label class="preference flex_input_text" title="Stream list in a comma separated list.">
+		<span id="twitch_keys_list_title" class="translate">Twitch keys to notify</span>: 
+		<input type="text" id="twitch_keys_list" class="preferenceInput">
+	</label>
+	
+	<label class="preference import_container" title="Enter your Twitch id to be able to import the stream(s) you follow">
+		<span class="label"><span id="twitch_user_id_description" class="translate">Enter your Twitch id to be able to import the stream(s) you follow</span>:</span>
+		<span class="pref_container">
+			<input type="text" id="twitch_user_id" class="preferenceInput">
+			<button id="twitch_import" class="translate">Import</button>
+		</span>
+	</label>
+</p>
+
+<label class="preference" title="Delay between checks, in minute">
+	<span id="check_delay_description" class="translate">Delay between checks, in minute</span>: 
+	<input type="number" id="check_delay" class="preferenceInput">
+</label>
+
+<p class="pref_group">
+	<label class="preference" title="Notification when checked">
+		<span id="notify_online_title" class="translate">Show a notification when a stream start</span>: 
+		<input type="checkbox" id="notify_online" class="preferenceInput">
+	</label>
+	
+	<label class="preference" title="Notification when checked">
+		<span id="notify_offline_title" class="translate">Show a notification when a stream finish</span>: 
+		<input type="checkbox" id="notify_offline" class="preferenceInput">
+	</label>
+</p>
+
+<label class="preference" title="Shown when checked">
+	<span id="show_offline_in_panel_title" class="translate">Show offline streams in the panel</span>: 
+	<input type="checkbox" id="show_offline_in_panel" class="preferenceInput">
+</label>
+
+<p class="pref_group">
+	<label class="preference" title="Show a notification to confirm when deleting a stream of config (from panel)">
+		<span id="confirm_addStreamFromPanel_title" class="translate">Confirmation to add streams</span>: 
+		<input type="checkbox" id="confirm_addStreamFromPanel" class="preferenceInput">
+	</label>
+	
+	<label class="preference" title="Show a notification to confirm when deleting a stream of config (from panel)">
+		<span id="confirm_deleteStreamFromPanel_title" class="translate">Confirmation to delete streams</span>: 
+		<input type="checkbox" id="confirm_deleteStreamFromPanel" class="preferenceInput">
+	</label>
+</p>
+
+<p class="pref_group">
+	<label class="preference" title="Choose the panel of the panel">
+		<span id="panel_theme_title" class="translate">Panel theme</span>: 
+		<select id="panel_theme" class="preferenceInput">
+			<option value="dark" id="panel_theme_dark" class="translate">Dark</option>
+			<option value="light" id="panel_theme_light" class="translate">Light</option>
+		</select>
+	</label>
+	
+	<label class="preference" title="Choose background color">
+		<span id="background_color_title" class="translate">Panel background color</span>: 
+		<input type="color" id="background_color" class="preferenceInput">
+	</label>
+</p>
+
+<p class="pref_group">
+	<label class="preference" title="Check to activate">
+		<span id="livestreamer_cmd_to_clipboard_title" class="translate">Copy Livestreamer command on stream click</span>: 
+		<input type="checkbox" id="livestreamer_cmd_to_clipboard" class="preferenceInput">
+	</label>
+	
+	<label class="preference flex_input_text" title="More information on Livestreamer page">
+		<span id="livestreamer_cmd_quality_title" class="translate">Livestreamer quality</span>: 
+		<input type="text" id="livestreamer_cmd_quality" class="preferenceInput">
+	</label>
+</p>
+
+<p class="pref_group">
+	<span id="sync_title" class="translate">Save / Restaure preferences from/to synchronization</span>
+	<button id="restaure_sync" class="sync translate">Restaure</button><button id="save_sync" class="sync translate">Save</button>
+</p>
+
+
+<footer>
+	<div id="status"></div>
+	<button id="save" class="translate">Save</button>
+</footer>
+
+<script src="options.js"></script>
+</body>
+</html>

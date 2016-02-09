@@ -1,0 +1,19 @@
+/*			---- Primary text / Icons ----			*/
+body, header button, #streamOnlineCountLabel, #streamOfflineCountLabel, #deleteStreamWarning{
+	color: #FFFFFF;
+}
+/*		--- Secondary text / Base Color ----		*/
+.item-stream, .item-stream .streamStatus, .item-stream .streamCurrentViewers{
+	color: #FFFFFF;
+	color: rgba(255, 255, 255, 0.8);
+}
+/*			---- Disabled / Hint text ----			*/
+footer{
+	color: #FFFFFF;
+	color: rgba(255, 255, 255, 0.3);
+}
+/*			---- Stream Title / Links ----			*/
+.item-stream .streamTitle, a{
+	color: #0062BD;
+	color: rgba(50, 159, 255, 0.8);
+}

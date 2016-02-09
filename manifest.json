@@ -1,0 +1,42 @@
+{
+	"manifest_version": 2,
+	"name": "Live notifier",
+	"short_name": "LiveNotifier",
+	"description": "__MSG_extShortDesc__",
+	"author": "ZatsuneNoMokou",
+	"version": "4.2.0",
+	"homepage_url": "https://github.com/ZatsuneNoMokou/live_notifier",
+	"icons": {
+		"128": "/icon_128.png"
+	},
+	"background": {
+		"scripts": [ "index.js" ]
+	},
+	"browser_action": {
+		"default_icon": "/icon.png",
+		"default_popup": "/data/panel.html",
+		"icons": {
+			"128": "/icon_128.png"
+		}
+	},
+	"default_locale": "en",
+	"offline_enabled": false,
+	"permissions": [
+		"tabs",
+		"activeTab",
+		"notifications",
+		"storage",
+		"unlimitedStorage",
+		"http://*/*",
+		"https://*/*"
+	],
+	"optional_permissions": [ 
+		"clipboardWrite"
+	],
+	"options_ui": {
+		"page": "options.html",
+		"chrome_style": true
+	},
+	"minimum_chrome_version": "42.0",
+	"web_accessible_resources": [ "/icon_128.png" ]
+}

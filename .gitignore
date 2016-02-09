@@ -1,0 +1,4 @@
+*.nex
+*.pem
+*.crx
+tmp/

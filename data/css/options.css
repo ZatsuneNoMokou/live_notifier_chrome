@@ -1,0 +1,50 @@
+body{
+	/*height: 420px;*/
+	width: 666px;
+}
+
+*{
+	font-size: 14px;
+}
+
+.pref_group, .website_pref{
+	display: block;
+	margin-top: 14px;
+	margin-bottom: 14px;
+}
+
+.preference:not(.flex_input_text){
+	display: block;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+.preference.flex_input_text{
+	display: flex;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+
+label{
+	display: flex;
+	width: 100%;
+}
+input{
+	flex-grow: 5;
+}
+
+.import_container .label{
+	display: block;
+}
+.import_container .label{
+	display: block;
+}
+.pref_container{
+	padding-left: 10px;
+}
+
+
+footer{
+	margin-top: 6px;
+	margin-bottom: 6px;
+}
