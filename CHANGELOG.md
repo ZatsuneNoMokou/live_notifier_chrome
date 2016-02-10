@@ -1,3 +1,9 @@
+# 4.3.1:
+* Fix: French locale
+
+# 4.3.0:
+* i: More compact lines for offlines streams
+
 # 4.2.0:
 * +: Theme preferences can now be changed from the panel directly
 * Fix: Default color on theme

@@ -147,7 +147,7 @@
 		"message": "Couleur du panel"
 	},
 	"background_color_description": {
-		"message": "Choix du la couleur de base du panel"
+		"message": "Choix de la couleur de base du panel"
 	},
 	"livestreamer_cmd_to_clipboard_title": {
 		"message": "Copier la commande Livestreamer."
