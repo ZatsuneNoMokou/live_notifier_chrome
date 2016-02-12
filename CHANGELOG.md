@@ -1,7 +1,5 @@
 # 4.3.4:
 * Fix: Hitbox private channel error
-
-# 4.3.3:
 * +: Translation support update
 * +: Notification setting (web / chrome api)
 
