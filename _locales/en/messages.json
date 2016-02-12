@@ -101,6 +101,15 @@
 	"check_delay_description": {
 		"message": "Delay between checks, in minute"
 	},
+	"notification_type_title": {
+		"message": "Notification type"
+	},
+	"notification_type_web": {
+		"message": "Web"
+	},
+	"notification_type_chrome_api": {
+		"message": "Chrome API"
+	},
 	"notify_online_title": {
 		"message": "Show a notification when a stream start"
 	},

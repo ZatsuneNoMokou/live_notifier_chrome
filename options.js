@@ -7,6 +7,7 @@ let getPreferences = appGlobal.getPreferences;
 let getBooleanFromVar = appGlobal.getBooleanFromVar;
 let _ = appGlobal._;
 let translateNodes = appGlobal.translateNodes;
+let translateNodes_title = appGlobal.translateNodes_title;
 let getValueFromNode = appGlobal.getValueFromNode;
 
 // Saves options to chrome.storage
@@ -116,6 +117,7 @@ function restore_options() {
 
 function init(){
 	translateNodes(document);
+	translateNodes_title(document);
 	restore_options();
 }
 document.addEventListener('DOMContentLoaded',				init);

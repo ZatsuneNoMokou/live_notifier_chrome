@@ -2,7 +2,7 @@
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" type="text/css" media="all" href="css/panel.css" />
-	<link id="panel-color-stylesheet" rel="stylesheet" type="text/css" media="all" href="css/panel-color-dark.css" />
+	<link id="panel-color-stylesheet" rel="stylesheet" type="text/css" media="all" href="css/panel-theme-dark.css" />
 	
 	<!-- 		Google Material Design - Icon font 		-->
 	<link rel="stylesheet" type="text/css" media="all" href="css/fonts.css" />
@@ -32,22 +32,22 @@
 	</section>
 	<section id="settings_container" class="hide">
 		<p class="pref_group">
-			<label class="preference" title="Choose the panel of the panel">
-				<span id="panel_theme_title" class="translate">Panel theme</span>: 
+			<label class="preference" data-translate-title="panel_theme_description" title="Choose the panel of the panel">
+				<span data-translate-id="panel_theme_title">Panel theme</span>: 
 				<select id="panel_theme">
-					<option value="dark" id="panel_theme_dark" class="translate">Dark</option>
-					<option value="light" id="panel_theme_light" class="translate">Light</option>
+					<option value="dark" data-translate-id="panel_theme_dark">Dark</option>
+					<option value="light" data-translate-id="panel_theme_light">Light</option>
 				</select>
 			</label><br>
 			
-			<label class="preference" title="Choose background color">
-				<span id="background_color_title" class="translate">Panel background color</span>: 
+			<label class="preference" data-translate-title="background_color_description" title="Choose background color">
+				<span data-translate-id="background_color_title">Panel background color</span>: 
 				<input type="color" id="background_color">
 			</label><br>
 		</p>
 	</section>
-	<footer><span id="footer_title" class="translate">Addon under GPL v3 licence</span>
-		<span id="footer_by" class="translate">By</span> <a href="https://github.com/ZatsuneNoMokou/" target="_blank">ZatsuneNoMokou</a>
+	<footer><span data-translate-id="footer_title">Addon under GPL v3 licence</span>
+		<span data-translate-id="footer_by">By</span> <a href="https://github.com/ZatsuneNoMokou/" target="_blank">ZatsuneNoMokou</a>
 	</footer>
 	
 <script src="/data/panel.js"></script>

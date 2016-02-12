@@ -16,6 +16,7 @@ let backgroundPage = chrome.extension.getBackgroundPage();
 let appGlobal = backgroundPage.appGlobal;
 let _ = appGlobal._;
 let translateNodes = appGlobal.translateNodes;
+let translateNodes_title = appGlobal.translateNodes_title;
 let getValueFromNode = appGlobal.getValueFromNode;
 
 port.onDisconnect.addListener(function(port) {
@@ -143,7 +144,9 @@ function initList(showOffline){
 		for(let i in streamItems){
 			let node = streamItems[i];
 			removeNodeEvents(node, "click");
-			node.parentNode.removeChild(node);
+			if(typeof node.removeChild != "undefined"){
+				node.parentNode.removeChild(node);
+			}
 		}
 	}
 	document.querySelector("#streamListOffline").className = (showOffline)? "" : "hide";
@@ -338,7 +341,11 @@ chrome.runtime.onConnect.addListener(function(_port) {
 	console.info(`Port (${_port.name}) connected`);
 	port_mainscript = _port;
 	port_mainscript.onMessage.addListener(function(message, MessageSender){
-		console.log("Panel (onMessage): " + message)
+		console.group();
+		console.log("Panel (onMessage):");
+		console.dir(message);
+		console.groupEnd();
+		
 		let id = message.id;
 		let data = message.data;
 		
@@ -370,4 +377,5 @@ document.addEventListener('DOMContentLoaded', function () {
 	my_port.sendData("panel_onload","");
 	
 	translateNodes(document);
+	translateNodes_title(document);
 });

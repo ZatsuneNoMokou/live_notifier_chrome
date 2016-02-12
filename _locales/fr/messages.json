@@ -78,7 +78,7 @@
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
 	"hitbox_user_id_description": {
-		"message": "Entrez votre id Hitbox id pour pouvoir importer les streameurs que vous suivez"
+		"message": "Entrez votre id Hitbox pour pouvoir importer les streameurs que vous suivez"
 	},
 	"hitbox_import": {
 		"message": "Importer"
@@ -90,7 +90,7 @@
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
 	"twitch_user_id_description": {
-		"message": "Entrez votre id Twitch id pour pouvoir importer les streameurs que vous suivez"
+		"message": "Entrez votre id Twitch pour pouvoir importer les streameurs que vous suivez"
 	},
 	"twitch_import": {
 		"message": "Importer"
@@ -100,6 +100,15 @@
 	},
 	"check_delay_description": {
 		"message": "Délai entre chaque vérification, en minute"
+	},
+	"notification_type_title": {
+		"message": "Type de notification"
+	},
+	"notification_type_web": {
+		"message": "Web"
+	},
+	"notification_type_chrome_api": {
+		"message": "API Chrome"
 	},
 	"notify_online_title": {
 		"message": "Affiche une notification lorsqu'un stream commence"

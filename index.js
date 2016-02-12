@@ -8,6 +8,7 @@ function getPreferences(prefId){
 		hitbox_user_id: "",
 		twitch_user_id: "",
 		check_delay: 5,
+		notification_type: "web",
 		notify_online: true,
 		notify_offline: false,
 		show_offline_in_panel: false,
@@ -61,11 +62,21 @@ function getBooleanFromVar(string){
 }
 function translateNodes(locale_document){
 	let document = locale_document;
-	let translate_nodes = document.querySelectorAll(".translate");
+	let translate_nodes = document.querySelectorAll("[data-translate-id]");
 	for(let i in translate_nodes){
 		let node = translate_nodes[i];
-		if(typeof node.id == "string"){
-			node.textContent = _(node.id);
+		if(typeof node.getAttribute == "function"){
+			node.textContent = _(node.getAttribute("data-translate-id"));
+		}
+	}
+}
+function translateNodes_title(locale_document){
+	let document = locale_document;
+	let translate_nodes = document.querySelectorAll("[data-translate-title]");
+	for(let i in translate_nodes){
+		let node = translate_nodes[i];
+		if(typeof node.getAttribute == "function"){
+			node.title = _(node.getAttribute("data-translate-title"));
 		}
 	}
 }
@@ -129,6 +140,7 @@ var appGlobal = {
 	getBooleanFromVar: getBooleanFromVar,
 	_: _,
 	translateNodes: translateNodes,
+	translateNodes_title: translateNodes_title,
 	getValueFromNode: getValueFromNode
 }
 
@@ -338,7 +350,6 @@ function deleteStreamFromPanel(data){
 	let streamList = streamListSetting.objData;
 	let id = data.id;
 	let website = data.website;
-	console.log(id in streamList);
 	if(streamListSetting.streamExist(id)){
 		if(getPreferences("confirm_deleteStreamFromPanel")){
 			let deletestreamNotifAction = new notifAction("deleteStream", {id: id, website: website});
@@ -521,53 +532,73 @@ function notifAction(type,data){
 function doActionNotif(title, message, action, imgurl){
 	console.info("Notification (" + ((typeof action.type == "string")? action.type : "Unknown/No action" ) + '): "' + message + '"');
 	
-/*	let options = {
+	if(getPreferences("notification_type") == "web"){
+		let options = {
+			body: message,
+			icon: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL)
+		}
+		let notif = new Notification(title, options);
+		notif.onclick = function(){
+			doActionNotif_onClick(action);
+		}
+	} else if(getPreferences("notification_type") == "chrome_api"){
+		chromeAPINotification(title, message, action, imgurl);
+	} else {
+		console.warn("Unknown notification type");
+	}
+}
+function doActionNotif_onClick(action){
+	let streamListSetting;
+	let id;
+	if(action.type == "addStream" || action.type == "deleteStream"){
+		streamListSetting = new streamListFromSetting(action.data.website);
+		id = action.data.id;
+	}
+	switch(action.type){
+		case "openUrl":
+			// Notification with openUrl action
+			openTabIfNotExist(action.data);
+			console.info(`Notification (openUrl): "${message}" (${action.data})`);
+			break;
+		case "function":
+			// Notification with custom function as action
+			action.data();
+			break;
+		case "addStream":
+			let url = action.data.url;
+			streamListSetting.addStream(id, url);
+			streamListSetting.update();
+			doNotif("Stream Notifier", `${id} ${_("wasnt_configured_and_have_been_added")}`);
+			// Update the panel for the new stream added
+			refreshStreamsFromPanel();
+			break;
+		case "deleteStream":
+			delete streamListSetting.objData[id];
+			streamListSetting.update();
+			doNotif("Stream Notifier", `${id} ${_("has been deleted.")}`);
+			// Update the panel for the new stream added
+			refreshStreamsFromPanel();
+			break;
+		default:
+			// Nothing - Unknown action
+			void(0);
+	}
+}
+function chromeAPINotification(title, message, action, imgurl){
+	let options = {
 		type: "basic",
 		title: title,
 		message: message,
-		iconUrl: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL)
-		}*/
-	let options = {
-		body: message,
-		icon: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL)
+		iconUrl: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL),
+		isClickable: true,
+		buttons: [
+			{
+				title: "Ok",
+				 iconUrl: "/data/ic_done_black_24px.svg"
+			}
+		]
 	}
-	let notif = new Notification(title, options);
-	notif.onclick = function(){
-		if(action.type == "addStream" || action.type == "deleteStream"){
-			let streamListSetting = new streamListFromSetting(action.data.website);
-			let id = action.data.id;
-		}
-		switch(action.type){
-			case "openUrl":
-				// Notification with openUrl action
-				openTabIfNotExist(action.data);
-				console.info(`Notification (openUrl): "${message}" (${action.data})`);
-				break;
-			case "function":
-				// Notification with custom function as action
-				action.data();
-				break;
-			case "addStream":
-				let url = action.data.url;
-				streamListSetting.addStream(id, url);
-				streamListSetting.update();
-				doNotif("Stream Notifier", `${id} ${_("wasnt_configured_and_have_been_added")}`);
-				// Update the panel for the new stream added
-				refreshStreamsFromPanel();
-				break;
-			case "deleteStream":
-				delete streamListSetting.objData[id];
-				streamListSetting.update();
-				doNotif("Stream Notifier", `${id} ${_("has been deleted.")}`);
-				// Update the panel for the new stream added
-				refreshStreamsFromPanel();
-				break;
-			default:
-				// Nothing - Unknown action
-				void(0);
-		}
-	}
-	/*
+	
 	switch(action.type){
 		case "openUrl":
 			// Notification with openUrl action
@@ -584,19 +615,27 @@ function doActionNotif(title, message, action, imgurl){
 			break;
 		default:
 			chrome.notifications.create(JSON.stringify(new notifAction("none", {})), options);
-	}*/
+	}
 }
-/*
-chrome.notifications.onClosed.addListener(function(notificationId, byUser){
-	console.info(`${notificationId} - By user: ${byUser}`);
-	if(byUser && typeof notificationId == "string" && notificationId != ""){
+chrome.notifications.onClicked.addListener(function(notificationId){
+	console.info(`${notificationId} (onClicked)`);
+	chrome.notifications.clear(notificationId);
+});
+chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex){
+	console.info(`${notificationId} (onButtonClicked) - Button index: ${buttonIndex}`);
+	chrome.notifications.clear(notificationId);
+	
+	if( typeof notificationId == "string" && notificationId != ""){
+		
 		let action = JSON.parse(notificationId);
+		
 		if(typeof action.type == "string"){
 			if(action.type == "openUrl"){
 				// Notification with openUrl action
 				openTabIfNotExist(action.data);
 			} else if(action.type == "addStream" || action.type == "deleteStream"){
-
+				let streamListSetting = new streamListFromSetting(action.data.website);
+				let id = action.data.id;
 				
 				if(action.type == "addStream"){
 					let url = action.data.url;
@@ -619,7 +658,7 @@ chrome.notifications.onClosed.addListener(function(notificationId, byUser){
 			}
 		}
 	}
-});*/
+});
 
 function doStreamNotif(website,id,isStreamOnline){
 	let streamName = liveStatus[website][id].streamName;
