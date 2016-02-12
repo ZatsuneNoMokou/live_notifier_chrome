@@ -1,3 +1,6 @@
+# 4.3.4:
+* Fix: Hitbox private channel error
+
 # 4.3.3:
 * +: Notification setting (web / chrome api)
 
