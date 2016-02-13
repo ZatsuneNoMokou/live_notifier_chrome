@@ -23,34 +23,6 @@ port.onDisconnect.addListener(function(port) {
 	console.info(`Port disconnected: ${port.name}`);
 });
 
-// Event managing function from https://stackoverflow.com/questions/4386300/javascript-dom-how-to-remove-all-events-of-a-dom-object/4386514#4386514
-var _eventHandlers = {}; // somewhere global
-function addEvent(node, event, handler, capture) {
-	if(!(node in _eventHandlers)) {
-		// _eventHandlers stores references to nodes
-		_eventHandlers[node] = {};
-	}
-	if(!(event in _eventHandlers[node])) {
-		// each entry contains another entry for each event type
-		_eventHandlers[node][event] = [];
-	}
-	// capture reference
-	_eventHandlers[node][event].push([handler, capture]);
-	node.addEventListener(event, handler, capture);
- }
-function removeNodeEvents(node, event) {
-	if(node in _eventHandlers) {
-		var handlers = _eventHandlers[node];
-		if(event in handlers) {
-			var eventHandlers = handlers[event];
-			for(var i = eventHandlers.length; i--;) {
-				var handler = eventHandlers[i];
-				node.removeEventListener(event, handler[0], handler[1]);
-			}
-		}
-	}
-}
-
 var refreshStreamsButton = document.querySelector("#refreshStreams");
 
 function refreshButtonClick(){
@@ -122,7 +94,7 @@ panel_theme_select.addEventListener("change", panel_theme_select_onChange, false
 function removeAllChildren(node){
 	// Taken from https://stackoverflow.com/questions/683366/remove-all-the-children-dom-elements-in-div
 	while (node.hasChildNodes()) {
-		removeNodeEvents(node.lastChild, "click");
+		node.lastChild.removeEventListener("click", streamItemClick);
 		node.removeChild(node.lastChild);
 	}
 }
@@ -143,8 +115,8 @@ function initList(showOffline){
 	if(streamItems.length > 0){
 		for(let i in streamItems){
 			let node = streamItems[i];
-			removeNodeEvents(node, "click");
 			if(typeof node.removeChild != "undefined"){
+				node.removeEventListener("click", streamItemClick);
 				node.parentNode.removeChild(node);
 			}
 		}
@@ -235,18 +207,30 @@ function listener(data){
 		nodeListOffline[data.website].appendChild(newLine);
 	}
 	newLine.className += " cursor";
-	addEvent(newLine,"click",function(){streamItemClick(data);},false);
+	
+	newLine.setAttribute("data-streamId", data.id);
+	newLine.setAttribute("data-online", data.online);
+	newLine.setAttribute("data-streamWebsite", data.website);
+	newLine.setAttribute("data-streamUrl", data.streamUrl);
+	newLine.addEventListener("click", streamItemClick);
+
 	showNonEmptySitesBlocks();
 }
-function streamItemClick(data){
+function streamItemClick(){
+	let node = this;
+	let id = node.getAttribute("data-streamId");
+	let online = node.getAttribute("data-online");
+	let website = node.getAttribute("data-streamWebsite");
+	let streamUrl = node.getAttribute("data-streamUrl");
+	
 	if(deleteModeState == true){
-		my_port.sendData("deleteStream", data);
+		my_port.sendData("deleteStream", {id: id, website: website});
 		deleteStreamButtonClick();
 	} else {
-		if(data.online){
-			my_port.sendData("openOnlineLive", data);
+		if(online){
+			my_port.sendData("openOnlineLive", {id: id, website: website, streamUrl: streamUrl});
 		} else {
-			my_port.sendData("openTab", data.streamUrl);
+			my_port.sendData("openTab", streamUrl);
 		}
 	}
 }
