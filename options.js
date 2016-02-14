@@ -20,23 +20,6 @@ function save_options() {
 			port_options.sendData("setting_Update", {settingName: node.id, settingValue: getValueFromNode(node)});
 		}
 	}
-	/*localStorage.setItem("dailymotion_keys_list",			document.querySelector('#dailymotion_keys_list').value);
-	localStorage.setItem("hitbox_keys_list",				document.querySelector('#hitbox_keys_list').value);
-	localStorage.setItem("twitch_keys_list",				document.querySelector('#twitch_keys_list').value);
-	
-	localStorage.setItem("hitbox_user_id",					document.querySelector('#hitbox_user_id').value);
-	localStorage.setItem("twitch_user_id",					document.querySelector('#twitch_user_id').value);
-	
-	localStorage.setItem("check_delay",						parseInt(document.querySelector('#check_delay').value));
-	localStorage.setItem("notify_online",					document.querySelector('#notify_online').checked);
-	localStorage.setItem("notify_offline",					document.querySelector('#notify_offline').checked);
-	localStorage.setItem("show_offline_in_panel",			document.querySelector('#show_offline_in_panel').checked);
-	localStorage.setItem("confirm_addStreamFromPanel",		document.querySelector('#confirm_addStreamFromPanel').checked);
-	localStorage.setItem("confirm_deleteStreamFromPanel",	document.querySelector('#confirm_deleteStreamFromPanel').checked);
-	localStorage.setItem("panel_theme",						document.querySelector('#panel_theme').value);
-	localStorage.setItem("background_color",				getValueFromNode(document.querySelector('#background_color')));//document.querySelector('#background_color').value);
-	localStorage.setItem("livestreamer_cmd_to_clipboard",	document.querySelector('#livestreamer_cmd_to_clipboard').checked);
-	localStorage.setItem("livestreamer_cmd_quality",		document.querySelector('#livestreamer_cmd_quality').value);*/
 	var status = document.querySelector('#status');
 	status.textContent = _("options_saved");
 	setTimeout(function() {
@@ -62,18 +45,11 @@ port.onDisconnect.addListener(function(port) {
 let hitbox_import_button = document.querySelector("button#hitbox_import");
 hitbox_import_button.addEventListener("click", function(){
 	port_options.sendData("importStreams","hitbox");
-	setTimeout(function() {
-		restore_options();
-	}, 5000);
 });
 
 let twitch_import_button = document.querySelector("button#twitch_import");
 twitch_import_button.addEventListener("click", function(){
-	port_options.sendData("importStreams","twitch")
-	setTimeout(function() {
-		restore_options();
-	}, 5000);
-
+	port_options.sendData("importStreams","twitch");
 });
 
 let pref_nodes = {
@@ -85,6 +61,7 @@ let pref_nodes = {
 	twitch_user_id: document.querySelector('#twitch_user_id'),
 
 	check_delay:					document.querySelector('#check_delay'),
+	notification_type:				document.querySelector('#notification_type'),
 	notify_online:					document.querySelector('#notify_online'),
 	notify_offline:					document.querySelector('#notify_offline'),
 	show_offline_in_panel:			document.querySelector('#show_offline_in_panel'),
@@ -104,6 +81,7 @@ function restore_options() {
 	pref_nodes.twitch_user_id.value =					getPreferences("twitch_user_id");
 	
 	pref_nodes.check_delay.value =						parseInt(getPreferences("check_delay"));
+	pref_nodes.notification_type.value = 				getPreferences("notification_type");
 	pref_nodes.notify_online.checked =					getPreferences("notify_online");
 	pref_nodes.notify_offline.checked =					getPreferences("notify_offline");
 	pref_nodes.show_offline_in_panel.checked =			getPreferences("show_offline_in_panel");
@@ -123,6 +101,31 @@ function init(){
 document.addEventListener('DOMContentLoaded',				init);
 document.querySelector('#save').addEventListener('click',	save_options);
 
+let port_mainscript = null
+chrome.runtime.onConnect.addListener(function(_port) {
+	console.info(`Port (${_port.name}) connected`);
+	port_mainscript = _port;
+	port_mainscript.onMessage.addListener(function(message, MessageSender){
+		console.group();
+		console.log("Page option (onMessage):");
+		console.dir(message);
+		console.groupEnd();
+		
+		let id = message.id;
+		let data = message.data;
+		
+		switch(id){
+			case "refreshOptions":
+				restore_options();
+				break;
+		}
+	});
+	port_mainscript.onDisconnect.addListener(function(port) {
+		console.assert(`Port disconnected: ${port.name}`);
+		port = null;
+	});
+});
+
 // Storage area compatibility - Might not be useful for now, but Firefox Webextension doesn't seems to plan using the sync storage area
 let storage = (typeof chrome.storage.sync == "object")? chrome.storage.sync : chrome.storage.local;
 
@@ -136,6 +139,7 @@ function saveOptionsInSync(){
 	let twitch_user_id = pref_nodes.twitch_user_id.value;
 	
 	let check_delay =						parseInt(pref_nodes.check_delay.value);
+	let notification_type =					pref_nodes.notification_type.value;
 	let notify_online =						pref_nodes.notify_online.checked;
 	let notify_offline =					pref_nodes.notify_offline.checked;
 	let show_offline_in_panel =				pref_nodes.show_offline_in_panel.checked;
@@ -154,6 +158,7 @@ function saveOptionsInSync(){
 		twitch_user_id: twitch_user_id,
 		
 		check_delay: check_delay,
+		notification_type: notification_type,
 		notify_online: notify_online,
 		notify_offline: notify_offline,
 		show_offline_in_panel: show_offline_in_panel,
@@ -183,6 +188,7 @@ function restaureOptionsFromSync(){
 		hitbox_user_id: "",
 		twitch_user_id: "",
 		check_delay: 5,
+		notification_type: "web",
 		notify_online: true,
 		notify_offline: false,
 		show_offline_in_panel: false,
@@ -201,6 +207,7 @@ function restaureOptionsFromSync(){
 		pref_nodes.twitch_user_id.value =						items.twitch_user_id;
 		
 		pref_nodes.check_delay.value =							parseInt(items.check_delay);
+		pref_nodes.notification_type.value =					items.notification_type;
 		pref_nodes.notify_online.checked =						getBooleanFromVar(items.notify_online);
 		pref_nodes.notify_offline.checked =						getBooleanFromVar(items.notify_offline);
 		pref_nodes.show_offline_in_panel.checked =				getBooleanFromVar(items.show_offline_in_panel);

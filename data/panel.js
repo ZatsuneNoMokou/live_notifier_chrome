@@ -18,6 +18,7 @@ let _ = appGlobal._;
 let translateNodes = appGlobal.translateNodes;
 let translateNodes_title = appGlobal.translateNodes_title;
 let getValueFromNode = appGlobal.getValueFromNode;
+let getBooleanFromVar = appGlobal.getBooleanFromVar;
 
 port.onDisconnect.addListener(function(port) {
 	console.info(`Port disconnected: ${port.name}`);
@@ -72,23 +73,83 @@ function setting_Toggle(){
 }
 settings_button.addEventListener("click", setting_Toggle, false);
 
+let hitbox_user_id_input = document.querySelector("#hitbox_user_id");
+hitbox_user_id_input.addEventListener("blur", settingNode_onChange, false);
+
+let hitbox_import_button = document.querySelector("button#hitbox_import");
+hitbox_import_button.addEventListener("click", function(){
+	my_port.sendData("importStreams","hitbox");
+});
+
+let twitch_user_id_input = document.querySelector("#twitch_user_id");
+twitch_user_id_input.addEventListener("blur", settingNode_onChange, false);
+
+let twitch_import_button = document.querySelector("button#twitch_import");
+twitch_import_button.addEventListener("click", function(){
+	my_port.sendData("importStreams","twitch");
+});
+
+let check_delay_input = document.querySelector("#check_delay");
+check_delay_input.addEventListener("change", settingNode_onChange, false);
+
+let notification_type_select = document.querySelector("#notification_type");
+notification_type_select.addEventListener("change", settingNode_onChange, false);
+
+let notify_online_input = document.querySelector("#notify_online");
+notify_online_input.addEventListener("change", settingNode_onChange, false);
+
+let notify_offline_input = document.querySelector("#notify_offline");
+notify_offline_input.addEventListener("change", settingNode_onChange, false);
+
+let show_offline_in_panel = document.querySelector("#show_offline_in_panel");
+show_offline_in_panel.addEventListener("change", settingNode_onChange, false);
+
+let confirm_addStreamFromPanel_input = document.querySelector("#confirm_addStreamFromPanel");
+confirm_addStreamFromPanel_input.addEventListener("change", settingNode_onChange, false);
+
+let confirm_deleteStreamFromPanel_input = document.querySelector("#confirm_deleteStreamFromPanel");
+confirm_deleteStreamFromPanel_input.addEventListener("change", settingNode_onChange, false);
+
 let background_color_input = document.querySelector("#background_color");
-function background_color_input_onChange(){
-	let node = this;
-	let value = getValueFromNode(node);
-	my_port.sendData("setting_Update", {settingName: "background_color", settingValue: value});
-	theme_update({"theme": panel_theme, "background_color": value});
-}
-background_color_input.addEventListener("change", background_color_input_onChange, false);
+background_color_input.addEventListener("change", settingNode_onChange, false);
 
 let panel_theme_select = document.querySelector("#panel_theme");
-function panel_theme_select_onChange(){
+panel_theme_select.addEventListener("change", settingNode_onChange, false);
+
+let livestreamer_cmd_to_clipboard_input = document.querySelector("#livestreamer_cmd_to_clipboard");
+livestreamer_cmd_to_clipboard_input.addEventListener("change", settingNode_onChange, false);
+
+let livestreamer_cmd_quality_input = document.querySelector("#livestreamer_cmd_quality");
+livestreamer_cmd_quality_input.addEventListener("blur", settingNode_onChange, false);
+
+function settingNode_onChange(){
 	let node = this;
+	let setting_Name = this.id;
 	let value = getValueFromNode(node);
-	my_port.sendData("setting_Update", {settingName: "panel_theme", settingValue: value});
-	theme_update({"theme": value, "background_color": background_color});
+	if(setting_Name == "check_delay" && value < 1){
+		value = 1;
+	}
+	my_port.sendData("setting_Update", {settingName: setting_Name, settingValue: value});
+	my_port.sendData("refreshPanel", {doUpdateTheme: ((setting_Name == "background_color" || setting_Name == "panel_theme")? true : false)})
 }
-panel_theme_select.addEventListener("change", panel_theme_select_onChange, false);
+
+function settingNodesUpdate(data){
+	let settingNode = document.querySelector(`#${data.settingName}`);
+	if(settingNode !== null){
+		switch(settingNode.getAttribute("data-setting-type")){
+			case "boolean":
+				settingNode.checked = getBooleanFromVar(data.settingValue);
+				break;
+			case "number":
+				settingNode.value = parseInt(data.settingValue);
+				break;
+			case "string":
+				settingNode.value = data.settingValue;
+				break;
+		}
+	}
+}
+/*			---- Settings end ----			*/
 
 
 function removeAllChildren(node){
@@ -345,6 +406,9 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				break;
 			case "updateData":
 				listener(data);
+				break;
+			case "settingNodesUpdate":
+				settingNodesUpdate(data);
 				break;
 			case "panel_theme":
 				theme_update(data);

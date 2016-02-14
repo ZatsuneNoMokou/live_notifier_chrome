@@ -72,12 +72,14 @@ header button {
 #streamList, #settings_container{
 	overflow: auto;
 	flex: 1;
-	display: inline-flex;
 	position: relative;
 	flex-direction: column;
 	align-items: stretch;
 	justify-content: space-between;
 	padding: 14px;
+}
+#streamList{
+	display: inline-flex;
 }
 #streamOnlineCountLabel, #streamOfflineCountLabel{
 	margin: 0px;

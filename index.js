@@ -36,8 +36,17 @@ function getPreferences(prefId){
 		return localStorage.getItem(prefId);
 	} else if(typeof defaultSettings[prefId] != "undefined"){
 		console.warn(`Preference ${prefId} not found, using default`);
-		localStorage.setItem(prefId, defaultSettings[prefId]);
+		savePreference(prefId, defaultSettings[prefId]);
 		return defaultSettings[prefId];
+	}
+}
+function savePreference(prefId, value){
+	localStorage.setItem(prefId, value);
+	if(port_panel_sender !== null){
+		sendDataToOptionPage("refreshOptions", {});
+	}
+	if(port_panel !== null){
+		refreshPanel({doUpdateTheme: ((prefId == "background_color" || prefId == "panel_theme")? true : false)});
 	}
 }
 function getBooleanFromVar(string){
@@ -212,7 +221,7 @@ function streamListFromSetting(website){
 			array.push(i + ((this.objData[i] != "")? (" " + this.objData[i]) : ""));
 		}
 		let newSettings = array.join(",");
-		localStorage.setItem(`${this.website}_keys_list`, newSettings);
+		savePreference(`${this.website}_keys_list`, newSettings);
 		console.log(`New settings (${this.website}): ${localStorage.getItem(`${this.website}_keys_list`)}`);
 	}
 }
@@ -242,6 +251,9 @@ function getStreamURL(website, id, usePrefUrl){
 	}
 }
 
+function refreshPanel(data){
+	updatePanelData(data.doUpdateTheme);
+}
 function refreshStreamsFromPanel(){
 	checkLives();
 	updatePanelData();
@@ -366,7 +378,7 @@ function deleteStreamFromPanel(data){
 
 function settingUpdate(settingName, settingValue){
 	console.log(settingName + " - " + settingValue);
-	localStorage.setItem(settingName, settingValue);
+	savePreference(settingName, settingValue);
 }
 
 let port = null;
@@ -375,6 +387,15 @@ function sendDataToPanel(id, data){
 		console.warn("Port to panel not opened");
 	} else {
 		port.postMessage({"id": id, "data": data});
+	}
+}
+
+let port_panel_sender = null;
+function sendDataToOptionPage(id, data){
+	if(port_panel_sender == null){
+		console.warn("Port to option page not opened");
+	} else {
+		port_panel_sender.postMessage({"id": id, "data": data});
 	}
 }
 
@@ -392,6 +413,14 @@ chrome.runtime.onConnect.addListener(function(_port) {
 			let data = message.data;
 			
 			switch(id){
+				case "refreshPanel":
+					refreshPanel(data);
+					break;
+				case "importStreams":
+					let website = message.data;
+					console.info(`Importing ${website}...`);
+					importButton(website);
+					break;
 				case "refreshStreams":
 					refreshStreamsFromPanel(data);
 					break;
@@ -421,7 +450,7 @@ chrome.runtime.onConnect.addListener(function(_port) {
 			return port;
 		}
 		port = openPortToPanel("Live_Streamer_Main");
-
+		
 		port.onDisconnect.addListener(function(port) {
 			console.info(`Port disconnected: ${port.name}`);
 			if(port.name == "Live_Streamer_Main"){
@@ -441,7 +470,7 @@ chrome.runtime.onConnect.addListener(function(_port) {
 			switch(message.id){
 				case "importStreams":
 					let website = message.data;
-					console.info(website);
+					console.info(`Importing ${website}...`);
 					importButton(website);
 					break;
 				case "setting_Update":
@@ -449,6 +478,21 @@ chrome.runtime.onConnect.addListener(function(_port) {
 					break;
 			}
 		});
+		
+		function openPortToOptionPage(portName){
+			port_panel_sender = chrome.runtime.connect({name: portName});
+			console.info(`Port (${portName}) connection initiated`);
+			return port_panel_sender;
+		}
+		port_panel_sender = openPortToOptionPage("Live_Streamer_Main");
+		
+		port_panel_sender.onDisconnect.addListener(function(port) {
+			console.info(`Port disconnected: ${port.name}`);
+			if(port_panel_sender.name == "Live_Streamer_Main"){
+				port_panel_sender = null;
+			}
+		});
+
 		port_options.onDisconnect.addListener(function(port) {
 			console.assert(`Port disconnected: ${port.name}`);
 			port_panel = null;
@@ -458,9 +502,11 @@ chrome.runtime.onConnect.addListener(function(_port) {
 	}
 });
 
-function updatePanelData(){	
-	console.log("Sending panel theme data");
-	sendDataToPanel("panel_theme", {"theme": getPreferences("panel_theme"), "background_color": getPreferences("background_color")});
+function updatePanelData(updateTheme){
+	if(typeof updateTheme == "undefined" || updateTheme == true){
+		console.log("Sending panel theme data");
+		sendDataToPanel("panel_theme", {"theme": getPreferences("panel_theme"), "background_color": getPreferences("background_color")});
+	}
 	
 	//Clear stream list in the panel
 	sendDataToPanel("initList", getPreferences("show_offline_in_panel"));
@@ -483,6 +529,23 @@ function updatePanelData(){
 				sendDataToPanel("updateData", streamInfo);
 			}
 		}
+	}
+	
+	let updateSettings = [
+		"hitbox_user_id",
+		"twitch_user_id",
+		"check_delay",
+		"notification_type",
+		"notify_online",
+		"notify_offline",
+		"show_offline_in_panel",
+		"confirm_addStreamFromPanel",
+		"confirm_deleteStreamFromPanel",
+		"livestreamer_cmd_to_clipboard",
+		"livestreamer_cmd_quality"
+	];
+	for(let i in updateSettings){
+		sendDataToPanel("settingNodesUpdate", {settingName: updateSettings[i], settingValue: getPreferences(updateSettings[i])});
 	}
 }
 

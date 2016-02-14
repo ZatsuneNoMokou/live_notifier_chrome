@@ -1,3 +1,6 @@
+# 4.5.0:
+* +: More settings in the panel
+
 # 4.4.0:
 * +: Simplified stream item events from panel
 
