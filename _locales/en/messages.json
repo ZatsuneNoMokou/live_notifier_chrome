@@ -162,7 +162,7 @@
 		"message": "Choose base color of the panel"
 	},
 	"livestreamer_cmd_to_clipboard_title": {
-		"message": "Copy Livestreamer command on stream click."
+		"message": "Copy Livestreamer command on stream click"
 	},
 	"livestreamer_cmd_to_clipboard_description": {
 		"message": "Check to activate copying Livestreamer command in clipboard when clicking on an online stream"
