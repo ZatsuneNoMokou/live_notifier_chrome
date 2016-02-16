@@ -65,6 +65,9 @@
 	"has_been_deleted": {
 		"message": "a été supprimé."
 	},
+	"Livestreamer_command_copied_into_the_clipboard": {
+		"message": "Commande Livestreamer copiée dans le presse papier"
+	},
 	"dailymotion_keys_list_title": {
 		"message": "Clés Dailymotion keys à notifier"
 	},

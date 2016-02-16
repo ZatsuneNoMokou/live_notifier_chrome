@@ -102,45 +102,6 @@ function getValueFromNode(node){
 	}
 }
 
-function copyToClipboard(string){
-	let copy = function(string){
-		let copy_form;
-		if(document.querySelector("#copy_form") === null){
-			copy_form = document.createElement("textarea");
-			copy_form.id = "copy_form";
-			copy_form.textContent = string;
-			document.querySelector("body").appendChild(copy_form);
-		} else {
-			copy_form = document.querySelector("#copy_form");
-		}
-		
-		copy_form.focus();
-		document.execCommand('SelectAll');
-		document.execCommand('Copy');
-		console.info(`Copied: ${string}`)
-		copy_form.textContent = "";
-	}
-	
-	chrome.permissions.contains({
-		permissions: ['clipboardWrite'],
-	}, function(result) {
-		if(result){
-			copy(string);
-		} else {
-			console.log("Clipboard writing permission not granted");
-			chrome.permissions.request({
-				permissions: ['clipboardWrite'],
-			}, function(result) {
-				if(result){
-					copy(string);
-				} else {
-					console.error("The extension doesn't have the permissions.");
-				}
-			});
-		}
-	});
-}
-
 let _ = chrome.i18n.getMessage;
 
 // appGlobal: Accessible with chrome.extension.getBackgroundPage();
@@ -430,6 +391,9 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				case "deleteStream":
 					deleteStreamFromPanel(data);
 					break;
+				case "copyLivestreamerCmd":
+					copyLivestreamerCmd(data);
+					break;
 				case "openOnlineLive":
 					openOnlineLive(data);
 					break;
@@ -554,12 +518,57 @@ function handleChange() {
 	updatePanelData();
 }
 
+function copyToClipboard(string){
+	
+	let copy = function(string){
+		let copy_form;
+		if(document.querySelector("#copy_form") === null){
+			copy_form = document.createElement("textarea");
+			copy_form.id = "copy_form";
+			copy_form.textContent = string;
+			document.querySelector("body").appendChild(copy_form);
+		} else {
+			copy_form = document.querySelector("#copy_form");
+		}
+		
+		copy_form.focus();
+		document.execCommand('SelectAll');
+		let clipboard_success = document.execCommand('Copy');
+		if(clipboard_success){
+			doNotif("Live notifier", _("Livestreamer_command_copied_into_the_clipboard"));
+		}
+		console.info(`Copied: ${string}`)
+		
+		copy_form.parentNode.removeChild(copy_form);
+	}
+	
+	chrome.permissions.contains({
+		permissions: ['clipboardWrite'],
+	}, function(result) {
+		if(result){
+			copy(string);
+		} else {
+			console.log("Clipboard writing permission not granted");
+			chrome.permissions.request({
+				permissions: ['clipboardWrite'],
+			}, function(result) {
+				if(result){
+					copy(string);
+				} else {
+					console.error("The extension doesn't have the permissions.");
+				}
+			});
+		}
+	});
+}
+function copyLivestreamerCmd(data){
+	let cmd = `livestreamer ${getStreamURL(data.website, data.id, false)} ${getPreferences("livestreamer_cmd_quality")}`;
+	copyToClipboard(cmd);
+}
 function openOnlineLive(data){
 	openTabIfNotExist(data.streamUrl);
-	
 	if(getPreferences("livestreamer_cmd_to_clipboard")){
-		let cmd = `livestreamer ${getStreamURL(data.website, data.id, false)} ${getPreferences("livestreamer_cmd_quality")}`;
-		copyToClipboard(cmd);
+		copyLivestreamerCmd(data);
 	}
 }
 
@@ -1000,6 +1009,9 @@ let checkLiveStatus = {
 				} else if(data["category_logo_small"] !== null){
 					liveStatus["hitbox"][hitbox_key].streamCategoryLogo = "http://edge.sf.hitbox.tv" + data["category_logo_small"];
 				} else {
+					liveStatus["hitbox"][hitbox_key].streamCategoryLogo = "";
+				}
+				if(liveStatus["hitbox"][hitbox_key].streamCategoryLogo = "http://edge.sf.hitbox.tv/static/img/generic/blank.gif"){
 					liveStatus["hitbox"][hitbox_key].streamCategoryLogo = "";
 				}
 				if(data.channel["user_logo"] !== null){
