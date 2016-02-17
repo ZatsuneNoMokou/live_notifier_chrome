@@ -68,6 +68,9 @@
 	"Livestreamer_command_copied_into_the_clipboard": {
 		"message": "Livestreamer command copied into the clipboard"
 	},
+	"Addon_have_been_updated": {
+		"message": "Addon have been updated"
+	},
 	"dailymotion_keys_list_title": {
 		"message": "Dailymotion keys to notify"
 	},

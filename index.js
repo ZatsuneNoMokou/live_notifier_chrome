@@ -17,9 +17,10 @@ function getPreferences(prefId){
 		panel_theme: "dark",
 		background_color: "#000000",
 		livestreamer_cmd_to_clipboard: false,
-		livestreamer_cmd_quality: "best"
+		livestreamer_cmd_quality: "best",
+		livenotifier_version: "0.0.0"
 	}
-	if(typeof localStorage.getItem(prefId) != "undefined"){
+	if(typeof localStorage.getItem(prefId) != "undefined" && localStorage.getItem(prefId) != null){
 		let current_pref = localStorage.getItem(prefId);
 		switch(typeof defaultSettings[prefId]){
 			case "string":
@@ -1152,7 +1153,32 @@ let importStreamWebsites = {
 	}
 }
 
-// Exécution
-var interval;
+
+//				------ Load / Unload Event(s) ------				//
+
+// Begin to check lives
+var interval
 checkLives();
-setInterval(checkLives, getCheckDelay());
+
+// Checking if updated
+(function checkIfUpdated(){
+	let getVersionNumbers =  /^(\d*)\.(\d*)\.(\d*)$/;
+	let last_executed_version = getPreferences("livenotifier_version");
+	let current_version = chrome.runtime.getManifest().version;
+	
+	let last_executed_version_numbers = getVersionNumbers.exec(last_executed_version);
+	let current_version_numbers = getVersionNumbers.exec(current_version);
+	
+	if(last_executed_version != current_version){
+		if(current_version_numbers.length == 4 && last_executed_version_numbers.length == 4){
+			if(current_version_numbers[1] > last_executed_version_numbers[1]){
+				doNotif("Live notifier", _("Addon_have_been_updated"));
+			} else if((current_version_numbers[1] == last_executed_version_numbers[1]) && (current_version_numbers[2] > last_executed_version_numbers[2])){
+				doNotif("Live notifier", _("Addon_have_been_updated"));
+			} else if((current_version_numbers[1] == last_executed_version_numbers[1]) && (current_version_numbers[2] == last_executed_version_numbers[2]) && (current_version_numbers[3] > last_executed_version_numbers[3])){
+				doNotif("Live notifier", _("Addon_have_been_updated"));
+			}
+			savePreference("livenotifier_version", current_version);
+		}
+	}
+})();
