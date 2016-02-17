@@ -69,7 +69,12 @@
 		"message": "Livestreamer command copied into the clipboard"
 	},
 	"Addon_have_been_updated": {
-		"message": "Addon have been updated"
+		"message": "Addon have been updated (version $version$)",
+		"placeholders": {
+			"version": {
+				"content": "$1"
+			}
+		}
 	},
 	"dailymotion_keys_list_title": {
 		"message": "Dailymotion keys to notify"

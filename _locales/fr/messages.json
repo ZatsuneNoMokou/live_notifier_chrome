@@ -69,7 +69,12 @@
 		"message": "Commande Livestreamer copiée dans le presse papier"
 	},
 	"Addon_have_been_updated": {
-		"message": "Extension mise à jour"
+		"message": "Extension mise à jour (version $version$)",
+		"placeholders": {
+			"version": {
+				"content": "$1"
+			}
+		}
 	},
 	"dailymotion_keys_list_title": {
 		"message": "Clés Dailymotion keys à notifier"
