@@ -115,7 +115,7 @@ header button {
 	width: 160px;
 }
 .item-stream.offlineItem .streamTitle{
-	max-height: 17px;
+	max-height: 19px;
 	overflow: hidden;
 }
 .item-stream.streamLogo .streamTitle{
