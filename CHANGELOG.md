@@ -1,5 +1,8 @@
+# 4.7.1
+* Fix: Avoid notification on installation
+
 # 4.7.0
-*+: Addon update notification
+* +: Addon update notification
 
 # 4.6.4
 * Fix: Offline streams height
