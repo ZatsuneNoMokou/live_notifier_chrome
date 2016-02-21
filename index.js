@@ -1166,6 +1166,9 @@ let seconderyInfo = {
 	"twitch":
 		function(id, contentId, data, isStreamOnline){
 			let streamData = liveStatus["twitch"][id][contentId];
+			if(typeof data["display_name"] == "string"){
+				streamData.streamName = data["display_name"];
+			}
 			if(typeof data["logo"] == "string" && data["logo"] != ""){
 				streamData.streamOwnerLogo = data["logo"];
 			}
