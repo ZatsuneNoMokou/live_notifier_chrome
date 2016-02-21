@@ -128,8 +128,10 @@ let myIconURL = "/data/live_offline.svg";
 
 let websites = ["dailymotion","hitbox","twitch"];
 let liveStatus = {};
+let channelInfos = {};
 for(let website of websites){
 	liveStatus[website] = {};
+	channelInfos[website] = {};
 }
 
 function streamListFromSetting(website){
@@ -196,22 +198,28 @@ function getStreamURL(website, id, contentId, usePrefUrl){
 	if(streamList[id] != "" && usePrefUrl == true){
 		return streamList[id];
 	} else {
-		if(typeof streamData.streamURL == "string" && streamData.streamURL != ""){
-			return streamData.streamURL;
-		} else {
-			switch(website){
-				case "dailymotion":
-					return "http://www.dailymotion.com/video/" + id;
-					break;
-				case "hitbox":
-					return "http://www.hitbox.tv/" + id;
-					break;
-				case "twitch":
-					return "http://www.twitch.tv/" + id;
-					break;
-				default:
-					return null;
+		if(typeof liveStatus[website][id][contentId] != "undefined"){
+			if(typeof streamData.streamURL == "string" && streamData.streamURL != ""){
+				return streamData.streamURL;
 			}
+		}
+		if(typeof channelInfos[website][id] != "undefined"){
+			if(typeof channelInfos[website][id].streamURL == "string" && channelInfos.streamURL != ""){
+					return channelInfos[website][id].streamURL
+			}
+		}
+		switch(website){
+			case "dailymotion":
+				return "http://www.dailymotion.com/video/" + id;
+				break;
+			case "hitbox":
+				return "http://www.hitbox.tv/" + id;
+				break;
+			case "twitch":
+				return "http://www.twitch.tv/" + id;
+				break;
+			default:
+				return null;
 		}
 	}
 }
@@ -494,27 +502,47 @@ function updatePanelData(updateTheme){
 		for(let id in liveStatus[website]){
 			
 			if(JSON.stringify(liveStatus[website][id]) == "{}"){
-				console.error(`No data found: ${id} (${website})`);
-			}
-			
-			for(let contentId in liveStatus[website][id]){
-				let streamData = liveStatus[website][id][contentId];
+				let streamData = channelInfos[website][id];
+				let contentId = id;
 				
-				if(id in streamList && (streamData.online || (getPreferences("show_offline_in_panel") && !streamData.online))){
-					let streamInfo = {
-						"id": id,
-						"contentId": contentId,
-						"online": streamData.online,
-						"website": website,
-						"streamName": streamData.streamName,
-						"streamStatus": streamData.streamStatus,
-						"streamGame": streamData.streamGame,
-						"streamOwnerLogo": streamData.streamOwnerLogo,
-						"streamCategoryLogo": streamData.streamCategoryLogo,
-						"streamCurrentViewers": streamData.streamCurrentViewers,
-						"streamUrl": getStreamURL(website, id, contentId, true)
+				console.info(`No data found, using channel infos: ${id} (${website})`);
+				
+				let streamInfo = {
+					id: id,
+					type: "channel",
+					contentId: contentId,
+					online: streamData.online,
+					website: website,
+					streamName: streamData.streamName,
+					streamStatus: streamData.streamStatus,
+					streamGame: streamData.streamGame,
+					streamOwnerLogo: streamData.streamOwnerLogo,
+					treamCategoryLogo: streamData.streamCategoryLogo,
+					streamCurrentViewers: streamData.streamCurrentViewers,
+					streamUrl: getStreamURL(website, id, contentId, true)
+				}
+				sendDataToPanel("updateData", streamInfo);
+			} else {
+				for(let contentId in liveStatus[website][id]){
+					let streamData = liveStatus[website][id][contentId];
+					
+					if(id in streamList && (streamData.online || (getPreferences("show_offline_in_panel") && !streamData.online))){
+						let streamInfo = {
+							id: id,
+							type: "live",
+							contentId: contentId,
+							online: streamData.online,
+							website: website,
+							streamName: streamData.streamName,
+							streamStatus: streamData.streamStatus,
+							streamGame: streamData.streamGame,
+							streamOwnerLogo: streamData.streamOwnerLogo,
+							streamCategoryLogo: streamData.streamCategoryLogo,
+							streamCurrentViewers: streamData.streamCurrentViewers,
+							streamUrl: getStreamURL(website, id, contentId, true)
+						}
+						sendDataToPanel("updateData", streamInfo);
 					}
-					sendDataToPanel("updateData", streamInfo);
 				}
 			}
 		}
@@ -587,7 +615,7 @@ function copyToClipboard(string){
 	});
 }
 function copyLivestreamerCmd(data){
-	let cmd = `livestreamer ${getStreamURL(data.website, data.id, false)} ${getPreferences("livestreamer_cmd_quality")}`;
+	let cmd = `livestreamer ${getStreamURL(data.website, data.id, data.contentId, false)} ${getPreferences("livestreamer_cmd_quality")}`;
 	copyToClipboard(cmd);
 }
 function openOnlineLive(data){
@@ -774,16 +802,16 @@ function doStreamNotif(website, id, contentId, isStreamOnline){
 			let streamStatus = streamData.streamStatus + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
 			if(streamStatus.length > 0 && streamStatus.length < 60){
 				if(streamLogo != ""){
-					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, true), streamLogo);
+					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
-					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, true));
+					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true));
 				}
 				
 			} else {
 				if(streamLogo != ""){
-					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, true), streamLogo);
+					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
-					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, true));
+					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, contentId, true));
 				}
 			}
 		}
@@ -867,6 +895,21 @@ function API(website, id){
 			this.url = `https://api.twitch.tv/kraken/streams/${id}`;
 			this.overrideMimeType = "text/plain; charset=utf-8";
 			break;
+	}
+}
+function API_channelInfos(website, id){
+	this.id = id;
+	this.url = "";
+	this.overrideMimeType = "";
+	
+	switch(website){
+		case "dailymotion":
+			this.url = `https://api.dailymotion.com/user/${dailymotion_channel.exec(id)[1]}?fields=id,screenname,url,avatar_720_url`;
+			this.overrideMimeType = "text/plain; charset=latin1";
+			break;
+		default:
+			this.url = null;
+			this.overrideMimeType = null;
 	}
 }
 function API_second(website, id){
@@ -1001,23 +1044,29 @@ function getPrimary(id, website, url, pageNumber){
 function pagingPrimaryEnd(id){
 	setIcon();
 	console.timeEnd(id);
+	console.groupEnd();
 }
 let pagingPrimary = {
 	"dailymotion":
 		function(id, website, data, pageNumber){
 			let list = data.list;
 			
-			for(let i in list){
-				let contentId = list[i].id;
-				processPrimary(id, contentId, website, list[i]);
-			}
-			
-			if(data.has_more){
-				let next_url = (new API(website, dailymotion_channel.exec(id)[1])).url;
-				let current_pageNumber = ((typeof pageNumber == "number")? pageNumber : 1);
-				getPrimary(id, website, next_url, current_pageNumber + 1);
-			} else {
+			if(data.total == 0){
+				getChannelInfo(website, id);
 				pagingPrimaryEnd(id);
+			} else {
+				for(let i in list){
+					let contentId = list[i].id;
+					processPrimary(id, contentId, website, list[i]);
+				}
+				
+				if(data.has_more){
+					let next_url = (new API(website, dailymotion_channel.exec(id)[1])).url;
+					let current_pageNumber = ((typeof pageNumber == "number")? pageNumber : 1);
+					getPrimary(id, website, next_url, current_pageNumber + 1);
+				} else {
+					pagingPrimaryEnd(id);
+				}
 			}
 		}
 }
@@ -1059,6 +1108,42 @@ function processPrimary(id, contentId, website, data){
 	
 	console.timeEnd(id);
 	console.groupEnd();
+}
+function getChannelInfo(website, id){
+	let channelInfos_API = new API_channelInfos(website, id);
+	
+	if(typeof channelInfos["dailymotion"][id] == "undefined"){
+		channelInfos["dailymotion"][id] = {"online": false, "streamName": "", "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": ""};
+	}
+	
+	if(channelInfos_API.url !== null && channelInfos_API.overrideMimeType !== null){
+		let xhr_channelInfos = new XMLHttpRequest();
+		xhr_channelInfos.open('GET', channelInfos_API.url, true);
+		xhr_channelInfos.overrideMimeType(channelInfos_API.overrideMimeType);
+		xhr_channelInfos.send();
+		
+		xhr_channelInfos.addEventListener("load", function(){
+			let data_channelInfos = JSON.parse(xhr_channelInfos.responseText);
+			
+			console.info(website + " - " + id + " (" + channelInfos_API.url + ")");
+			console.dir(data_channelInfos);
+			
+			channelInfosProcess[website](id, data_channelInfos);
+		});
+	}
+}
+let channelInfosProcess = {
+	"dailymotion":
+		function(id, data){
+			let streamData = channelInfos["dailymotion"][id];
+			if(data.hasOwnProperty("screenname")){
+				streamData.streamName = data["screenname"];
+				streamData.streamURL = data.url;
+				if(typeof data["avatar_720_url"] == "string" && data["avatar_720_url"] != ""){
+					streamData.streamOwnerLogo = data["avatar_720_url"];
+				}
+			}
+		}
 }
 
 //Fonction principale : check si le live est on
