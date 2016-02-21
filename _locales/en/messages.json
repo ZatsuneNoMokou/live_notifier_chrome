@@ -47,6 +47,22 @@
 	"wasnt_configured_and_can_be_added": {
 		"message": "wasn't configured, and can be added."
 	},
+	"The_channel": {
+		"message": "The channel $channel$",
+		"placeholders": {
+			"channel": {
+				"content": "$1"
+			}
+		}
+	},
+	"The_stream": {
+		"message": "The stream $channel$",
+		"placeholders": {
+			"channel": {
+				"content": "$1"
+			}
+		}
+	},
 	"click_to_confirm": {
 		"message": "click to confirm"
 	},

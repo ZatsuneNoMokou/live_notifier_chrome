@@ -39,13 +39,29 @@
 		"message": "est déjà configuré."
 	},
 	"wasnt_configured_but_not_detected_as_channel": {
-		"message": "n'était pas configuré, mais n'est pas détecté comme chaîne."
+		"message": "n'était pas configuré(e), mais n'est pas détecté comme chaîne."
 	},
 	"wasnt_configured_and_have_been_added": {
-		"message": "n'était pas configuré, et a été ajouté."
+		"message": "n'était pas configuré(e), et a été ajouté."
 	},
 	"wasnt_configured_and_can_be_added": {
-		"message": "n'était pas configuré, et peut être ajouté."
+		"message": "n'était pas configuré(e), et peut être ajouté."
+	},
+	"The_channel": {
+		"message": "La chaine $channel$",
+		"placeholders": {
+			"channel": {
+				"content": "$1"
+			}
+		}
+	},
+	"The_stream": {
+		"message": "Le stream $channel$",
+		"placeholders": {
+			"channel": {
+				"content": "$1"
+			}
+		}
 	},
 	"click_to_confirm": {
 		"message": "cliquer pour confirmer"
@@ -60,10 +76,10 @@
 		"message": "Cliquer sur un stream le supprimera des paramètres."
 	},
 	"will_be_deleted_are_you_sure": {
-		"message": "va être supprimer, êtes-vous certain(e)?"
+		"message": "va être supprimé(e), êtes-vous certain(e)?"
 	},
 	"has_been_deleted": {
-		"message": "a été supprimé."
+		"message": "a été supprimé(e)."
 	},
 	"Livestreamer_command_copied_into_the_clipboard": {
 		"message": "Commande Livestreamer copiée dans le presse papier"
