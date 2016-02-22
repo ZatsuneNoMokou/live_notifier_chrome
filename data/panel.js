@@ -240,51 +240,10 @@ function newCopyLivestreamerCmdButton_onClick(event){
 	
 	my_port.sendData("copyLivestreamerCmd", {id: id, contentId: contentId, website: website});
 }
-function newCopyLivestreamerCmdButton(id, website){
+function newCopyLivestreamerCmdButton(id, contentId, website){
 	let node = document.createElement("span");
 	node.setAttribute("data-id", id);
-	node.setAttribute("data-website", website);
-	
-	let node_img =  document.createElement("i");
-	node_img.className = "material-icons";
-	node_img.textContent = "content_copy";
-	node.appendChild(node_img);
-	
-	return node;
-}
-function newDeleteStreamButton_onClick(event){
-	event.stopPropagation();
-	
-	let node = this;
-	let id = node.getAttribute("data-id");
-	let website = node.getAttribute("data-website");
-	
-	my_port.sendData("deleteStream", {id: id, website: website});
-}
-function newDeleteStreamButton(id, website){
-	let node = document.createElement("span");
-	node.setAttribute("data-id", id);
-	node.setAttribute("data-website", website);
-	
-	let node_img =  document.createElement("i");
-	node_img.className = "material-icons";
-	node_img.textContent = "delete";
-	node.appendChild(node_img);
-	
-	return node;
-}
-function newCopyLivestreamerCmdButton_onClick(event){
-	event.stopPropagation();
-	
-	let node = this;
-	let id = node.getAttribute("data-id");
-	let website = node.getAttribute("data-website");
-	
-	my_port.sendData("copyLivestreamerCmd", {id: id, website: website});
-}
-function newCopyLivestreamerCmdButton(id, website){
-	let node = document.createElement("span");
-	node.setAttribute("data-id", id);
+	node.setAttribute("data-contentId", contentId);
 	node.setAttribute("data-website", website);
 	
 	let node_img =  document.createElement("i");
@@ -378,7 +337,7 @@ function listener(data){
 	
 	let copyLivestreamerCmd_node = null;
 	if(data.type == "live"){
-		copyLivestreamerCmd_node = newCopyLivestreamerCmdButton(data.id, data.website);
+		copyLivestreamerCmd_node = newCopyLivestreamerCmdButton(data.id, data.contentId, data.website);
 		control_span.appendChild(copyLivestreamerCmd_node);
 	}
 	if(data.online){
