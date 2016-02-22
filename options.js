@@ -56,6 +56,7 @@ let pref_nodes = {
 	dailymotion_keys_list: document.querySelector('#dailymotion_keys_list'),
 	hitbox_keys_list: document.querySelector('#hitbox_keys_list'),
 	twitch_keys_list: document.querySelector('#twitch_keys_list'),
+	beam_keys_list: document.querySelector('#beam_keys_list'),
 	
 	hitbox_user_id: document.querySelector('#hitbox_user_id'),
 	twitch_user_id: document.querySelector('#twitch_user_id'),
@@ -76,6 +77,7 @@ function restore_options() {
 	pref_nodes.dailymotion_keys_list.value =			getPreferences("dailymotion_keys_list");
 	pref_nodes.hitbox_keys_list.value =					getPreferences("hitbox_keys_list");
 	pref_nodes.twitch_keys_list.value =					getPreferences("twitch_keys_list");
+	pref_nodes.beam_keys_list.value =					getPreferences("beam_keys_list");
 	
 	pref_nodes.hitbox_user_id.value =					getPreferences("hitbox_user_id");
 	pref_nodes.twitch_user_id.value =					getPreferences("twitch_user_id");
@@ -134,6 +136,7 @@ function saveOptionsInSync(){
 	let dailymotion_keys_list = pref_nodes.dailymotion_keys_list.value;
 	let hitbox_keys_list = pref_nodes.hitbox_keys_list.value;
 	let twitch_keys_list = pref_nodes.twitch_keys_list.value;
+	let beam_keys_list = pref_nodes.beam_keys_list.value;
 	
 	let hitbox_user_id = pref_nodes.hitbox_user_id.value;
 	let twitch_user_id = pref_nodes.twitch_user_id.value;
@@ -153,6 +156,7 @@ function saveOptionsInSync(){
 		dailymotion_keys_list: dailymotion_keys_list,
 		hitbox_keys_list: hitbox_keys_list,
 		twitch_keys_list: twitch_keys_list,
+		beam_keys_list: beam_keys_list,
 		
 		hitbox_user_id: hitbox_user_id,
 		twitch_user_id: twitch_user_id,
@@ -185,6 +189,7 @@ function restaureOptionsFromSync(){
 		dailymotion_keys_list: "",
 		hitbox_keys_list: "",
 		twitch_keys_list: "",
+		beam_key_list: "",
 		hitbox_user_id: "",
 		twitch_user_id: "",
 		check_delay: 5,
@@ -202,6 +207,7 @@ function restaureOptionsFromSync(){
 		pref_nodes.dailymotion_keys_list.value =				items.dailymotion_keys_list;
 		pref_nodes.hitbox_keys_list.value =						items.hitbox_keys_list;
 		pref_nodes.twitch_keys_list.value =						items.twitch_keys_list;
+		pref_nodes.beam_keys_list.value =						items.beam_keys_list;
 		
 		pref_nodes.hitbox_user_id.value =						items.hitbox_user_id;;
 		pref_nodes.twitch_user_id.value =						items.twitch_user_id;

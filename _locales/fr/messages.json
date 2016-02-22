@@ -122,6 +122,12 @@
 	"twitch_import": {
 		"message": "Importer"
 	},
+	"beam_keys_list_title": {
+		"message": "Clés Beam keys à notifier"
+	},
+	"beam_keys_list_description": {
+		"message": "Liste des streams dans une liste séparée par des virgules."
+	},
 	"check_delay_title": {
 		"message": "Délais de status des streams"
 	},
