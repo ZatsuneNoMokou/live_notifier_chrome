@@ -1,3 +1,6 @@
+# 5.2.0:
+* +: Make additionnal stream setting data possible
+
 # 5.1.1:
 * Fix: Allow to add Dailymotion from Dailymotion Gaming videos (vod)
 

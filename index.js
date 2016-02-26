@@ -142,17 +142,25 @@ function streamListFromSetting(website){
 	let obj = {};
 	if(pref != "" && somethingElseThanSpaces.test(pref)){
 		let myTable = pref.split(",");
-		let reg= /\s*([^\s]+)\s*(.*)/;
+		let reg= /\s*([^\s]+)\s*(\w+\:\:[^\s]+)?\s*(.*)?/;
 		let reg_removeSpaces= /\s*([^\s]+)\s*/;
 		if(myTable.length > 0){
 			for(let i in myTable){
-				if(reg.test(myTable[i])){
-					let result=reg.exec(myTable[i]);
-					obj[result[1]]=result[2];
-				} else {
-					let somethingElseThanSpaces = /[^\s]+/;
-					if(somethingElseThanSpaces.test(myTable[i]) == true){
-						obj[reg_removeSpaces.exec(myTable[i])[1]]="";
+				let url = /^(?:http|https):\/\/.*$/;
+				let filters = /(\w+)\:\:(\w+)/;
+				let result=reg.exec(myTable[i]);
+				
+				let id = result[1];
+				
+				obj[id] = {streamURL: ""};
+				for(let j in result){
+					if(j > 1 && typeof result[j] == "string"){
+						if(filters.test(result[j])){
+							let filtered_result = filters.exec(result[j]);
+							obj[id][filtered_result[1]] = filtered_result[2];
+						} else if(url.test(result[j])){
+							obj[id].streamURL = result[j];
+						}
 					}
 				}
 			}
@@ -196,8 +204,8 @@ function getStreamURL(website, id, contentId, usePrefUrl){
 	
 	let streamData = liveStatus[website][id][contentId];
 	
-	if(streamList[id] != "" && usePrefUrl == true){
-		return streamList[id];
+	if(streamList[id].streamURL != "" && usePrefUrl == true){
+		return streamList[id].streamURL;
 	} else {
 		if(typeof liveStatus[website][id][contentId] != "undefined"){
 			if(typeof streamData.streamURL == "string" && streamData.streamURL != ""){
