@@ -4,7 +4,7 @@
 	"short_name": "LiveNotifier",
 	"description": "__MSG_extShortDesc__",
 	"author": "ZatsuneNoMokou",
-	"version": "5.2.0-pre1",
+	"version": "5.2.0-pre2",
 	"homepage_url": "https://github.com/ZatsuneNoMokou/live_notifier",
 	"icons": {
 		"128": "/icon_128.png"
