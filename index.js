@@ -143,9 +143,7 @@ class streamListFromSetting{
 		let obj = {};
 		if(pref != "" && somethingElseThanSpaces.test(pref)){
 			let myTable = pref.split(",");
-			//let reg= /\s*([^\s]+)\s*(\w+\:\:.+)*\s*(.*)?/;
 			let reg= /\s*([^\s]+)\s*(.*)?/;
-			let reg_removeSpaces= /\s*([^\s]+)\s*/;
 			if(myTable.length > 0){
 				for(let i in myTable){
 					let url = /((?:http|https):\/\/.*)\s*$/;
