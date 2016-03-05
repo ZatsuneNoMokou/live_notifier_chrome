@@ -232,8 +232,17 @@ class streamListFromSetting{
 	}
 	update(){
 		let array = new Array();
-		for(let i in this.objData){
-			array.push(i + ((this.objData[i] != "")? (" " + this.objData[i]) : ""));
+		for(let id in this.objData){
+			let filters = "";
+			for(let j in this.objData[id]){
+				if(j != "streamURL"){
+					filters = filters + " " + j + "::" + this.objData[id][j];
+				}
+			}
+			
+			let URL = (typeof this.objData[id].streamURL != "undefined")? (" " + this.objData[id].streamURL) : "";
+			
+			array.push(`${id}${filters}${URL}`);
 		}
 		let newSettings = array.join(",");
 		savePreference(`${this.website}_keys_list`, newSettings);

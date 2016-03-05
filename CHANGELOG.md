@@ -1,6 +1,7 @@
 # 5.2.0:
 * +: Make additionnal stream setting data possible
 * +: Start using class sytem (ES6)
+* +: Whitelist and/or blacklist for stream status
 
 # 5.1.1:
 * Fix: Allow to add Dailymotion from Dailymotion Gaming videos (vod)
