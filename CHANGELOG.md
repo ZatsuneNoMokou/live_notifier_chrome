@@ -1,3 +1,10 @@
+# 5.3.0:
+* +: Use textContent instead of createTextNode
+* +: Support filtering game (with website providing this information)
+* Fix: Lower case search with stream filters
+* Fix: Active tab var does not refresh URL during navigation
+* Fix: Make sure that the count of online / offline streams is updated properly with filters
+
 # 5.2.0:
 * +: Make additionnal stream setting data possible
 * +: Start using class sytem (ES6)

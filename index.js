@@ -301,25 +301,6 @@ function refreshStreamsFromPanel(){
 }
 let addStreamFromPanel_pageListener = new Array();
 
-// Source code from: https://stackoverflow.com/a/24026281
-let activeTab;
-function updateActive(tab) {
-	activeTab = tab;
-}
-function onActivated(info) {
-	chrome.tabs.get(info.tabId, updateActive);
-}
-function onUpdated(info, tab) {
-	if (tab.active)
-		updateActive(tab);
-}
-chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
-	updateActive(tabs[0]);
-	chrome.tabs.onActivated.addListener(onActivated);
-	chrome.tabs.onUpdated.addListener(onUpdated);
-	//chrome.windows.onFocusChanged.addListener()
-});
-
 function display_id(id){
 	if(dailymotion_channel.test(id)){
 		return _("The_channel", dailymotion_channel.exec(id)[1]);
@@ -327,6 +308,7 @@ function display_id(id){
 		return _("The_stream", id);
 	}
 }
+let activeTab;
 function addStreamFromPanel(embed_list){
 	let current_tab = activeTab;
 	let active_tab_url = current_tab.url;
@@ -490,7 +472,11 @@ chrome.runtime.onConnect.addListener(function(_port) {
 					refreshStreamsFromPanel(data);
 					break;
 				case "addStream":
-					addStreamFromPanel(data);
+					// Make sure to have up-to-date active tab AND its url
+					chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
+						activeTab = tabs[0];
+						addStreamFromPanel(data);
+					});
 					break;
 				case "deleteStream":
 					deleteStreamFromPanel(data);
@@ -590,16 +576,6 @@ function updatePanelData(updateTheme){
 	//Clear stream list in the panel
 	sendDataToPanel("initList", getPreferences("show_offline_in_panel"));
 	
-	//Update online steam count in the panel
-	sendDataToPanel("updateOnlineCount", (onlineCount == 0)? _("No_stream_online") :  _("count_stream_online", onlineCount.toString()) + ":");
-	
-	if(getPreferences("show_offline_in_panel")){
-		var offlineCount = getOfflineCount();
-		sendDataToPanel("updateOfflineCount", (offlineCount == 0)? _("No_stream_offline") :  _("count_stream_offline", offlineCount.toString()) + ":");
-	} else {
-		sendDataToPanel("updateOfflineCount", "");
-	}
-	
 	for(let website in liveStatus){
 		var streamList = (new streamListFromSetting(website)).objData;
 		for(let id in liveStatus[website]){
@@ -656,6 +632,16 @@ function updatePanelData(updateTheme){
 	}
 	
 	setIcon();
+	
+	//Update online steam count in the panel
+	sendDataToPanel("updateOnlineCount", (onlineCount == 0)? _("No_stream_online") :  _("count_stream_online", onlineCount.toString()) + ":");
+	
+	if(getPreferences("show_offline_in_panel")){
+		var offlineCount = getOfflineCount();
+		sendDataToPanel("updateOfflineCount", (offlineCount == 0)? _("No_stream_offline") :  _("count_stream_offline", offlineCount.toString()) + ":");
+	} else {
+		sendDataToPanel("updateOfflineCount", "");
+	}
 	
 	let updateSettings = [
 		"hitbox_user_id",
@@ -896,32 +882,65 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 
 function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamOnline){
 	let streamData = liveStatus[website][id][contentId];
-	let lowerCase_status = (streamData.streamStatus).toLowerCase();
-	if(isStreamOnline && streamSetting.statusWhitelist){
-		let statusWhitelist = streamSetting.statusWhitelist;
-		let whitelisted = false;
-		for(let i in statusWhitelist){
-			if(lowerCase_status.indexOf(statusWhitelist[i]) != -1){
-				whitelisted = true;
-				break;
+	
+	if(streamData.streamStatus != ""){
+		let lowerCase_status = (streamData.streamStatus).toLowerCase();
+		if(isStreamOnline && streamSetting.statusWhitelist){
+			let statusWhitelist = streamSetting.statusWhitelist;
+			let whitelisted = false;
+			for(let i in statusWhitelist){
+				if(lowerCase_status.indexOf(statusWhitelist[i].toLowerCase()) != -1){
+					whitelisted = true;
+					break;
+				}
+			}
+			if(whitelisted == false){
+				isStreamOnline = false;
+				console.info(`${id} current status does not contain whitelist element(s)`);
 			}
 		}
-		if(whitelisted == false){
-			isStreamOnline = false;
-			console.info(`${id} current status does not contain whitelist element(s)`);
+		if(isStreamOnline && streamSetting.statusBlacklist){
+			let statusBlacklist = streamSetting.statusBlacklist;
+			let blacklisted = false;
+			for(let i in statusBlacklist){
+				if(lowerCase_status.indexOf(statusBlacklist[i].toLowerCase()) != -1){
+					blacklisted = true;
+				}
+			}
+			if(blacklisted == true){
+				isStreamOnline = false;
+				console.info(`${id} current status contain blacklist element(s)`);
+			}
 		}
 	}
-	if(isStreamOnline && streamSetting.statusBlacklist){
-		let statusBlacklist = streamSetting.statusBlacklist;
-		let blacklisted = false;
-		for(let i in statusBlacklist){
-			if(lowerCase_status.indexOf(statusBlacklist[i]) != -1){
-				blacklisted = true;
+	if(typeof streamData.streamGame == "string" && streamData.streamGame != ""){
+		let lowerCase_streamGame = (streamData.streamGame).toLowerCase();
+		if(isStreamOnline && streamSetting.gameWhitelist){
+			let gameWhitelist = streamSetting.gameWhitelist;
+			let whitelisted = false;
+			for(let i in gameWhitelist){
+				if(lowerCase_streamGame.indexOf(gameWhitelist[i].toLowerCase()) != -1){
+					whitelisted = true;
+					break;
+				}
+			}
+			if(whitelisted == false){
+				isStreamOnline = false;
+				console.info(`${id} current game does not contain whitelist element(s)`);
 			}
 		}
-		if(blacklisted == true){
-			isStreamOnline = false;
-			console.info(`${id} current status contain blacklist element(s)`);
+		if(isStreamOnline && streamSetting.gameBlacklist){
+			let gameBlacklist = streamSetting.gameBlacklist;
+			let blacklisted = false;
+			for(let i in gameBlacklist){
+				if(lowerCase_streamGame.indexOf(gameBlacklist[i].toLowerCase()) != -1){
+					blacklisted = true;
+				}
+			}
+			if(blacklisted == true){
+				isStreamOnline = false;
+				console.info(`${id} current game contain blacklist element(s)`);
+			}
 		}
 	}
 	streamData.online_cleaned = isStreamOnline;
