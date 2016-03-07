@@ -1246,7 +1246,7 @@ let pagingPrimary = {
 
 function processPrimary(id, contentId, website, streamSetting, data){
 	if(typeof liveStatus[website][id][contentId] == "undefined"){
-		liveStatus[website][id][contentId] = {"online": false, "streamName": "", "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": ""};
+		liveStatus[website][id][contentId] = {"online": false, "streamName": id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": ""};
 	}
 	let liveState = checkLiveStatus[website](id, contentId, data);
 	if(liveState !== null){
