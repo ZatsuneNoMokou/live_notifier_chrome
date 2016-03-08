@@ -72,8 +72,8 @@
 	"No_supported_stream_detected_in_the_current_tab_so_nothing_to_add": {
 		"message": "Aucun stream supporté détecté dans l'onglet actuel, donc, rien à ajouter."
 	},
-	"delete_stream_mode": {
-		"message": "Cliquer sur un stream le supprimera des paramètres."
+	"delete_tooltip": {
+		"message": "Pour supprimer un stream des paramètres, le déplacer dans la poubelle."
 	},
 	"will_be_deleted_are_you_sure": {
 		"message": "va être supprimé(e), êtes-vous certain(e)?"
