@@ -1,3 +1,6 @@
+# 5.4.3:
+* Fix: Removed useless console.log in getValueFromNode
+
 # 5.4.2:
 * Fix: Dailymotion Game video pattern missing
 
