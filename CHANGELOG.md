@@ -23,8 +23,8 @@
 * Fix: Make sure that the count of online / offline streams is updated properly with filters
 
 # 5.2.0:
-* +: Make additionnal stream setting data possible
-* +: Start using class sytem (ES6)
+* +: Make additional stream setting data possible
+* +: Start using class system (ES6)
 * +: Whitelist and/or blacklist for stream status
 
 # 5.1.1:
@@ -52,7 +52,7 @@
 * +: Addon update notification
 
 # 4.6.4
-* Fix: Offline streams height
+* Fix: Height of Offline streams
 
 # 4.6.3
 * Fix: Viewer count / Control stream buttons (position)
@@ -64,10 +64,10 @@
 * Fix: Panel html
 * Fix: Style of settings from the panel
 * Fix: Control stream buttons (position)
-* Fix: Localisation (copy Livestreamer title)
+* Fix: Localization (copy Livestreamer title)
 
 # 4.6.0
-* +: Added 2 buttons to streams, to delete a stream and to copy the livestreamer command
+* +: Added 2 buttons to streams, to delete a stream and to copy the Livestreamer command
 * Fix: Blank image category for Hitbox
 
 # 4.5.0:
