@@ -128,6 +128,12 @@
 	"beam_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
+	"beam_user_id_description": {
+		"message": "Entrez votre id Beam pour pouvoir importer les streameurs que vous suivez"
+	},
+	"beam_import": {
+		"message": "Importer"
+	},
 	"check_delay_title": {
 		"message": "Délais de status des streams"
 	},

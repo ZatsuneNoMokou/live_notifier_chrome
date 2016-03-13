@@ -130,6 +130,14 @@ twitch_import_button.addEventListener("click", function(){
 	my_port.sendData("importStreams","twitch");
 });
 
+let beam_user_id_input = document.querySelector("#beam_user_id");
+beam_user_id_input.addEventListener("blur", settingNode_onChange, false);
+
+let beam_import_button = document.querySelector("button#beam_import");
+beam_import_button.addEventListener("click", function(){
+	my_port.sendData("importStreams","beam");
+});
+
 let check_delay_input = document.querySelector("#check_delay");
 check_delay_input.addEventListener("change", settingNode_onChange, false);
 

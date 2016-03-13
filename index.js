@@ -8,6 +8,7 @@ function getPreferences(prefId){
 		beam_keys_list: "",
 		hitbox_user_id: "",
 		twitch_user_id: "",
+		beam_user_id: "",
 		check_delay: 5,
 		notification_type: "web",
 		notify_online: true,
@@ -645,6 +646,7 @@ function updatePanelData(updateTheme){
 	let updateSettings = [
 		"hitbox_user_id",
 		"twitch_user_id",
+		"beam_user_id",
 		"check_delay",
 		"notification_type",
 		"notify_online",
@@ -1450,6 +1452,12 @@ function importButton(website){
 	importStreams(website, getPreferences(`${website}_user_id`));
 }
 function importStreams(website, id, url, pageNumber){
+	
+	if(website == "beam"){
+		// In progress
+		return
+	}
+	
 	let current_API = new importAPI(website, id);
 	if(typeof url == "string" && url != ""){
 		current_API.url = url;

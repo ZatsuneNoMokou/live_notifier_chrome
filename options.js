@@ -52,6 +52,11 @@ twitch_import_button.addEventListener("click", function(){
 	port_options.sendData("importStreams","twitch");
 });
 
+let beam_import_button = document.querySelector("button#beam_import");
+beam_import_button.addEventListener("click", function(){
+	port_options.sendData("importStreams","beam");
+});
+
 let pref_nodes = {
 	dailymotion_keys_list: document.querySelector('#dailymotion_keys_list'),
 	hitbox_keys_list: document.querySelector('#hitbox_keys_list'),
@@ -60,6 +65,7 @@ let pref_nodes = {
 	
 	hitbox_user_id: document.querySelector('#hitbox_user_id'),
 	twitch_user_id: document.querySelector('#twitch_user_id'),
+	beam_user_id: document.querySelector('#beam_user_id'),
 
 	check_delay:					document.querySelector('#check_delay'),
 	notification_type:				document.querySelector('#notification_type'),
@@ -81,6 +87,7 @@ function restore_options() {
 	
 	pref_nodes.hitbox_user_id.value =					getPreferences("hitbox_user_id");
 	pref_nodes.twitch_user_id.value =					getPreferences("twitch_user_id");
+	pref_nodes.beam_user_id.value =						getPreferences("beam_user_id");
 	
 	pref_nodes.check_delay.value =						parseInt(getPreferences("check_delay"));
 	pref_nodes.notification_type.value = 				getPreferences("notification_type");
@@ -140,6 +147,7 @@ function saveOptionsInSync(){
 	
 	let hitbox_user_id = pref_nodes.hitbox_user_id.value;
 	let twitch_user_id = pref_nodes.twitch_user_id.value;
+	let beam_user_id = pref_nodes.beam_user_id.value;
 	
 	let check_delay =						parseInt(pref_nodes.check_delay.value);
 	let notification_type =					pref_nodes.notification_type.value;
@@ -160,6 +168,7 @@ function saveOptionsInSync(){
 		
 		hitbox_user_id: hitbox_user_id,
 		twitch_user_id: twitch_user_id,
+		beam_user_id: beam_user_id,
 		
 		check_delay: check_delay,
 		notification_type: notification_type,
@@ -192,6 +201,7 @@ function restaureOptionsFromSync(){
 		beam_key_list: "",
 		hitbox_user_id: "",
 		twitch_user_id: "",
+		beam_user_id: "",
 		check_delay: 5,
 		notification_type: "web",
 		notify_online: true,
@@ -211,6 +221,7 @@ function restaureOptionsFromSync(){
 		
 		pref_nodes.hitbox_user_id.value =						items.hitbox_user_id;;
 		pref_nodes.twitch_user_id.value =						items.twitch_user_id;
+		pref_nodes.beam_user_id.value =						items.beam_user_id;
 		
 		pref_nodes.check_delay.value =							parseInt(items.check_delay);
 		pref_nodes.notification_type.value =					items.notification_type;
