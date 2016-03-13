@@ -1,3 +1,6 @@
+# 5.5.0:
+* +: Support importing followed streams in Beam
+
 # 5.4.3:
 * Fix: Removed useless console.log in getValueFromNode
 

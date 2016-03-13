@@ -1114,6 +1114,10 @@ function importAPI(website, id){
 			this.url = `https://api.hitbox.tv/following/user?user_name=${id}`;
 			this.overrideMimeType = "text/plain; charset=utf-8";
 			break;
+		case "beam":
+			this.url = `https://beam.pro/api/v1/users/${id}/follows?limit=-1&fields=id,token`;
+			this.overrideMimeType = "text/plain; charset=utf-8";
+			break;
 	}
 }
 function isValidResponse(website, data){
@@ -1449,15 +1453,31 @@ let seconderyInfo = {
 }
 
 function importButton(website){
-	importStreams(website, getPreferences(`${website}_user_id`));
+	if(website == "beam"){
+		
+		
+		let xhr = new XMLHttpRequest();
+		xhr.open('GET', `https://beam.pro/api/v1/channels/${getPreferences(`${website}_user_id`)}`, true);
+		xhr.overrideMimeType("text/plain; charset=utf-8");
+		xhr.send();
+		xhr.addEventListener("load", function(){
+			let data = JSON.parse(xhr.responseText);
+			
+			console.group();
+			console.info(`${website} - https://beam.pro/api/v1/channels/${getPreferences(`${website}_user_id`)}`);
+			console.dir(data);
+			
+			let numerical_id = data.user.id;
+			
+			console.groupEnd();
+			
+			importStreams(website, numerical_id);
+		});
+	} else {
+		importStreams(website, getPreferences(`${website}_user_id`));
+	}
 }
 function importStreams(website, id, url, pageNumber){
-	
-	if(website == "beam"){
-		// In progress
-		return
-	}
-	
 	let current_API = new importAPI(website, id);
 	if(typeof url == "string" && url != ""){
 		current_API.url = url;
@@ -1519,6 +1539,16 @@ let importStreamWebsites = {
 			} else {
 				importStreamsEnd(id);
 			}
+		}
+	},
+	"beam": function(id, data){
+		let streamListSetting = new streamListFromSetting("beam");
+		let streamList = streamListSetting.objData;
+		if(typeof data == "object"){
+			for(let item of data){
+				streamListSetting.addStream(item["token"], "");
+			}
+			streamListSetting.update();
 		}
 	}
 }
