@@ -805,48 +805,62 @@ function doActionNotif_onClick(action){
 			void(0);
 	}
 }
+let chromeAPI_button_availability = true;
 function chromeAPINotification(title, message, action, imgurl){
 	let options = {
 		type: "basic",
 		title: title,
 		message: message,
 		iconUrl: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL),
-		isClickable: true,
-		buttons: [
-			{
-				title: "Ok",
-				iconUrl: "/data/ic_done_black_24px.svg"
-			}
-		]
+		isClickable: true
+	}
+	if(chromeAPI_button_availability == true){
+		options.buttons = [
+				{
+					title: "Ok",
+					iconUrl: "/data/ic_done_black_24px.svg"
+				}
+			]
 	}
 	
+	let notification_id = "";
 	switch(action.type){
 		case "openUrl":
 			// Notification with openUrl action
 			console.info(`Notification (openUrl): "${message}" (${action.data})`);
-			chrome.notifications.create(JSON.stringify(action), options);
+			notification_id = JSON.stringify(action);
 			break;
 		case "addStream":
 			console.info(`Notification (addStream): "${message}" (${action.data})`);
-			chrome.notifications.create(JSON.stringify(action), options);
+			notification_id = JSON.stringify(action);
 			break;
 		case "deleteStream":
 			console.info(`Notification (deleteStream): "${message}" (${action.data})`);
-			chrome.notifications.create(JSON.stringify(action), options);
+			notification_id = JSON.stringify(action);
 			break;
 		default:
-			chrome.notifications.create(JSON.stringify(new notifAction("none", {})), options);
+			notification_id = JSON.stringify(new notifAction("none", {}));
 	}
+	chrome.notifications.create(notification_id, options, function(notificationId){
+		if(typeof chrome.runtime.lastError == "object" && typeof chrome.runtime.lastError.message == "string" && chrome.runtime.lastError.message.length > 0){
+			let error = chrome.runtime.lastError.message;
+			
+			console.warn(chrome.runtime.lastError.message);
+			
+			if(error == "Adding buttons to notifications is not supported."){
+				chromeAPI_button_availability = false;
+				console.log("Buttons not supported, retying notification without them.")
+				chromeAPINotification(title, message, action, imgurl);
+			}
+		}
+	});
 }
 chrome.notifications.onClicked.addListener(function(notificationId){
 	console.info(`${notificationId} (onClicked)`);
 	chrome.notifications.clear(notificationId);
 });
-chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex){
-	console.info(`${notificationId} (onButtonClicked) - Button index: ${buttonIndex}`);
-	chrome.notifications.clear(notificationId);
-	
-	if( typeof notificationId == "string" && notificationId != ""){
+function doNotificationAction_Event(notificationId){
+	if(typeof notificationId == "string" && notificationId != ""){
 		
 		let action = JSON.parse(notificationId);
 		
@@ -879,6 +893,20 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 			}
 		}
 	}
+}
+chrome.notifications.onClosed.addListener(function(notificationId, byUser){
+	console.info(`${notificationId} (onClosed) - byUser: ${byUser}`);
+	chrome.notifications.clear(notificationId);
+	
+	if(byUser == true){
+		doNotificationAction_Event(notificationId);
+	}
+});
+chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex){
+	console.info(`${notificationId} (onButtonClicked) - Button index: ${buttonIndex}`);
+	chrome.notifications.clear(notificationId);
+	
+	doNotificationAction_Event(notificationId);
 });
 
 function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamOnline){
@@ -1454,24 +1482,29 @@ let seconderyInfo = {
 
 function importButton(website){
 	if(website == "beam"){
-		
-		
 		let xhr = new XMLHttpRequest();
 		xhr.open('GET', `https://beam.pro/api/v1/channels/${getPreferences(`${website}_user_id`)}`, true);
 		xhr.overrideMimeType("text/plain; charset=utf-8");
 		xhr.send();
 		xhr.addEventListener("load", function(){
-			let data = JSON.parse(xhr.responseText);
+			let response = xhr.responseText;
 			
-			console.group();
-			console.info(`${website} - https://beam.pro/api/v1/channels/${getPreferences(`${website}_user_id`)}`);
-			console.dir(data);
-			
-			let numerical_id = data.user.id;
-			
-			console.groupEnd();
-			
-			importStreams(website, numerical_id);
+			if(isValidResponse(website, response)){
+				console.warn("Sometimes bad things just happen");
+				doNotif("Live notifier", _("beam_import_error"));
+			} else {
+				data = JSON.parse(response);
+				
+				console.group();
+				console.info(`${website} - https://beam.pro/api/v1/channels/${getPreferences(`${website}_user_id`)}`);
+				console.dir(data);
+				
+				let numerical_id = data.user.id;
+				
+				console.groupEnd();
+				
+				importStreams(website, numerical_id);
+			}
 		});
 	} else {
 		importStreams(website, getPreferences(`${website}_user_id`));

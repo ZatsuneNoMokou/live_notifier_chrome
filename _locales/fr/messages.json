@@ -134,6 +134,9 @@
 	"beam_import": {
 		"message": "Importer"
 	},
+	"beam_import_error": {
+		"message": "Une erreur s'est produite lors de l'importation, vérifier votre id ou la disponibilité de Beam"
+	},
 	"check_delay_title": {
 		"message": "Délais de status des streams"
 	},
