@@ -1,3 +1,7 @@
+# 5.5.2:
+* Fix: badgeIcon (SVG to canvas) in Chrome
+* Fix: Updated manifest homepage url
+
 # 5.5.1:
 * Fix: Error importing streams in Beam when id does not exist
 * Fix: Notification with Chrome API for Opera (Known issue: events)

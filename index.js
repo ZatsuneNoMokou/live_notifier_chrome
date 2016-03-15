@@ -1051,15 +1051,29 @@ function setIcon() {
 		}
 	}
 	
+	if(online_badgeData == null || offline_badgeData == null){
+		loadBadges();
+	}
+	
 	if (onlineCount > 0){
 		chrome.browserAction.setTitle({title: _("count_stream_online",onlineCount)});
-		chrome.browserAction.setIcon({path: "/data/live_online.svg"});
+		
+		chrome.browserAction.setIcon({
+			imageData: online_badgeData
+		});
+		//chrome.browserAction.setIcon({path: "/data/live_online.svg"});
+		
 		chrome.browserAction.setBadgeText({text: onlineCount.toString()});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#FF0000"});
 	}
 	else {
 		chrome.browserAction.setTitle({title: _("No_stream_online")});
-		chrome.browserAction.setIcon({path: "/data/live_offline.svg"});
+		
+		chrome.browserAction.setIcon({
+			imageData: offline_badgeData
+		});
+		//chrome.browserAction.setIcon({imageData: "/data/live_offline.svg"});
+		
 		chrome.browserAction.setBadgeText({text: onlineCount.toString()});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#424242"});
 	}
@@ -1588,6 +1602,37 @@ let importStreamWebsites = {
 
 
 //				------ Load / Unload Event(s) ------				//
+
+// Load online/offline badges
+let online_badgeData = null;
+let offline_badgeData = null;
+function loadBadges(){
+	let old_node = document.querySelector('#canvas');
+	if(old_node !== null){
+		old_node.parentNode.removeChild(old_node);
+	}
+	let canvas = document.createElement('canvas');
+	canvas.id = 'canvas';
+	document.querySelector('body').appendChild(canvas);
+	let context = canvas.getContext('2d');
+	
+	let imageData;
+	
+	context.drawSvg("/data/live_online.svg", 0, 0, 19, 19);
+	imageData = context.getImageData(0, 0, 19, 19);
+	online_badgeData = imageData;
+	
+	canvas.parentNode.removeChild(canvas);
+	
+	canvas = document.createElement('canvas');
+	canvas.id = 'canvas';
+	document.querySelector('body').appendChild(canvas);
+	context = canvas.getContext('2d');
+	
+	context.drawSvg("/data/live_offline.svg", 0, 0, 19, 19);
+	imageData = context.getImageData(0, 0, 19, 19);
+	offline_badgeData = imageData;
+}
 
 // Begin to check lives
 var interval
