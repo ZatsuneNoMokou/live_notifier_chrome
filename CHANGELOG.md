@@ -1,3 +1,7 @@
+# 5.5.3:
+* Fix: Error importing streams in Beam
+* Fix: Refresh when importing, and refresh only added / removed streams
+
 # 5.5.2:
 * Fix: badgeIcon (SVG to canvas) in Chrome
 * Fix: Updated manifest homepage url
