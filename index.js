@@ -220,7 +220,7 @@ class streamListFromSetting{
 	
 	addStream(id, url){
 		if(this.streamExist(id) == false){
-			this.objData[id] = url;
+			this.objData[id] = {streamURL: url};
 			console.log(`${id} has been added`);
 			
 			try{
@@ -228,7 +228,8 @@ class streamListFromSetting{
 			}
 			catch(error){
 				console.warn(`[Live notifier] ${error}`);
-			}		}
+			}
+		}
 	}
 	deleteStream(id){
 		if(this.streamExist(id)){
@@ -261,40 +262,48 @@ function getStreamURL(website, id, contentId, usePrefUrl){
 	
 	let streamData = liveStatus[website][id][contentId];
 	
-	if(streamList[id].streamURL != "" && usePrefUrl == true){
-		return streamList[id].streamURL;
-	} else {
-		if(typeof liveStatus[website][id][contentId] != "undefined"){
-			if(typeof streamData.streamURL == "string" && streamData.streamURL != ""){
-				return streamData.streamURL;
+	if(id in streamList){
+		if(streamList[id].streamURL != "" && usePrefUrl == true){
+			return streamList[id].streamURL;
+		} else {
+			if(typeof liveStatus[website][id][contentId] != "undefined"){
+				if(typeof streamData.streamURL == "string" && streamData.streamURL != ""){
+					return streamData.streamURL;
+				}
 			}
-		}
-		if(typeof channelInfos[website][id] != "undefined"){
-			if(typeof channelInfos[website][id].streamURL == "string" && channelInfos.streamURL != ""){
-					return channelInfos[website][id].streamURL
+			if(typeof channelInfos[website][id] != "undefined"){
+				if(typeof channelInfos[website][id].streamURL == "string" && channelInfos.streamURL != ""){
+						return channelInfos[website][id].streamURL
+				}
 			}
-		}
-		switch(website){
-			case "dailymotion":
-				return `http://www.dailymotion.com/video/${id}`;
-				break;
-			case "hitbox":
-				return `http://www.hitbox.tv/${id}`;
-				break;
-			case "twitch":
-				return `http://www.twitch.tv/${id}`;
-				break;
-			case "beam":
-				return `https://beam.pro/${id}`;
-				break;
-			default:
-				return null;
+			switch(website){
+				case "dailymotion":
+					return `http://www.dailymotion.com/video/${id}`;
+					break;
+				case "hitbox":
+					return `http://www.hitbox.tv/${id}`;
+					break;
+				case "twitch":
+					return `http://www.twitch.tv/${id}`;
+					break;
+				case "beam":
+					return `https://beam.pro/${id}`;
+					break;
+				default:
+					return null;
+			}
 		}
 	}
 }
 
 function refreshPanel(data){
-	updatePanelData(data.doUpdateTheme);
+	let doUpdateTheme = false;
+	if(typeof data != "undefined"){
+		if(typeof data.doUpdateTheme != "undefined"){
+			doUpdateTheme = data.doUpdateTheme;
+		}
+	}
+	updatePanelData();
 }
 function refreshStreamsFromPanel(){
 	checkLives();
@@ -587,7 +596,7 @@ function updatePanelData(updateTheme){
 		var streamList = (new streamListFromSetting(website)).objData;
 		for(let id in liveStatus[website]){
 			
-			if(JSON.stringify(liveStatus[website][id]) == "{}"){
+			if(id in streamList && JSON.stringify(liveStatus[website][id]) == "{}"){
 				let streamData = channelInfos[website][id];
 				let contentId = id;
 				
@@ -807,7 +816,7 @@ function doActionNotif_onClick(action){
 			streamListSetting.update();
 			doNotif("Stream Notifier", `${display_id(id)} ${_("has been deleted.")}`);
 			// Update the panel for the new stream added
-			refreshPanel();
+			refreshPanel(false);
 			break;
 		default:
 			// Nothing - Unknown action

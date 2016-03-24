@@ -1,3 +1,6 @@
+# 5.6.1:
+* Fix: Various bug fix
+
 # 5.6.0:
 * +: Add website logo next to stream titles, in the panel
 * Fix: Twitch Requests overrideMimeType
