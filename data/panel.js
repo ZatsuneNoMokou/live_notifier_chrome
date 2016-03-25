@@ -209,19 +209,6 @@ function removeAllChildren(node){
 	}
 }
 
-function onlineNodes(){
-	this.dailymotion = document.querySelector("#dailymotionOnlineList");
-	this.hitbox = document.querySelector("#hitboxOnlineList");
-	this.twitch = document.querySelector("#twitchOnlineList");
-	this.beam = document.querySelector("#beamOnlineList");
-}
-function offlineNodes(){
-	this.dailymotion = document.querySelector("#dailymotionOfflineList");
-	this.hitbox = document.querySelector("#hitboxOfflineList");
-	this.twitch = document.querySelector("#twitchOfflineList");
-	this.beam = document.querySelector("#beamOfflineList");
-}
-
 function initList(showOffline){
 	let streamItems = document.querySelectorAll(".item-stream");
 	if(streamItems.length > 0){
@@ -234,18 +221,6 @@ function initList(showOffline){
 		}
 	}
 	document.querySelector("#streamListOffline").className = (showOffline)? "" : "hide";
-}
-
-function showNonEmptySitesBlocks(){
-	let nodeListOnline = new onlineNodes();
-	let nodeListOffline = new offlineNodes();
-	
-	for(let i in nodeListOnline){
-		nodeListOnline[i].className = (nodeListOnline[i].hasChildNodes())? "" : "hide";
-	}
-	for(let i in nodeListOffline){
-		nodeListOnline[i].className = (nodeListOnline[i].hasChildNodes())? "" : "hide";
-	}
 }
 
 function listenerOnlineCount(data){
@@ -305,10 +280,35 @@ function newCopyLivestreamerCmdButton(id, contentId, website){
 	return node;
 }
 
-function listener(data){
-	let nodeListOnline = new onlineNodes();
-	let nodeListOffline = new offlineNodes();
+function insertStreamNode(newLine, data){
+	let statusNode;
+	let statusStreamList;
 	
+	if(data.online){
+		statusNode = document.querySelector("#streamListOnline");
+		statusStreamList = document.querySelectorAll("#streamListOnline .item-stream");
+	} else {
+		statusNode = document.querySelector("#streamListOffline");
+		statusStreamList = document.querySelectorAll("#streamListOffline .item-stream");
+	}
+	
+	if(statusStreamList.length > 0){
+		for(let i in statusStreamList){
+			let streamNode = statusStreamList[i];
+			if(typeof streamNode.getAttribute == "function"){
+				let streamNode_title = streamNode.getAttribute("data-streamName");
+				if(data.streamName.toLowerCase() < streamNode_title.toLowerCase()){
+					streamNode.parentNode.insertBefore(newLine,streamNode);
+					return true;
+				}
+			}
+		}
+	}
+	statusNode.appendChild(newLine);
+	return true;
+}
+
+function listener(data){
 	var newLine = document.createElement("div");
 	newLine.id = `${data.website}/${data.id}/${data.contentId}`;
 	
@@ -366,16 +366,17 @@ function listener(data){
 		}
 		
 		newLine.className += " item-stream onlineItem";
-		nodeListOnline[data.website].appendChild(newLine);
+		insertStreamNode(newLine, data);
 	} else {
 		newLine.className += " item-stream offlineItem";
-		nodeListOffline[data.website].appendChild(newLine);
+		insertStreamNode(newLine, data);
 	}
 	newLine.className += " cursor";
 	
 	newLine.setAttribute("data-streamId", data.id);
 	newLine.setAttribute("data-contentId", data.contentId);
 	newLine.setAttribute("data-online", data.online);
+	newLine.setAttribute("data-streamName", data.streamName);
 	newLine.setAttribute("data-streamWebsite", data.website);
 	newLine.setAttribute("data-streamUrl", data.streamUrl);
 	newLine.addEventListener("click", streamItemClick);
@@ -402,8 +403,6 @@ function listener(data){
 	}
 	
 	newLine.draggable = true;
-	
-	showNonEmptySitesBlocks();
 }
 function streamItemClick(){
 	let node = this;

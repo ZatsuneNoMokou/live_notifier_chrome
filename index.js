@@ -132,7 +132,7 @@ function getCheckDelay(){
 
 let myIconURL = "/data/live_offline.svg";
 
-let websites = ["dailymotion","hitbox","twitch","beam"];
+let websites = ["beam","dailymotion","hitbox","twitch"];
 let liveStatus = {};
 let channelInfos = {};
 for(let website of websites){

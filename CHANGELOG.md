@@ -1,3 +1,6 @@
+# 5.7.0
+* +: Streams no longer grouped by website, and alphabetical order
+
 # 5.6.1:
 * Fix: Various bug fix
 
