@@ -316,8 +316,8 @@ function refreshStreamsFromPanel(){
 let addStreamFromPanel_pageListener = new Array();
 
 function display_id(id){
-	if(dailymotion_channel.test(id)){
-		return _("The_channel", dailymotion_channel.exec(id)[1]);
+	if(website_channel_id.test(id)){
+		return _("The_channel", website_channel_id.exec(id)[1]);
 	} else {
 		return _("The_stream", id);
 	}
@@ -335,6 +335,7 @@ function addStreamFromPanel(embed_list){
 	let active_tab_title = current_tab.title;
 	let type;
 	let patterns = {"dailymotion": [/^(?:http|https):\/\/games\.dailymotion\.com\/(?:live|video)\/([a-zA-Z0-9]*).*$/, /^(?:http|https):\/\/www\.dailymotion\.com\/(?:embed\/)?video\/([a-zA-Z0-9]*).*$/, /^(?:http|https):\/\/games\.dailymotion\.com\/[^\/]+\/v\/([a-zA-Z0-9]*).*$/],
+					"channel::dailymotion": [/^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/([a-zA-Z0-9\-_]*).*$/],
 					"hitbox": [/^(?:http|https):\/\/www\.hitbox\.tv\/(?:embedchat\/)?([^\/\?\&]*).*$/],
 					"twitch": [/^(?:http|https):\/\/www\.twitch\.tv\/([^\/\?\&]*).*$/,/^(?:http|https):\/\/player\.twitch\.tv\/\?channel\=([\w\-]*).*$/],
 					"beam": [/^(?:http|https):\/\/beam\.pro\/([^\/\?\&]*)/]};
@@ -348,19 +349,28 @@ function addStreamFromPanel(embed_list){
 		url_list = [active_tab_url];
 	}
 	for(let url of url_list){
-		for(let website in patterns){
+		for(let source_website in patterns){
+			let website = source_website;
+			if(website_channel_id.test(source_website)){
+				website = website_channel_id.exec(source_website)[1];
+			}
+			
 			let streamListSetting = new streamListFromSetting(website);
 			let streamList = streamListSetting.objData;
-			for(let pattern of patterns[website]){
+			for(let pattern of patterns[source_website]){
 				let id = "";
 				if(pattern.test(url)){
 					id = pattern.exec(url)[1];
 					if(streamListSetting.streamExist(id)){
-						doNotif("Stream Notifier",`${display_id(id)} ${_("is_already_configured")}`);
+						doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
 						return true;
 					} else {
 						let id_toChecked = id;
 						let current_API = new API(website, id);
+						
+						if(website_channel_id.test(source_website)){
+							current_API = new API_channelInfos(website, `channel::${id}`);
+						}
 						
 						let xhr = new XMLHttpRequest();
 						xhr.open('GET', current_API.url, true);
@@ -372,15 +382,19 @@ function addStreamFromPanel(embed_list){
 							console.dir(data);
 							
 							if(isValidResponse(website, data) == false){
-								if(website == "dailymotion" && data.mode == "vod"){
-									// Use channel as id
-									id = `channel::${data.owner}`;
-									if(streamListSetting.streamExist(id)){
-										doNotif("Stream Notifier",`${display_id(id)} ${_("is_already_configured")}`);
+								if(website == "dailymotion" && (website_channel_id.test(source_website) || data.mode == "vod")){
+									let username = (data.mode == "vod")? data["user.username"] : data.username;
+									let id_username = `channel::${username}`;
+									let id_owner = `channel::${(data.mode == "vod")? data.owner : data.id}`;
+									
+									// Use username (login) as channel id
+									id = id_username;
+									if(streamListSetting.streamExist(id_username) || streamListSetting.streamExist(id_owner)){
+										doNotif("Live Notifier",`${display_id(id)} ${_("is_already_configured")}`);
 										return true;
 									}
 								} else {
-									doNotif("Stream Notifier", `${display_id(id)} ${_("wasnt_configured_but_not_detected_as_channel")}`);
+									doNotif("Live Notifier", `${display_id(id)} ${_("wasnt_configured_but_not_detected_as_channel")}`);
 									return null;
 								}
 							}
@@ -390,7 +404,7 @@ function addStreamFromPanel(embed_list){
 							} else {
 								streamListSetting.addStream(id, ((type == "embed")? active_tab_url : ""));
 								streamListSetting.update();
-								doNotif("Stream Notifier", `${display_id(id)} ${_("wasnt_configured_and_have_been_added")}`);
+								doNotif("Live Notifier", `${display_id(id)} ${_("wasnt_configured_and_have_been_added")}`);
 								// Update the panel for the new stream added
 								setTimeout(function(){
 									refreshPanel(false);
@@ -918,7 +932,7 @@ chrome.notifications.onClosed.addListener(function(notificationId, byUser){
 	console.info(`${notificationId} (onClosed) - byUser: ${byUser}`);
 	chrome.notifications.clear(notificationId);
 	
-	if(!chromeAPI_button_availability || byUser == true){
+	if(!chromeAPI_button_availability && byUser == true){
 		doNotificationAction_Event(notificationId);
 	}
 });
@@ -1099,6 +1113,7 @@ function setIcon() {
 	}
 };
 
+let website_channel_id = /channel\:\:(.*)/;
 let dailymotion_channel = /channel\:\:(.*)/;
 function API(website, id){
 	this.id = id;
@@ -1107,10 +1122,10 @@ function API(website, id){
 	
 	switch(website){
 		case "dailymotion":
-			if(dailymotion_channel.test(id)){
-				this.url = `https://api.dailymotion.com/videos?live_onair&owners=${dailymotion_channel.exec(id)[1]}&fields=id,title,owner,audience,url,mode,onair?_= ${new Date().getTime()}`;
+			if(website_channel_id.test(id)){
+				this.url = `https://api.dailymotion.com/videos?live_onair&owners=${website_channel_id.exec(id)[1]}&fields=id,title,owner,audience,url,mode,onair?_= ${new Date().getTime()}`;
 			} else {
-				this.url = `https://api.dailymotion.com/video/${id}?fields=title,owner,audience,url,mode,onair?_= ${new Date().getTime()}`;
+				this.url = `https://api.dailymotion.com/video/${id}?fields=title,owner,user.username,audience,url,mode,onair?_= ${new Date().getTime()}`;
 			}
 			this.overrideMimeType = "text/plain; charset=latin1";
 			break;
@@ -1135,7 +1150,7 @@ function API_channelInfos(website, id){
 	
 	switch(website){
 		case "dailymotion":
-			this.url = `https://api.dailymotion.com/user/${dailymotion_channel.exec(id)[1]}?fields=id,screenname,url,avatar_720_url`;
+			this.url = `https://api.dailymotion.com/user/${website_channel_id.exec(id)[1]}?fields=id,username,screenname,url,avatar_720_url`;
 			this.overrideMimeType = "text/plain; charset=latin1";
 			break;
 		default:
@@ -1270,7 +1285,7 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 				liveStatus[website][id] = {};
 			}
 			
-			if(dailymotion_channel.test(id)){
+			if(website_channel_id.test(id)){
 				if(typeof pageNumber == "number"){
 					pagingPrimary[website](id, website, streamSetting, data, pageNumber)
 				} else {
@@ -1302,7 +1317,7 @@ let pagingPrimary = {
 				}
 				
 				if(data.has_more){
-					let next_url = (new API(website, dailymotion_channel.exec(id)[1])).url;
+					let next_url = (new API(website, website_channel_id.exec(id)[1])).url;
 					let current_pageNumber = ((typeof pageNumber == "number")? pageNumber : 1);
 					getPrimary(id, website, streamSetting, next_url, current_pageNumber + 1);
 				} else {

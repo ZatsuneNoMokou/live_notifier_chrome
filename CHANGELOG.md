@@ -1,3 +1,7 @@
+# 5.7.2
+* Fix: Dailymotion channels pattern missing
+* Fix: Notication with Chrome API and button available
+
 # 5.7.1:
 * Fix: Notication with Chrome API and button available
 
