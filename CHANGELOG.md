@@ -1,3 +1,6 @@
+# 5.7.1:
+* Fix: Notication with Chrome API and button available
+
 # 5.7.0
 * +: Alphabetical order of streams (and no longer grouped by website)
 

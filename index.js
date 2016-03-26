@@ -918,7 +918,7 @@ chrome.notifications.onClosed.addListener(function(notificationId, byUser){
 	console.info(`${notificationId} (onClosed) - byUser: ${byUser}`);
 	chrome.notifications.clear(notificationId);
 	
-	if(byUser == true){
+	if(!chromeAPI_button_availability || byUser == true){
 		doNotificationAction_Event(notificationId);
 	}
 });
