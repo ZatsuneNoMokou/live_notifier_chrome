@@ -1,3 +1,6 @@
+# 5.7.3
+* Fix: Section padding (scrollbar)
+
 # 5.7.2
 * Fix: Dailymotion channels pattern missing
 * Fix: Notication with Chrome API and button available
