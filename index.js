@@ -315,6 +315,33 @@ function refreshStreamsFromPanel(){
 }
 let addStreamFromPanel_pageListener = new Array();
 
+let addStream_URLpatterns = {"dailymotion": [/^(?:http|https):\/\/games\.dailymotion\.com\/(?:live|video)\/([a-zA-Z0-9]+).*$/, /^(?:http|https):\/\/www\.dailymotion\.com\/(?:embed\/)?video\/([a-zA-Z0-9]+).*$/, /^(?:http|https):\/\/games\.dailymotion\.com\/[^\/]+\/v\/([a-zA-Z0-9]+).*$/],
+		"channel::dailymotion": [/^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/user\/([^\s\t\/]+).*$/, /^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/(?!user\/|monetization\/|archived\/|fr\/|en\/|legal\/|stream|rss)([^\s\t\/]+).*$/],
+		"hitbox": [/^(?:http|https):\/\/www\.hitbox\.tv\/(?:embedchat\/)?([^\/\?\&]+).*$/],
+		"twitch": [/^(?:http|https):\/\/www\.twitch\.tv\/([^\/\?\&]+).*$/,/^(?:http|https):\/\/player\.twitch\.tv\/\?channel\=([\w\-]+).*$/],
+		"beam": [/^(?:http|https):\/\/beam\.pro\/([^\/\?\&]+)/]
+	};
+let addStream_URLpatterns_strings = {"dailymotion": ["*://games.dailymotion.com/live/*", "*://games.dailymotion.com/video/*", "*://www.dailymotion.com/video/*", "*://www.dailymotion.com/live/*", "*://games.dailymotion.com/v/.*"],
+		"channel::dailymotion": ["*://www.dailymotion.com/*", "*://games.dailymotion.com/*"],
+		"hitbox": ["*://www.hitbox.tv/*"],
+		"twitch": ["*://www.twitch.tv/*","*://player.twitch.tv/?channel=*"],
+		"beam": ["*://beam.pro/*"]
+	};
+let URLContext_Array = new Array();
+for(let website in addStream_URLpatterns_strings){
+	URLContext_Array = URLContext_Array.concat(addStream_URLpatterns_strings[website]);
+}
+chrome.contextMenus.create({
+	"title": _("Try_to_add"),
+	"contexts": ["link"],
+	"documentUrlPatterns": URLContext_Array,
+	"onclick": function(info, tab){
+		activeTab = tab;
+		let data = info.linkUrl;
+		console.info(`[ContextMenu] URL: ${data}`);
+		addStreamFromPanel({"ContextMenu_URL": data});
+	}
+});
 function display_id(id){
 	if(website_channel_id.test(id)){
 		return _("The_channel", website_channel_id.exec(id)[1]);
@@ -323,10 +350,10 @@ function display_id(id){
 	}
 }
 let activeTab;
-function addStreamFromPanel(embed_list){
+function addStreamFromPanel(data){
 	let current_tab = activeTab;
 	let active_tab_url = current_tab.url;
-	console.info(`Current active tab: ${active_tab_url}`);
+	
 	let http_url = /^(?:http|https):\/\//;
 	if(!http_url.test(active_tab_url)){
 		console.info("Current tab isn't a http/https url");
@@ -334,22 +361,24 @@ function addStreamFromPanel(embed_list){
 	}
 	let active_tab_title = current_tab.title;
 	let type;
-	let patterns = {"dailymotion": [/^(?:http|https):\/\/games\.dailymotion\.com\/(?:live|video)\/([a-zA-Z0-9]*).*$/, /^(?:http|https):\/\/www\.dailymotion\.com\/(?:embed\/)?video\/([a-zA-Z0-9]*).*$/, /^(?:http|https):\/\/games\.dailymotion\.com\/[^\/]+\/v\/([a-zA-Z0-9]*).*$/],
-					"channel::dailymotion": [/^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/([a-zA-Z0-9\-_]*).*$/],
-					"hitbox": [/^(?:http|https):\/\/www\.hitbox\.tv\/(?:embedchat\/)?([^\/\?\&]*).*$/],
-					"twitch": [/^(?:http|https):\/\/www\.twitch\.tv\/([^\/\?\&]*).*$/,/^(?:http|https):\/\/player\.twitch\.tv\/\?channel\=([\w\-]*).*$/],
-					"beam": [/^(?:http|https):\/\/beam\.pro\/([^\/\?\&]*)/]};
 	let url_list;
-	if(typeof embed_list == "object"){
-		console.log(`Embed list (${active_tab_url})`);
-		console.dir(embed_list);
-		url_list = embed_list;
-		type = "embed";
+
+	if(typeof data == "object"){
+		console.dir(data);
+		if(data.hasOwnProperty("ContextMenu_URL")){
+			url_list = [data.ContextMenu_URL];
+			type = "ContextMenu";
+		} else if(data.hasOwnProperty("embed_list")){
+			console.log("[Live notifier] AddStream - Embed list");
+			url_list = data.embed_list;
+			type = "embed";
+		}
 	} else {
+		console.info("Current active tab: " + active_tab_url);
 		url_list = [active_tab_url];
 	}
 	for(let url of url_list){
-		for(let source_website in patterns){
+		for(let source_website in addStream_URLpatterns){
 			let website = source_website;
 			if(website_channel_id.test(source_website)){
 				website = website_channel_id.exec(source_website)[1];
@@ -357,7 +386,7 @@ function addStreamFromPanel(embed_list){
 			
 			let streamListSetting = new streamListFromSetting(website);
 			let streamList = streamListSetting.objData;
-			for(let pattern of patterns[source_website]){
+			for(let pattern of addStream_URLpatterns[source_website]){
 				let id = "";
 				if(pattern.test(url)){
 					id = pattern.exec(url)[1];
@@ -379,7 +408,11 @@ function addStreamFromPanel(embed_list){
 						
 						xhr.addEventListener("load", function(){
 							let data = JSON.parse(xhr.responseText);
+							
+							console.group()
+							console.info(`${website} - ${current_API.url}`);
 							console.dir(data);
+							console.groupEnd();
 							
 							if(isValidResponse(website, data) == false){
 								if(website == "dailymotion" && (website_channel_id.test(source_website) || data.mode == "vod")){
@@ -418,8 +451,10 @@ function addStreamFromPanel(embed_list){
 			}
 		}
 	}
-	if(typeof embed_list != "object"){
-		chrome.tabs.executeScript(current_tab.id, {file: "/data/page_getEmbedList.js"});
+	if(typeof data != "object" && type != "ContextMenu"){
+		if(!data.hasOwnProperty("embed_list")){
+			chrome.tabs.executeScript(current_tab.id, {file: "/data/page_getEmbedList.js"});
+		}
 	} else {
 		doNotif("Stream Notifier", _("No_supported_stream_detected_in_the_current_tab_so_nothing_to_add"));
 	}
@@ -484,8 +519,12 @@ chrome.runtime.onConnect.addListener(function(_port) {
 	if(_port.name == "Live_Streamer_Panel"){
 		port_panel = _port;
 		port_panel.onMessage.addListener(function(message, MessageSender){
+			console.group();
 			//console.assert(port.name);
 			console.log(`onMessage (${_port.name}): ${message}`);
+			console.dir(message);
+			console.groupEnd();
+			
 			let id = message.id;
 			let data = message.data;
 			
@@ -1215,6 +1254,10 @@ function isValidResponse(website, data){
 			break;
 		case "hitbox":
 			if(data.error == "live"){
+				console.warn(`[${website}] Unable to get stream state (error detected).`);
+				return false;
+			}
+			if(data.error == true){
 				console.warn(`[${website}] Unable to get stream state (error detected).`);
 				return false;
 			}

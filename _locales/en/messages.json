@@ -35,6 +35,9 @@
 			}
 		}
 	},
+	"Try_to_add": {
+		"message": "Try to add this"
+	},
 	"is_already_configured": {
 		"message": "is already configured."
 	},

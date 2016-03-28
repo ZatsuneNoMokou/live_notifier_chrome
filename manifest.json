@@ -4,7 +4,7 @@
 	"short_name": "LiveNotifier",
 	"description": "__MSG_extShortDesc__",
 	"author": "ZatsuneNoMokou",
-	"version": "5.7.3",
+	"version": "5.8.0",
 	"homepage_url": "https://gitlab.com/ZatsuneNoMokou/live_notifier_chrome",
 	"icons": {
 		"128": "/icon_128.png"
@@ -24,6 +24,7 @@
 	"permissions": [
 		"tabs",
 		"activeTab",
+		"contextMenus",
 		"notifications",
 		"storage",
 		"unlimitedStorage",
