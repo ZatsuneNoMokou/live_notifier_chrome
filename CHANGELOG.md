@@ -1,3 +1,7 @@
+# 5.9.0:
+* +: Search, in the panel
+* i: Reduced online stream height
+
 # 5.8.1:
 * Fix: Context menu title
 

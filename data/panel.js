@@ -96,6 +96,48 @@ function deleteStreamButtonClick(){
 }
 deleteStreamButton.addEventListener("click", deleteStreamButtonClick, false);
 
+/*				---- Search Button ----				*/
+let toggle_search_button = document.querySelector("button#searchStream");
+let searchInput_onChange_Loaded = false;
+function searchContainer_Toggle(){
+	let searchInputContainer = document.querySelector("#searchInputContainer");
+	let hiddenClass = /\s*hide/i;
+	
+	if(!searchInput_onChange_Loaded){
+		let searchInput = document.querySelector("input#searchInput");
+		searchInput.addEventListener("change", searchInput_onChange);
+		
+		let searchLabel = document.querySelector("#searchInputContainer label");
+		searchLabel.addEventListener("click", searchInput_onChange);
+	}
+	
+	if(hiddenClass.test(searchInputContainer.className)){
+		searchInputContainer.className = searchInputContainer.className.replace(/\s*hide/i,"");
+	} else {
+		searchInputContainer.className += " hide";
+	}
+}
+toggle_search_button.addEventListener("click", searchContainer_Toggle);
+
+let searchInput = document.querySelector("input#searchInput");
+function searchInput_onChange(){
+	let somethingElseThanSpaces = /[^\s]+/;
+	let search = this.value.toLowerCase();
+	let searchCSS_Node = document.querySelector("#search-cssSelector");
+	let cssSelector = "";
+	if(search.length > 0 && somethingElseThanSpaces.test(search)){
+		cssSelector = `
+.item-stream:not([data-streamnamelowercase*="${search}"]):not([data-streamstatuslowercase*="${search}"]):not([data-streamgamelowercase*="${search}"]):not([data-streamwebsitelowercase*="${search}"]){
+	display: none;
+	visibility: hidden;
+}
+`;
+		searchCSS_Node.textContent = cssSelector;
+	} else {
+		searchCSS_Node.textContent = "";
+	}
+}
+
 /*				---- Settings ----				*/
 let settings_button = document.querySelector("#settings");
 let setting_Enabled = false;
@@ -363,6 +405,14 @@ function listener(data){
 			statusLine.className = "streamStatus";
 			statusLine.textContent = data.streamStatus + ((data.streamGame.length > 0)? (" (" + data.streamGame + ")") : "");
 			newLine.appendChild(statusLine);
+			
+			newLine.setAttribute("data-streamStatus", data.streamStatus);
+			newLine.setAttribute("data-streamStatusLowerCase", data.streamStatus.toLowerCase());
+		}
+		
+		if(data.streamGame.length > 0){
+			newLine.setAttribute("data-streamGame", data.streamGame);
+			newLine.setAttribute("data-streamGameLowerCase", data.streamGame.toLowerCase());
 		}
 		
 		newLine.className += " item-stream onlineItem";
@@ -377,7 +427,9 @@ function listener(data){
 	newLine.setAttribute("data-contentId", data.contentId);
 	newLine.setAttribute("data-online", data.online);
 	newLine.setAttribute("data-streamName", data.streamName);
+	newLine.setAttribute("data-streamNameLowerCase", data.streamName.toLowerCase());
 	newLine.setAttribute("data-streamWebsite", data.website);
+	newLine.setAttribute("data-streamWebsiteLowerCase", data.website.toLowerCase());
 	newLine.setAttribute("data-streamUrl", data.streamUrl);
 	newLine.addEventListener("click", streamItemClick);
 	
