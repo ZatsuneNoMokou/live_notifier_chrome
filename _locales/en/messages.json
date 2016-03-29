@@ -35,8 +35,8 @@
 			}
 		}
 	},
-	"Try_to_add": {
-		"message": "Try to add this"
+	"Add_this": {
+		"message": "Add this"
 	},
 	"is_already_configured": {
 		"message": "is already configured."

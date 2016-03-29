@@ -1,3 +1,6 @@
+# 5.8.1:
+* Fix: Context menu title
+
 # 5.8.0:
 * +: Add streams from context menu (displayed on more pages, Chrome API doesn't allow regexp)
 * +: Dailymotion channel pattern missing

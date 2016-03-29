@@ -332,7 +332,7 @@ for(let website in addStream_URLpatterns_strings){
 	URLContext_Array = URLContext_Array.concat(addStream_URLpatterns_strings[website]);
 }
 chrome.contextMenus.create({
-	"title": _("Try_to_add"),
+	"title": _("Add_this"),
 	"contexts": ["link"],
 	"documentUrlPatterns": URLContext_Array,
 	"onclick": function(info, tab){
