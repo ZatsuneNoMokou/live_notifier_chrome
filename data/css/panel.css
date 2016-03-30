@@ -27,6 +27,15 @@ input[type=text]{
 	border-radius: 3px;
 	padding-left: 2px;
 }
+.ps-theme-slimScrollbar{
+	@include ps-container(map-merge($ps-theme-default, (
+		border-radius: 6,
+		scrollbar-x-rail-height: 3px,
+		scrollbar-x-height: 3px,
+		scrollbar-y-rail-width: 3px,
+		scrollbar-y-width: 3px
+	)));
+}
 
 
 .item-stream .streamTitle{
@@ -83,13 +92,16 @@ header button {
 	cursor: pointer;
 }
 #streamList, #settings_container{
-	overflow: auto;
+	overflow: hidden;
 	flex: 1;
 	position: relative;
 	flex-direction: column;
 	align-items: stretch;
 	justify-content: space-between;
 	padding: 5px;
+	padding-right: 9px;
+	
+	height: 100%;
 }
 #searchInputContainer{
 	width: 100%;

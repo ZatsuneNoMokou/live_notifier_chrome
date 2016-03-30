@@ -103,8 +103,8 @@ function searchContainer_Toggle(){
 	let searchInputContainer = document.querySelector("#searchInputContainer");
 	let hiddenClass = /\s*hide/i;
 	
+	let searchInput = document.querySelector("input#searchInput");
 	if(!searchInput_onChange_Loaded){
-		let searchInput = document.querySelector("input#searchInput");
 		searchInput.addEventListener("change", searchInput_onChange);
 		
 		let searchLabel = document.querySelector("#searchInputContainer label");
@@ -115,27 +115,32 @@ function searchContainer_Toggle(){
 		searchInputContainer.className = searchInputContainer.className.replace(/\s*hide/i,"");
 	} else {
 		searchInputContainer.className += " hide";
+		searchInput.value = "";
+		searchInput_onChange();
 	}
+	scrollbar_streamList_update();
 }
 toggle_search_button.addEventListener("click", searchContainer_Toggle);
 
-let searchInput = document.querySelector("input#searchInput");
+
 function searchInput_onChange(){
+	let searchInput = document.querySelector("input#searchInput");
+	
 	let somethingElseThanSpaces = /[^\s]+/;
-	let search = this.value.toLowerCase();
+	let search = searchInput.value.toLowerCase();
 	let searchCSS_Node = document.querySelector("#search-cssSelector");
 	let cssSelector = "";
 	if(search.length > 0 && somethingElseThanSpaces.test(search)){
-		cssSelector = `
+		searchCSS_Node.textContent = `
 .item-stream:not([data-streamnamelowercase*="${search}"]):not([data-streamstatuslowercase*="${search}"]):not([data-streamgamelowercase*="${search}"]):not([data-streamwebsitelowercase*="${search}"]){
 	display: none;
 	visibility: hidden;
 }
 `;
-		searchCSS_Node.textContent = cssSelector;
 	} else {
 		searchCSS_Node.textContent = "";
 	}
+	scrollbar_streamList_update();
 }
 
 /*				---- Settings ----				*/
@@ -148,10 +153,14 @@ function setting_Toggle(){
 		setting_Enabled = false;
 		streamList.className = streamList.className.replace(/\s*hide/i,"");
 		settings_node.className += " hide";
+		
+		scrollbar_streamList_update();
 	} else {
 		setting_Enabled = true;
 		streamList.className += " hide";
 		settings_node.className = settings_node.className.replace(/\s*hide/i,"");
+		
+		scrollbar_settings_container_update();
 	}
 }
 settings_button.addEventListener("click", setting_Toggle, false);
@@ -455,6 +464,8 @@ function listener(data){
 	}
 	
 	newLine.draggable = true;
+	
+	scrollbar_streamList_update();
 }
 function streamItemClick(){
 	let node = this;
@@ -525,26 +536,28 @@ function theme_update(data){
 	let baseColor_L = JSON.parse(baseColor_hsl.L.replace("%",""))/100;
 	let values;
 	if(data.theme == "dark"){
-		var custom_stylesheet = "@import url(css/panel-text-color-white.css);\n";
+		var textColor_stylesheet = "@import url(css/panel-text-color-white.css);";
 		if(baseColor_L > 0.5 || baseColor_L < 0.1){
 			values = ["19%","13%","26%","13%"];
 		} else {
 			values = [(baseColor_L + 0.06) * 100 + "%", baseColor_L * 100 + "%", (baseColor_L + 0.13) * 100 + "%", baseColor_L * 100 + "%"];
 		}
 	} else if(data.theme == "light"){
-		var custom_stylesheet = "@import url(css/panel-text-color-black.css);\n";
+		var textColor_stylesheet = "@import url(css/panel-text-color-black.css);";
 		if(baseColor_L < 0.5 /*|| baseColor_L > 0.9*/){
 			values = ["87%","74%","81%","87%"];
 		} else {
 			values = [baseColor_L * 100 + "%", (baseColor_L - 0.13) * 100 + "%", (baseColor_L - 0.06) * 100 + "%", baseColor_L * 100 + "%"];
 		}
 	}
-	custom_stylesheet += "body {background-color: hsl(" + baseColor_hsl.H + ", " + baseColor_hsl.S + ", " + values[0] + ");}\n";
-	custom_stylesheet += "header, footer {background-color: hsl(" + baseColor_hsl.H + ", " + baseColor_hsl.S + ", " + values[1] + ");}\n";
-	custom_stylesheet += "header button, .item-stream {background-color: hsl(" + baseColor_hsl.H + ", " + baseColor_hsl.S + ", " + values[2] + ");}\n";
-	custom_stylesheet += "#deleteStreamTooltip {background-color: hsla(" + baseColor_hsl.H + ", " + baseColor_hsl.S + ", " + values[2] + ", 0.95);}\n";
-	custom_stylesheet += "header, .item-stream, footer{box-shadow: 0px 0px 5px 0px hsl(" + baseColor_hsl.H + ", " + baseColor_hsl.S + ", " + values[3] + ");}";
-	panelColorStylesheet.textContent = custom_stylesheet;
+	panelColorStylesheet.textContent = `
+${textColor_stylesheet}
+body {background-color: hsl(${baseColor_hsl.H}, ${baseColor_hsl.S}, ${values[0]});}
+header, footer {background-color: hsl(${baseColor_hsl.H}, ${baseColor_hsl.S}, ${values[1]});}
+header button, .item-stream {background-color: hsl(${baseColor_hsl.H}, ${baseColor_hsl.S}, ${values[2]});}
+#deleteStreamTooltip {background-color: hsla(${baseColor_hsl.H}, ${baseColor_hsl.S}, ${values[2]}, 0.95);};
+header, .item-stream, footer{box-shadow: 0px 0px 5px 0px hsl(${baseColor_hsl.H}, ${baseColor_hsl.S}, ${values[3]});}
+	`
 	//console.log(baseColor.rgbCode());
 	//console.log("hsl(" + baseColor_hsl.H + ", " + baseColor_hsl.S + ", " + baseColor_hsl.L + ")");
 	
@@ -596,9 +609,44 @@ chrome.runtime.onConnect.addListener(function(_port) {
 	});
 });
 
+let scrollbar = {"streamList": null, "settings_container": null};
+function load_scrollbar(id){
+	let scroll_node;
+	if(id == "streamList"){
+		scroll_node = document.querySelector('#streamList');
+	} else if(id == "settings_container"){
+		scroll_node = document.querySelector('#settings_container');
+	} else {
+		console.warn(`[Live notifier] Unkown scrollbar id (${id})`);
+		return null;
+	}
+	
+	Ps.initialize(scroll_node, {
+		theme: "slimScrollbar"
+	});
+}
+
+function scrollbar_streamList_update(){
+	let scroll_node = document.querySelector('#streamList');
+	Ps.update(scroll_node);
+}
+function scrollbar_settings_container_update(){
+	let scroll_node = document.querySelector('#settings_container');
+	Ps.update(scroll_node);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 	my_port.sendData("panel_onload","");
 	
 	translateNodes(document);
 	translateNodes_title(document);
+	
+	load_scrollbar("streamList");
+	load_scrollbar("settings_container");
+	
+	window.onresize = function(){
+		scrollbar_streamList_update();
+		
+		scrollbar_settings_container_update();
+	}
 });

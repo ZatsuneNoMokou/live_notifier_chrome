@@ -9,6 +9,8 @@ You can import the streams you follow with Hitbox and Twitch entering you ID and
 
 The second setting let you choose delay between checks, in minutes. By default, it update status every 5min.
 
+perfect-scrollbar is from https://github.com/noraesae/perfect-scrollbar (License MIT).
+
 The icon of the addon (version 4 and later) is from https://pixabay.com/photo-978055/ (in [CC0 Public Domain](https://pixabay.com/fr/service/terms/#usage)). The "Material Icons" (version 2.11 and later) font is part of Google material design, in [CC-BY license](https://creativecommons.org/licenses/by/4.0/) (open source), is available [here](https://google.github.io/material-design-icons/).
 
 Canvg (that "convert" SVG to canvas) is under MIT license, and is available [here](https://github.com/gabelerner/canvg).
