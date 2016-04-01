@@ -167,6 +167,12 @@
 	"notify_offline_description": {
 		"message": "Notification when checked"
 	},
+	"group_streams_by_websites_title": {
+		"message": "Group streams by website"
+	},
+	"group_streams_by_websites_description": {
+		"message": "Grouped when checked"
+	},
 	"show_offline_in_panel_title": {
 		"message": "Show offline streams in the panel"
 	},

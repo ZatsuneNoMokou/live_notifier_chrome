@@ -4,12 +4,6 @@
 	<link rel="stylesheet" type="text/css" media="all" href="css/panel.css" />
 	<style id="search-cssSelector"></style>
 	<link id="panel-color-stylesheet" rel="stylesheet" type="text/css" media="all" href="css/panel-theme-dark.css" />
-	
-	<link rel="stylesheet" href="css/perfect-scrollbar.min.css" />
-	<script src="perfect-scrollbar.min.js"></script>
-	
-	<!-- 		Google Material Design - Icon font 		-->
-	<link rel="stylesheet" type="text/css" media="all" href="css/fonts.css" />
 </head>
 <body>
 	<header>
@@ -25,9 +19,17 @@
 		<div id="deleteStreamTooltip" class="hide"><i class="material-icons">info</i> <span data-translate-id="delete_tooltip">To delete a stream from the settings, move it in the trash can.</span></div>
 		<div id="streamListOnline">
 			<div id="streamOnlineCountLabel">No online stream currently</div>
+			<div class="beam group"></div>
+			<div class="dailymotion group"></div>
+			<div class="hitbox group"></div>
+			<div class="twitch group"></div>
 		</div>
 		<div id="streamListOffline">
 			<div id="streamOfflineCountLabel">No offline stream currently</div>
+			<div class="beam group"></div>
+			<div class="dailymotion group"></div>
+			<div class="hitbox group"></div>
+			<div class="twitch group"></div>
 		</div>
 	</section>
 	<section id="settings_container" class="hide">
@@ -88,6 +90,11 @@
 			</label>
 		</p>
 		
+		<label class="preference flex_input_text" data-translate-title="group_streams_by_websites_description" title="Grouped when checked">
+			<span data-translate-id="group_streams_by_websites_title">Group streams by website</span>: 
+			<input type="checkbox" id="group_streams_by_websites" class="preferenceInput" data-setting-type="boolean">
+		</label>
+		
 		<label class="preference flex_input_text" data-translate-title="show_offline_in_panel_description" title="Shown when checked">
 			<span data-translate-id="show_offline_in_panel_title">Show offline streams in the panel</span>: 
 			<input type="checkbox" id="show_offline_in_panel" class="preferenceInput" data-setting-type="boolean">
@@ -135,7 +142,12 @@
 	<footer><span data-translate-id="footer_title">Addon under GPL v3 licence</span>
 		<span data-translate-id="footer_by">By</span> <a href="https://github.com/ZatsuneNoMokou/" target="_blank">ZatsuneNoMokou</a>
 	</footer>
-	
-<script src="/data/panel.js"></script>
 </body>
+	<!-- 		Google Material Design - Icon font 		-->
+	<link rel="stylesheet" type="text/css" media="all" href="css/fonts.css" />
+
+	<script src="perfect-scrollbar.min.js"></script>
+	<link rel="stylesheet" href="css/perfect-scrollbar.min.css" />
+	
+	<script src="/data/panel.js"></script>
 </html>

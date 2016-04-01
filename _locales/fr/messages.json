@@ -167,6 +167,12 @@
 	"notify_offline_description": {
 		"message": "Notification quand cochée"
 	},
+	"group_streams_by_websites_title": {
+		"message": "Grouper les streams par site"
+	},
+	"group_streams_by_websites_description": {
+		"message": "Grouper quand coché"
+	},
 	"show_offline_in_panel_title": {
 		"message": "Afficher les stream hors ligne dans le panel"
 	},

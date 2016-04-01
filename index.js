@@ -13,6 +13,7 @@ function getPreferences(prefId){
 		notification_type: "web",
 		notify_online: true,
 		notify_offline: false,
+		group_streams_by_websites: true,
 		show_offline_in_panel: false,
 		confirm_addStreamFromPanel: false,
 		confirm_deleteStreamFromPanel: true,
@@ -643,7 +644,7 @@ function updatePanelData(updateTheme){
 	}
 	
 	//Clear stream list in the panel
-	sendDataToPanel("initList", getPreferences("show_offline_in_panel"));
+	sendDataToPanel("initList", {"group_streams_by_websites": getPreferences("group_streams_by_websites"), "show_offline_in_panel": getPreferences("show_offline_in_panel")});
 	
 	for(let website in liveStatus){
 		var streamList = (new streamListFromSetting(website)).objData;
@@ -665,7 +666,7 @@ function updatePanelData(updateTheme){
 					streamStatus: streamData.streamStatus,
 					streamGame: streamData.streamGame,
 					streamOwnerLogo: streamData.streamOwnerLogo,
-					treamCategoryLogo: streamData.streamCategoryLogo,
+					streamCategoryLogo: streamData.streamCategoryLogo,
 					streamCurrentViewers: streamData.streamCurrentViewers,
 					streamUrl: getStreamURL(website, id, contentId, true)
 				}
@@ -720,6 +721,7 @@ function updatePanelData(updateTheme){
 		"notification_type",
 		"notify_online",
 		"notify_offline",
+		"group_streams_by_websites",
 		"show_offline_in_panel",
 		"confirm_addStreamFromPanel",
 		"confirm_deleteStreamFromPanel",
@@ -1246,7 +1248,7 @@ function importAPI(website, id){
 	}
 }
 function isValidResponse(website, data){
-	if(data == null){
+	if(data == null || typeof data != "object" || JSON.stringify == "{}"){
 		console.warn("Unable to get stream state (no connection).");
 		return false;
 	}
