@@ -96,13 +96,13 @@
 		}
 	},
 	"dailymotion_keys_list_title": {
-		"message": "Clés Dailymotion keys à notifier"
+		"message": "Clés Dailymotion à notifier"
 	},
 	"dailymotion_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
 	"hitbox_keys_list_title": {
-		"message": "Clés Hitbox keys à notifier"
+		"message": "Clés Hitbox à notifier"
 	},
 	"hitbox_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
@@ -114,7 +114,7 @@
 		"message": "Importer"
 	},
 	"twitch_keys_list_title": {
-		"message": "Clés Twitch keys à notifier"
+		"message": "Clés Twitch à notifier"
 	},
 	"twitch_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
