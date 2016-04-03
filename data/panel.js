@@ -671,7 +671,7 @@ function scrollbar_settings_container_update(){
 	Ps.update(scroll_node);
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+//document.addEventListener('DOMContentLoaded', function () {
 	my_port.sendData("panel_onload","");
 	
 	translateNodes(document);
@@ -685,4 +685,4 @@ document.addEventListener('DOMContentLoaded', function () {
 		
 		scrollbar_settings_container_update();
 	}
-});
+//});

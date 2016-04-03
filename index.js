@@ -1591,11 +1591,7 @@ function importButton(website){
 		xhr.overrideMimeType("text/plain; charset=utf-8");
 		xhr.send();
 		xhr.addEventListener("load", function(){
-			let data = xhr.responseText;
-			
-			if(isValidResponse(website, data)){
-				data = JSON.parse(xhr.responseText);
-			}
+			let data = JSON.parse(xhr.responseText); //xhr.responseText;
 			
 			if(!isValidResponse(website, data)){
 				console.warn(`Sometimes bad things just happen - ${website} - https://beam.pro/api/v1/channels/${getPreferences(`${website}_user_id`)}`);

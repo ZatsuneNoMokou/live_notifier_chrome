@@ -1,3 +1,7 @@
+# 5.10.4
+* Fix: Beam importation
+* Fix: Performance issues on panel load
+
 # 5.10.3:
 * Fix: Various bug fix
 * Fix: Setting to choose grouped by website or not, in panel
