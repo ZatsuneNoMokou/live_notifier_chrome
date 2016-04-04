@@ -1,3 +1,21 @@
+'use strict';
+
+var backgroundPage = chrome.extension.getBackgroundPage();
+var getPreferences = backgroundPage.getPreferences;
+
+var theme_cache_update = backgroundPage.theme_cache_update;
+var panelColorStylesheet = theme_cache_update(document, {"theme": getPreferences("panel_theme"), "background_color": getPreferences("background_color")});
+
+if(typeof panelColorStylesheet == "object" && panelColorStylesheet !== null){
+	console.info("Theme update");
+	
+	let currentThemeNode = document.querySelector("#panel-color-stylesheet");
+	currentThemeNode.parentNode.removeChild(currentThemeNode);
+	
+	document.querySelector("head").appendChild(panelColorStylesheet);
+}
+
+
 window.onload = function () {
 	// Avoid keeping init node in memory
 	let panelinitjs_node = document.querySelector("#panelInit");

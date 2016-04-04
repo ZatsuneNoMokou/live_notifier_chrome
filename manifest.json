@@ -4,13 +4,13 @@
 	"short_name": "LiveNotifier",
 	"description": "__MSG_extShortDesc__",
 	"author": "ZatsuneNoMokou",
-	"version": "5.10.4",
+	"version": "5.10.5",
 	"homepage_url": "https://gitlab.com/ZatsuneNoMokou/live_notifier_chrome",
 	"icons": {
 		"128": "/icon_128.png"
 	},
 	"background": {
-		"scripts": [ "index.js", "canvg/rgbcolor.js", "canvg/StackBlur.js", "canvg/canvg.js" ]
+		"scripts": [ "index.js", "data/panel-background.js", "canvg/rgbcolor.js", "canvg/StackBlur.js", "canvg/canvg.js" ]
 	},
 	"browser_action": {
 		"default_icon": "/icon.png",

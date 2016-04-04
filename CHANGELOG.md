@@ -1,3 +1,6 @@
+# 5.10.5
+* Fix: Load theme of panel earlier and avoid to fully load it each time the panel is opened/loaded
+
 # 5.10.4
 * Fix: Beam importation
 * Fix: Performance issues on panel load
