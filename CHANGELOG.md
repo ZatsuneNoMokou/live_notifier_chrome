@@ -1,7 +1,14 @@
-# 5.10.5
+# 5.11.0:
+* +: Support of importing from Dailymotion 
+* i: Updating input text from panel on input
+* Fix: paging management on Hitbox import and dailymotion channels
+* Fix: onInput event for input text setting from panel
+* Fix: Title width of offline streams
+
+# 5.10.5:
 * Fix: Load theme of panel earlier and avoid to fully load it each time the panel is opened/loaded
 
-# 5.10.4
+# 5.10.4:
 * Fix: Beam importation
 * Fix: Performance issues on panel load
 

@@ -42,6 +42,11 @@ port.onDisconnect.addListener(function(port) {
 	console.info(`Port disconnected: ${port.name}`);
 });
 
+let dailymotion_import_button = document.querySelector("button#dailymotion_import");
+dailymotion_import_button.addEventListener("click", function(){
+	port_options.sendData("importStreams","dailymotion");
+});
+
 let hitbox_import_button = document.querySelector("button#hitbox_import");
 hitbox_import_button.addEventListener("click", function(){
 	port_options.sendData("importStreams","hitbox");
@@ -63,6 +68,7 @@ let pref_nodes = {
 	twitch_keys_list: document.querySelector('#twitch_keys_list'),
 	beam_keys_list: document.querySelector('#beam_keys_list'),
 	
+	dailymotion_user_id: document.querySelector('#dailymotion_user_id'),
 	hitbox_user_id: document.querySelector('#hitbox_user_id'),
 	twitch_user_id: document.querySelector('#twitch_user_id'),
 	beam_user_id: document.querySelector('#beam_user_id'),
@@ -76,6 +82,7 @@ let pref_nodes = {
 	confirm_deleteStreamFromPanel:	document.querySelector('#confirm_deleteStreamFromPanel'),
 	panel_theme:					document.querySelector('#panel_theme'),
 	background_color: 				document.querySelector('#background_color'),
+	
 	livestreamer_cmd_to_clipboard: 	document.querySelector('#livestreamer_cmd_to_clipboard'),
 	livestreamer_cmd_quality: 		document.querySelector('#livestreamer_cmd_quality')
 }
@@ -85,6 +92,7 @@ function restore_options() {
 	pref_nodes.twitch_keys_list.value =					getPreferences("twitch_keys_list");
 	pref_nodes.beam_keys_list.value =					getPreferences("beam_keys_list");
 	
+	pref_nodes.dailymotion_user_id.value =				getPreferences("dailymotion_user_id");
 	pref_nodes.hitbox_user_id.value =					getPreferences("hitbox_user_id");
 	pref_nodes.twitch_user_id.value =					getPreferences("twitch_user_id");
 	pref_nodes.beam_user_id.value =						getPreferences("beam_user_id");
@@ -98,6 +106,7 @@ function restore_options() {
 	pref_nodes.confirm_deleteStreamFromPanel.checked =	getPreferences("confirm_deleteStreamFromPanel");
 	pref_nodes.panel_theme.value =						getPreferences("panel_theme");
 	pref_nodes.background_color.value =					getPreferences("background_color");
+	
 	pref_nodes.livestreamer_cmd_to_clipboard.checked =	getPreferences("livestreamer_cmd_to_clipboard");
 	pref_nodes.livestreamer_cmd_quality.value =			getPreferences("livestreamer_cmd_quality");
 }
@@ -145,6 +154,7 @@ function saveOptionsInSync(){
 	let twitch_keys_list = pref_nodes.twitch_keys_list.value;
 	let beam_keys_list = pref_nodes.beam_keys_list.value;
 	
+	let dailymotion_user_id = pref_nodes.dailymotion_user_id.value;
 	let hitbox_user_id = pref_nodes.hitbox_user_id.value;
 	let twitch_user_id = pref_nodes.twitch_user_id.value;
 	let beam_user_id = pref_nodes.beam_user_id.value;
@@ -166,6 +176,7 @@ function saveOptionsInSync(){
 		twitch_keys_list: twitch_keys_list,
 		beam_keys_list: beam_keys_list,
 		
+		dailymotion_user_id: dailymotion_user_id,
 		hitbox_user_id: hitbox_user_id,
 		twitch_user_id: twitch_user_id,
 		beam_user_id: beam_user_id,
@@ -199,9 +210,12 @@ function restaureOptionsFromSync(){
 		hitbox_keys_list: "",
 		twitch_keys_list: "",
 		beam_key_list: "",
+		
+		dailymotion_user_id: "",
 		hitbox_user_id: "",
 		twitch_user_id: "",
 		beam_user_id: "",
+		
 		check_delay: 5,
 		notification_type: "web",
 		notify_online: true,
@@ -211,6 +225,7 @@ function restaureOptionsFromSync(){
 		confirm_deleteStreamFromPanel: true,
 		panel_theme: "dark",
 		background_color: "#000000",
+		
 		livestreamer_cmd_to_clipboard: false,
 		livestreamer_cmd_quality: "best"
 	}, function(items) {
@@ -219,9 +234,10 @@ function restaureOptionsFromSync(){
 		pref_nodes.twitch_keys_list.value =						items.twitch_keys_list;
 		pref_nodes.beam_keys_list.value =						items.beam_keys_list;
 		
+		pref_nodes.dailymotion_user_id.value =					items.dailymotion_user_id;;
 		pref_nodes.hitbox_user_id.value =						items.hitbox_user_id;;
 		pref_nodes.twitch_user_id.value =						items.twitch_user_id;
-		pref_nodes.beam_user_id.value =						items.beam_user_id;
+		pref_nodes.beam_user_id.value =							items.beam_user_id;
 		
 		pref_nodes.check_delay.value =							parseInt(items.check_delay);
 		pref_nodes.notification_type.value =					items.notification_type;
@@ -232,8 +248,9 @@ function restaureOptionsFromSync(){
 		pref_nodes.confirm_deleteStreamFromPanel.checked =		getBooleanFromVar(items.confirm_deleteStreamFromPanel);
 		pref_nodes.panel_theme.value =							items.panel_theme;
 		pref_nodes.background_color.value =						items.background_color;
-		pref_nodes.livestreamer_cmd_to_clipboard.checked =	items.livestreamer_cmd_to_clipboard;
-		pref_nodes.livestreamer_cmd_quality.value =			items.livestreamer_cmd_quality;
+		
+		pref_nodes.livestreamer_cmd_to_clipboard.checked =		items.livestreamer_cmd_to_clipboard;
+		pref_nodes.livestreamer_cmd_quality.value =				items.livestreamer_cmd_quality;
 	});
 }
 

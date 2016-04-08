@@ -101,6 +101,9 @@
 	"dailymotion_keys_list_description": {
 		"message": "Stream list in a comma separated list."
 	},
+	"dailymotion_import":{
+		"message": "Import"
+	},
 	"hitbox_keys_list_title": {
 		"message": "Hitbox keys to notify"
 	},

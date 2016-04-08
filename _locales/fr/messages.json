@@ -101,6 +101,12 @@
 	"dailymotion_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
+	"dailymotion_user_id_description": {
+		"message": "Entrez votre id Dailymotion pour pouvoir importer les streameurs que vous suivez"
+	},
+	"dailymotion_import":{
+		"message": "Importer"
+	},
 	"hitbox_keys_list_title": {
 		"message": "Clés Hitbox à notifier"
 	},
