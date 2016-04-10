@@ -144,10 +144,10 @@
 		"message": "An error occurred when importing, check your id or Beam availability"
 	},
 	"check_delay_title": {
-		"message": "Streams status delay"
+		"message": "Streams verification delay"
 	},
 	"check_delay_description": {
-		"message": "Delay between checks, in minute"
+		"message": "Delay between verifications, in minute"
 	},
 	"notification_type_title": {
 		"message": "Notification type"

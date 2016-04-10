@@ -147,7 +147,7 @@
 		"message": "Une erreur s'est produite lors de l'importation, vérifier votre id ou la disponibilité de Beam"
 	},
 	"check_delay_title": {
-		"message": "Délais de status des streams"
+		"message": "Délais de vérification de streams"
 	},
 	"check_delay_description": {
 		"message": "Délai entre chaque vérification, en minute"
