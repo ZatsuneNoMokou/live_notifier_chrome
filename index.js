@@ -498,13 +498,13 @@ function settingUpdate(data){
 let port = null;
 function sendDataToPanel(id, data){
 	if(port == null){
-		console.warn("Port to panel not opened");
+		console.info("Port to panel not opened");
 	} else {
 		try{
 			port.postMessage({"id": id, "data": data});
 		}
 		catch(err){
-			console.warn(`Port to panel not opened or disconnect (${err})`);
+			console.info(`Port to panel not opened or disconnect (${err})`);
 		}
 	}
 }
@@ -512,13 +512,13 @@ function sendDataToPanel(id, data){
 let port_panel_sender = null;
 function sendDataToOptionPage(id, data){
 	if(port_panel_sender == null){
-		console.warn("Port to option page not opened");
+		console.info("Port to option page not opened");
 	} else {
 		try{
 			port_panel_sender.postMessage({"id": id, "data": data});
 		}
 		catch(err){
-			console.warn(`Port to option page not opened or disconnect (${err})`);
+			console.info(`Port to option page not opened or disconnect (${err})`);
 		}
 	}
 }
@@ -742,6 +742,10 @@ function updatePanelData(updateTheme){
 	];
 	for(let i in updateSettings){
 		sendDataToPanel("settingNodesUpdate", {settingName: updateSettings[i], settingValue: getPreferences(updateSettings[i])});
+	}
+	
+	if(current_version != ""){
+		sendDataToPanel("current_version", {"current_version": current_version});
 	}
 }
 
@@ -1149,30 +1153,30 @@ function setIcon() {
 	}
 	
 	if(online_badgeData == null || offline_badgeData == null){
+		console.info("Icon(s) not loaded");
 		loadBadges();
-	}
-	
-	if (onlineCount > 0){
-		chrome.browserAction.setTitle({title: _("count_stream_online",onlineCount)});
-		
-		chrome.browserAction.setIcon({
-			imageData: online_badgeData
-		});
-		//chrome.browserAction.setIcon({path: "/data/live_online.svg"});
-		
-		chrome.browserAction.setBadgeText({text: onlineCount.toString()});
-		chrome.browserAction.setBadgeBackgroundColor({color: "#FF0000"});
-	}
-	else {
-		chrome.browserAction.setTitle({title: _("No_stream_online")});
-		
-		chrome.browserAction.setIcon({
-			imageData: offline_badgeData
-		});
-		//chrome.browserAction.setIcon({imageData: "/data/live_offline.svg"});
-		
-		chrome.browserAction.setBadgeText({text: onlineCount.toString()});
-		chrome.browserAction.setBadgeBackgroundColor({color: "#424242"});
+	} else {
+		if (onlineCount > 0){
+			chrome.browserAction.setTitle({title: _("count_stream_online",onlineCount)});
+			
+			chrome.browserAction.setIcon({
+				imageData: online_badgeData
+			});
+			//chrome.browserAction.setIcon({path: "/data/live_online.svg"});
+			
+			chrome.browserAction.setBadgeText({text: onlineCount.toString()});
+			chrome.browserAction.setBadgeBackgroundColor({color: "#FF0000"});
+		} else {
+			chrome.browserAction.setTitle({title: _("No_stream_online")});
+			
+			chrome.browserAction.setIcon({
+				imageData: offline_badgeData
+			});
+			//chrome.browserAction.setIcon({imageData: "/data/live_offline.svg"});
+			
+			chrome.browserAction.setBadgeText({text: onlineCount.toString()});
+			chrome.browserAction.setBadgeBackgroundColor({color: "#424242"});
+		}
 	}
 };
 
@@ -1739,31 +1743,43 @@ let importStreamWebsites = {
 let online_badgeData = null;
 let offline_badgeData = null;
 function loadBadges(){
-	let old_node = document.querySelector('#canvas');
+	let old_node = document.querySelector('#canvas_online');
 	if(old_node !== null){
 		old_node.parentNode.removeChild(old_node);
 	}
-	let canvas = document.createElement('canvas');
-	canvas.id = 'canvas';
-	document.querySelector('body').appendChild(canvas);
-	let context = canvas.getContext('2d');
+	let canvas_online = document.createElement('canvas');
+	canvas_online.id = 'canvas_online';
+	document.querySelector('body').appendChild(canvas_online);
+	let context_online = canvas_online.getContext('2d');
 	
-	let imageData;
+	let xhr_online = new XMLHttpRequest();
+	xhr_online.open('GET', "/data/live_online.svg", true);
+	xhr_online.overrideMimeType("text/plain; charset=utf-8");
+	xhr_online.send();
 	
-	context.drawSvg("/data/live_online.svg", 0, 0, 19, 19);
-	imageData = context.getImageData(0, 0, 19, 19);
-	online_badgeData = imageData;
+	xhr_online.addEventListener("load", function(){
+		context_online.drawSvg(xhr_online.responseText, 0, 0, 19, 19);
+		online_badgeData = context_online.getImageData(0, 0, 19, 19);
+	});
 	
-	canvas.parentNode.removeChild(canvas);
+	old_node = document.querySelector('#canvas_offline');
+	if(old_node !== null){
+		old_node.parentNode.removeChild(old_node);
+	}
+	let canvas_offline = document.createElement('canvas');
+	canvas_offline.id = 'canvas_offline';
+	document.querySelector('body').appendChild(canvas_offline);
+	let context_offline = canvas_offline.getContext('2d');
 	
-	canvas = document.createElement('canvas');
-	canvas.id = 'canvas';
-	document.querySelector('body').appendChild(canvas);
-	context = canvas.getContext('2d');
+	let xhr_offline = new XMLHttpRequest();
+	xhr_offline.open('GET', "/data/live_offline.svg", true);
+	xhr_offline.overrideMimeType("text/plain; charset=utf-8");
+	xhr_offline.send();
 	
-	context.drawSvg("/data/live_offline.svg", 0, 0, 19, 19);
-	imageData = context.getImageData(0, 0, 19, 19);
-	offline_badgeData = imageData;
+	xhr_offline.addEventListener("load", function(){
+		context_offline.drawSvg(xhr_offline.responseText, 0, 0, 19, 19);
+		offline_badgeData = context_offline.getImageData(0, 0, 19, 19);
+	});
 }
 
 // Begin to check lives

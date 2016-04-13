@@ -4,7 +4,7 @@
 	"short_name": "LiveNotifier",
 	"description": "__MSG_extShortDesc__",
 	"author": "ZatsuneNoMokou",
-	"version": "5.11.2",
+	"version": "5.12.0",
 	"homepage_url": "https://gitlab.com/ZatsuneNoMokou/live_notifier_chrome",
 	"icons": {
 		"128": "/icon_128.png"
@@ -35,7 +35,7 @@
 		"clipboardWrite"
 	],
 	"options_ui": {
-		"page": "options.html",
+		"page": "data/options.html",
 		"chrome_style": true
 	},
 	"minimum_chrome_version": "42.0",

@@ -209,7 +209,7 @@ function restaureOptionsFromSync(){
 		dailymotion_keys_list: "",
 		hitbox_keys_list: "",
 		twitch_keys_list: "",
-		beam_key_list: "",
+		beam_keys_list: "",
 		
 		dailymotion_user_id: "",
 		hitbox_user_id: "",

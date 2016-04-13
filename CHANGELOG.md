@@ -1,3 +1,10 @@
+# 5.12.0:
+* +: Addon version in the bottom of the settings, in the panel
+* i: Moved html and js files of options to data folder
+* Fix: Restauration from sync for beam keys list
+* Fix: Warning using canvg
+* Fix: Console info instead of warn to show when ports are not connected / disconnected
+
 # 5.11.2:
 * Fix: Verification delay setting localization
 

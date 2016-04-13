@@ -536,6 +536,11 @@ function streamItemClick(){
 	}
 }
 
+function current_version(data){
+	let current_version_node = document.querySelector("#current_version");
+	current_version_node.textContent = data.current_version;
+}
+
 var theme_cache_update = backgroundPage.theme_cache_update;
 function theme_update(data){
 	let panelColorStylesheet = theme_cache_update(document, data);
@@ -581,7 +586,10 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				break;
 			case "panel_theme":
 				theme_update(data);
-			break;
+				break;
+			case "current_version":
+				current_version(data);
+				break;
 		}
 	});
 	port_mainscript.onDisconnect.addListener(function(port) {
