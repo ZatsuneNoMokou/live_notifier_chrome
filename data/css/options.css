@@ -12,27 +12,32 @@ body{
 	margin-top: 14px;
 	margin-bottom: 14px;
 }
-
-.preference:not(.flex_input_text){
-	display: block;
-	margin-top: 3px;
-	margin-bottom: 3px;
-}
-.preference.flex_input_text{
-	display: flex;
-	margin-top: 3px;
-	margin-bottom: 3px;
-}
-
-
-label{
+.preferenceContainer.flex_input_text{
 	display: flex;
 	width: 100%;
+	margin-top: 3px;
+	margin-bottom: 3px;
 }
-input{
+.preferenceContainer.flex_input_text .preferenceInput{
+	display: flex;
 	flex-grow: 5;
 }
-
+.preference{
+	display: inline;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+.preference > span:after{
+	content: ": ";
+}
+label:not(.flex_input_text){
+	display: inline;
+	padding-right: 3px;
+}
+label.flex_input_text{
+	display: inline-flex;
+	padding-right: 3px;
+}
 .import_container .label{
 	display: block;
 }

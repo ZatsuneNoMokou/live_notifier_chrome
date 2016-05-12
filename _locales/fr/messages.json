@@ -104,6 +104,15 @@
 	"dailymotion_user_id_description": {
 		"message": "Entrez votre id Dailymotion pour pouvoir importer les streameurs que vous suivez"
 	},
+	"dailymotion_user_id_title": {
+		"message": "Votre id Dailymotion"
+	},
+	"dailymotion_user_id_description": {
+		"message": "Entrez votre id Dailymotion pour pouvoir importer les streameurs que vous suivez"
+	},
+	"dailymotion_import_title":{
+		"message": "Importez les streameurs Dailymotion que vous suivez"
+	},
 	"dailymotion_import":{
 		"message": "Importer"
 	},
@@ -113,8 +122,14 @@
 	"hitbox_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
+	"hitbox_user_id_title": {
+		"message": "Votre id Hitbox"
+	},
 	"hitbox_user_id_description": {
 		"message": "Entrez votre id Hitbox pour pouvoir importer les streameurs que vous suivez"
+	},
+	"hitbox_import_title":{
+		"message": "Importez les streameurs Hitbox que vous suivez"
 	},
 	"hitbox_import": {
 		"message": "Importer"
@@ -125,8 +140,14 @@
 	"twitch_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
+	"twitch_user_id_title": {
+		"message": "Votre id Twitch"
+	},
 	"twitch_user_id_description": {
 		"message": "Entrez votre id Twitch pour pouvoir importer les streameurs que vous suivez"
+	},
+	"twitch_import_title":{
+		"message": "Importez les streameurs Twitch que vous suivez"
 	},
 	"twitch_import": {
 		"message": "Importer"
@@ -137,8 +158,14 @@
 	"beam_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
+	"beam_user_id_title": {
+		"message": "Votre id Beam"
+	},
 	"beam_user_id_description": {
 		"message": "Entrez votre id Beam pour pouvoir importer les streameurs que vous suivez"
+	},
+	"beam_import_title":{
+		"message": "Importez les streameurs Beam que vous suivez"
 	},
 	"beam_import": {
 		"message": "Importer"
@@ -237,7 +264,7 @@
 		"message": "Enregistrer"
 	},
 	"sync_title": {
-		"message": "Enregistrer / Restaurer les préférences depuis/vers la synchronization"
+		"message": "Enregistrer / Restaurer les préférences depuis/vers la synchronisation"
 	},
 	"restaure_sync": {
 		"message": "Restaurer"

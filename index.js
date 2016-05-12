@@ -1,29 +1,30 @@
 'use strict';
 
+let options_default = {
+	dailymotion_keys_list: "",
+	hitbox_keys_list: "",
+	twitch_keys_list: "",
+	beam_keys_list: "",
+	dailymotion_user_id: "",
+	hitbox_user_id: "",
+	twitch_user_id: "",
+	beam_user_id: "",
+	check_delay: 5,
+	notification_type: "web",
+	notify_online: true,
+	notify_offline: false,
+	group_streams_by_websites: true,
+	show_offline_in_panel: false,
+	confirm_addStreamFromPanel: false,
+	confirm_deleteStreamFromPanel: true,
+	panel_theme: "dark",
+	background_color: "#000000",
+	livestreamer_cmd_to_clipboard: false,
+	livestreamer_cmd_quality: "best",
+	livenotifier_version: "0.0.0"
+}
 function getPreferences(prefId){
-	let defaultSettings = {
-		dailymotion_keys_list: "",
-		hitbox_keys_list: "",
-		twitch_keys_list: "",
-		beam_keys_list: "",
-		dailymotion_user_id: "",
-		hitbox_user_id: "",
-		twitch_user_id: "",
-		beam_user_id: "",
-		check_delay: 5,
-		notification_type: "web",
-		notify_online: true,
-		notify_offline: false,
-		group_streams_by_websites: true,
-		show_offline_in_panel: false,
-		confirm_addStreamFromPanel: false,
-		confirm_deleteStreamFromPanel: true,
-		panel_theme: "dark",
-		background_color: "#000000",
-		livestreamer_cmd_to_clipboard: false,
-		livestreamer_cmd_quality: "best",
-		livenotifier_version: "0.0.0"
-	}
+	let defaultSettings = options_default;
 	if(typeof localStorage.getItem(prefId) != "undefined" && localStorage.getItem(prefId) != null){
 		let current_pref = localStorage.getItem(prefId);
 		switch(typeof defaultSettings[prefId]){
@@ -113,16 +114,37 @@ function getValueFromNode(node){
 	}
 }
 
+function settingNode_onChange(event, node, my_port){
+	let setting_Name = node.id;
+	let value = getValueFromNode(node);
+	if(setting_Name == "check_delay" && value < 1){
+		value = 1;
+	}
+	
+	let updatePanel = true
+	// if(event.type == "input" && this.tagName == "INPUT" && this.type == "text"){
+	if(event.type == "input"){
+		updatePanel = false;
+	}
+	my_port.sendData("setting_Update", {settingName: setting_Name, settingValue: value, updatePanel: updatePanel});
+	
+	if(updatePanel){
+		my_port.sendData("refreshPanel", {doUpdateTheme: ((setting_Name == "background_color" || setting_Name == "panel_theme")? true : false)})
+	}
+}
+
 let _ = chrome.i18n.getMessage;
 
 // appGlobal: Accessible with chrome.extension.getBackgroundPage();
 var appGlobal = {
+	options_default: options_default,
 	getPreferences: getPreferences,
 	getBooleanFromVar: getBooleanFromVar,
 	_: _,
 	translateNodes: translateNodes,
 	translateNodes_title: translateNodes_title,
-	getValueFromNode: getValueFromNode
+	getValueFromNode: getValueFromNode,
+	settingNode_onChange: settingNode_onChange
 }
 
 function getCheckDelay(){

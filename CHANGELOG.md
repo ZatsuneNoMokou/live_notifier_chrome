@@ -1,3 +1,13 @@
+# 5.15.0:
+* +: Sync automation in the option page (sync get and save from the list, no manual list)
+* i: Code cleanup in option page due to automation
+* i: Option data structure
+* i: Don't put the input of the preference in the label, and now using the for attribute on the labels
+* Fix: French localization
+
+# 5.14.0:
+* +: Option page reworked, more automated, sync part not changed (Chrome only)
+
 # 5.13.1:
 * Fix: Stream key list update
 

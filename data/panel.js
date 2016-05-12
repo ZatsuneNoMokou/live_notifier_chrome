@@ -17,6 +17,9 @@ let translateNodes = appGlobal.translateNodes;
 let translateNodes_title = appGlobal.translateNodes_title;
 let getValueFromNode = appGlobal.getValueFromNode;
 let getBooleanFromVar = appGlobal.getBooleanFromVar;
+let settingNode_onChange = function(){
+	appGlobal.settingNode_onChange(event, this, my_port);
+}
 
 port.onDisconnect.addListener(function(port) {
 	console.info(`Port disconnected: ${port.name}`);
@@ -230,26 +233,6 @@ livestreamer_cmd_to_clipboard_input.addEventListener("change", settingNode_onCha
 
 let livestreamer_cmd_quality_input = document.querySelector("#livestreamer_cmd_quality");
 livestreamer_cmd_quality_input.addEventListener("input", settingNode_onChange, false);
-
-function settingNode_onChange(event){
-	let node = this;
-	let setting_Name = this.id;
-	let value = getValueFromNode(node);
-	if(setting_Name == "check_delay" && value < 1){
-		value = 1;
-	}
-	
-	let updatePanel = true
-	// if(event.type == "input" && this.tagName == "INPUT" && this.type == "text"){
-	if(event.type == "input"){
-		updatePanel = false;
-	}
-	my_port.sendData("setting_Update", {settingName: setting_Name, settingValue: value, updatePanel: updatePanel});
-	
-	if(updatePanel){
-		my_port.sendData("refreshPanel", {doUpdateTheme: ((setting_Name == "background_color" || setting_Name == "panel_theme")? true : false)})
-	}
-}
 
 function settingNodesUpdate(data){
 	let settingNode = document.querySelector(`#${data.settingName}`);
