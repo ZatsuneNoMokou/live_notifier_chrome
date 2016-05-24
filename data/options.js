@@ -2,7 +2,9 @@
 
 let backgroundPage = chrome.extension.getBackgroundPage();
 let appGlobal = backgroundPage.appGlobal;
+let options = appGlobal.options;
 let options_default = appGlobal.options_default;
+let options_default_sync = appGlobal.options_default_sync;
 let getPreferences = appGlobal.getPreferences;
 let getBooleanFromVar = appGlobal.getBooleanFromVar;
 let _ = appGlobal._;
@@ -28,225 +30,33 @@ port.onDisconnect.addListener(function(port) {
 	console.info(`Port disconnected: ${port.name}`);
 });
 
-let options = {
-	"dailymotion": {
-		type: "group",
-		prefs: {
-			"dailymotion_keys_list": {
-				"title": "Dailymotion keys to notify",
-				"description": "Stream list in a comma separated list.",
-				"type": "string",
-			},
-			"dailymotion_user_id": {
-				"title": "Your Dailymotion id",
-				"description": "Enter your Dailymotion id to be able to import the stream(s) you follow.",
-				"type": "string",
-			},
-			"dailymotion_import": {
-				"title": "Import the Dailymotion stream(s) you follow",
-				"label": "Import",
-				"type": "control"
-			}
-		}
-	},
-	"hitbox": {
-		type: "group",
-		prefs: {
-			"hitbox_keys_list": {
-				"title": "Hitbox keys to notify",
-				"description": "Stream list in a comma separated list.",
-				"type": "string",
-			},
-			"hitbox_user_id": {
-				"title": "Your Hitbox id",
-				"description": "Enter your Hitbox id to be able to import the stream(s) you follow.",
-				"type": "string",
-			},
-			"hitbox_import": {
-				"title": "Import the Hitbox stream(s) you follow",
-				"label": "Import",
-				"type": "control"
-			}
-		}
-	},
-	"twitch": {
-		type: "group",
-		prefs: {
-			"twitch_keys_list": {
-				"title": "Twitch keys to notify",
-				"description": "Stream list in a comma separated list.",
-				"type": "string",
-			},
-			"twitch_user_id": {
-				"title": "Your Twitch id",
-				"description": "Enter your Twitch id to be able to import the stream(s) you follow.",
-				"type": "string",
-			},
-			"twitch_import": {
-				"title": "Import the Twitch stream(s) you follow.",
-				"label": "Import",
-				"type": "control"
-			}
-		}
-	},
-	"beam": {
-		type: "group",
-		prefs: {
-			"beam_keys_list": {
-				"title": "Beam keys to notify",
-				"description": "Stream list in a comma separated list.",
-				"type": "string",
-			},
-			"beam_user_id": {
-				"title": "Your Beam id",
-				"description": "Enter your Beam id to be able to import the stream(s) you follow.",
-				"type": "string",
-			},
-			"beam_import": {
-				"title": "Import the Beam stream(s) you follow.",
-				"label": "Import",
-				"type": "control"
-			}
-		}
-	},
-	"notification_type": {
-		"tittle": "Notification type",
-		"description": "",
-		"type": "menulist",
-		"options": [
-				{
-					"value": "web",
-					"label": "Web"
-				},
-				{
-					"value": "chrome_api",
-					"label": "Chrome API"
-				}
-			]
-	},
-	"check_delay": {
-		"title": "Streams status delay",
-		"description": "Delay between checks, in minute",
-		"type": "integer",
-		"value": 5
-	},
-	"notify": {
-		type: "group",
-		prefs: {
-			"notify_online": {
-				"title": "Show a notification when a stream start",
-				"description": "Notification when checked",
-				"type": "bool",
-			},
-			"notify_offline": {
-				"title": "Show a notification when a stream finish",
-				"description": "Notification when checked",
-				"type": "bool",
-			}
-		}
-	},
-	"showInPanel": {
-		type: "group",
-		prefs: {
-			"group_streams_by_websites": {
-				"title": "Group streams by website",
-				"description": "Grouped when checked",
-				"type": "bool",
-			},
-			"show_offline_in_panel": {
-				"title": "Show offline streams in the panel",
-				"description": "Shown when checked",
-				"type": "bool",
-			}
-		}
-	},
-	"confirmAddDelete": {
-		type: "group",
-		prefs: {
-			"confirm_addStreamFromPanel": {
-				"title": "Confirmation to add streams",
-				"description": "Show a notification to confirm when adding a stream of config (from panel)",
-				"type": "bool",
-			},
-			"confirm_deleteStreamFromPanel": {
-				"title": "Confirmation to delete streams",
-				"description": "Show a notification to confirm when deleting a stream of config (from panel)",
-				"type": "bool",
-			}
-		}
-	},
-	"theme": {
-		type: "group",
-		prefs: {
-			"panel_theme": {
-				"title": "Panel theme",
-				"description": "Choose the panel of the panel",
-				"type": "menulist",
-				"options": [
-						{
-							"value": "dark",
-							"label": "Dark"
-						},
-						{
-							"value": "light",
-							"label": "Light"
-						}
-					]
-			},
-			"background_color": {
-				"title": "Panel background color",
-				"description": "Choose background color",
-				"type": "color",
-			}
-		}
-	},
-	"livestreamer": {
-		type: "group",
-		prefs: {
-			"livestreamer_cmd_to_clipboard": {
-				"title": "Copy Livestreamer command on stream click.",
-				"description": "Check to activate",
-				"type": "bool",
-			},
-			"livestreamer_cmd_quality": {
-				"title": "Livestreamer quality",
-				"description": "More information on Livestreamer page.",
-				"type": "string",
-			}
-		}
-	}
-}
-
 function loadPreferences(){
 	let container = document.querySelector("section#preferences");
 	
 	for(let id in options){
 		let option = options[id];
-		if(typeof option.type == "undefined"){
+		if(typeof option.type == "undefined" || option.type == "hidden"){
 			continue;
 		}
-		if(option.type == "group"){
-			newPreferenceGroup(container, id, option.prefs);
-		} else {
-			newPreferenceNode(container, id, option);
+		let groupNode = null;
+		if(typeof option.group == "string" && option.group != ""){
+			groupNode = getPreferenceGroupNode(container, option.group);
 		}
+		newPreferenceNode(((groupNode == null)? container : groupNode), id, option);
 	}
 }
-function newPreferenceGroup(parent, groupId, prefs){
-	let groupNode = document.createElement("p");
-	groupNode.id = groupId;
-	groupNode.className = "pref_group";
-	if(groupId == "dailymotion" || groupId == "hitbox" || groupId == "twitch" || groupId == "beam"){
-		groupNode.className += " website_pref"
-	}
-	for(let id in prefs){
-		if(typeof prefs[id].type == "undefined"){
-			continue;
+function getPreferenceGroupNode(parent, groupId){
+	let groupNode = document.querySelector(`#${groupId}.pref_group`);
+	if(groupNode == null){
+		groupNode = document.createElement("p");
+		groupNode.id = groupId;
+		groupNode.className = "pref_group";
+		if(groupId == "dailymotion" || groupId == "hitbox" || groupId == "twitch" || groupId == "beam"){
+			groupNode.className += " website_pref"
 		}
-		newPreferenceNode(groupNode, id, prefs[id]);
+		parent.appendChild(groupNode);
 	}
-	
-	parent.appendChild(groupNode);
+	return groupNode;
 }
 function import_onClick(){
 	let getWebsite = /^(\w+)_import$/i;
@@ -459,7 +269,7 @@ function saveOptionsInSync(){
 // Restores states using the preferences stored in chrome.storage.
 function restaureOptionsFromSync(){
 	// Default values
-	storage.get(options_default, function(items) {
+	storage.get(options_default_sync, function(items) {
 		if(typeof chrome.runtime.lastError != "undefined"){
 			console.warn(chrome.runtime.lastError);
 		}

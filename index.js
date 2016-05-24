@@ -1,28 +1,5 @@
 'use strict';
 
-let options_default = {
-	dailymotion_keys_list: "",
-	hitbox_keys_list: "",
-	twitch_keys_list: "",
-	beam_keys_list: "",
-	dailymotion_user_id: "",
-	hitbox_user_id: "",
-	twitch_user_id: "",
-	beam_user_id: "",
-	check_delay: 5,
-	notification_type: "web",
-	notify_online: true,
-	notify_offline: false,
-	group_streams_by_websites: true,
-	show_offline_in_panel: false,
-	confirm_addStreamFromPanel: false,
-	confirm_deleteStreamFromPanel: true,
-	panel_theme: "dark",
-	background_color: "#000000",
-	livestreamer_cmd_to_clipboard: false,
-	livestreamer_cmd_quality: "best",
-	livenotifier_version: "0.0.0"
-}
 function getPreferences(prefId){
 	let defaultSettings = options_default;
 	if(typeof localStorage.getItem(prefId) != "undefined" && localStorage.getItem(prefId) != null){
@@ -67,7 +44,7 @@ function getBooleanFromVar(string){
 		case "boolean":
 			return string;
 			break;
-	case "number":
+		case "number":
 		case "string":
 			if(string == "true" || string == "on" || string == 1){
 				return true;
@@ -137,7 +114,9 @@ let _ = chrome.i18n.getMessage;
 
 // appGlobal: Accessible with chrome.extension.getBackgroundPage();
 var appGlobal = {
+	options: options,
 	options_default: options_default,
+	options_default_sync: options_default_sync,
 	getPreferences: getPreferences,
 	getBooleanFromVar: getBooleanFromVar,
 	_: _,
