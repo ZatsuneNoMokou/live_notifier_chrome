@@ -5,7 +5,7 @@
 * Fix: Console log of notification
 
 # 5.16.0:
-* +: Option panel reworked, more automated, alike the chrome option page (using port to translate in Firefox, couldn't find better way)
+* +: Option on the panel reworked, more automated, alike the chrome option page (using port to translate in Firefox, couldn't find better way)
 * +: Option data move in an external file (so panel will use it too)
 * +: Move default options definition
 * i: Option data structure to avoid "complex" structure
