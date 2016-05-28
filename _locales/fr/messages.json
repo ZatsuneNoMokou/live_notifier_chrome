@@ -78,6 +78,9 @@
 	"delete_tooltip": {
 		"message": "Pour supprimer un stream des paramètres, le déplacer dans la poubelle."
 	},
+	"I_am_watching_the_stream_of": {
+		"message": "Je regarde le stream de"
+	},
 	"will_be_deleted_are_you_sure": {
 		"message": "va être supprimé(e), êtes-vous certain(e)?"
 	},

@@ -78,6 +78,9 @@
 	"delete_tooltip": {
 		"message": "To delete a stream from the settings, move it in the trash can."
 	},
+	"I_am_watching_the_stream_of": {
+		"message": "I am watching the stream of"
+	},
 	"will_be_deleted_are_you_sure": {
 		"message": "will be deleted, are you sure?"
 	},
