@@ -874,7 +874,7 @@ function doActionNotif(title, message, action, imgurl){
 		}
 		let notif = new Notification(title, options);
 		notif.onclick = function(){
-			doActionNotif_onClick(action);
+			doActionNotif_onClick(action, message);
 		}
 	} else if(getPreferences("notification_type") == "chrome_api"){
 		chromeAPINotification(title, message, action, imgurl);
@@ -882,7 +882,7 @@ function doActionNotif(title, message, action, imgurl){
 		console.warn("Unknown notification type");
 	}
 }
-function doActionNotif_onClick(action){
+function doActionNotif_onClick(action, message){
 	let streamListSetting;
 	let id;
 	if(action.type == "addStream" || action.type == "deleteStream"){
