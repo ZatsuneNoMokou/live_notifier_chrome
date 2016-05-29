@@ -1,3 +1,6 @@
+# 5.18.0:
+* +: Possibility to put the facebook or twitter of a streamer
+
 # 5.17.0:
 * +: Support of getting Facebook/Twitter IDs to share stream
 * +: Sharing online streams using Twitter

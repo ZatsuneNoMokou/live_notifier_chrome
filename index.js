@@ -211,7 +211,9 @@ class streamListFromSetting{
 										current_data = false;
 									}
 									obj[id][current_filter_id] = current_data;
-								} else {
+								} else if(current_filter_id == "facebook" || current_filter_id == "twitter"){
+									obj[id][current_filter_id] = current_data;
+								}else {
 									obj[id][current_filter_id].push(current_data);
 								}
 								scan_string = scan_string.substring(next_pos, scan_string.length);
@@ -1459,6 +1461,12 @@ let pagingPrimary = {
 function processPrimary(id, contentId, website, streamSetting, data){
 	if(typeof liveStatus[website][id][contentId] == "undefined"){
 		liveStatus[website][id][contentId] = {"online": false, "notificationStatus": false, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+	}
+	if(typeof streamSetting.facebook == "string"){
+		liveStatus[website][id][contentId].facebookID = streamSetting.facebook;
+	}
+	if(typeof streamSetting.twitter == "string"){
+		liveStatus[website][id][contentId].twitterID = streamSetting.twitter;
 	}
 	let liveState = checkLiveStatus[website](id, contentId, data);
 	if(liveState !== null){
