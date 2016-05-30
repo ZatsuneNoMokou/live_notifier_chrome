@@ -98,6 +98,30 @@
 			}
 		}
 	},
+	"customURl_title": {
+		"message": "Custom url"
+	},
+	"blacklist_title": {
+		"message": "Blacklist"
+	},
+	"whitelist_title": {
+		"message": "Whitelist"
+	},
+	"Status_title": {
+		"message": "Status"
+	},
+	"Game_title": {
+		"message": "Game"
+	},
+	"twitter_title":{
+		"message": "Twitter"
+	},
+	"hideStream_title": {
+		"message": "Hide stream"
+	},
+	"ignoreStream_title": {
+		"message": "Ignore stream"
+	},
 	"dailymotion_keys_list_title": {
 		"message": "Dailymotion keys to notify"
 	},

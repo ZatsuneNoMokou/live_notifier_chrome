@@ -261,7 +261,16 @@ class streamListFromSetting{
 			let filters = "";
 			for(let j in this.objData[id]){
 				if(j != "streamURL"){
-					if(typeof this.objData[id][j] == "boolean"){
+					if(typeof this.objData[id][j] == "object" && JSON.stringify(this.objData[id][j]) == "[null]"){
+						continue;
+					}
+					if((j == "facebook" || j == "twitter") && this.objData[id][j] == ""){
+						continue;
+					}
+					if((j == "hide" || j == "ignore") && this.objData[id][j] == false){
+						continue;
+					}
+					if(typeof this.objData[id][j] == "boolean" || j == "facebook" || j == "twitter"){
 						filters = filters + " " + j + "::" + this.objData[id][j];
 					} else {
 						for(let k in this.objData[id][j]){
@@ -515,6 +524,22 @@ function settingUpdate(data){
 	savePreference(settingName, settingValue, updatePanel);
 }
 
+function streamSetting_Update(data){
+	let website = data.website;
+	let id = data.id;
+	let contentId = data.contentId;
+	
+	let streamSettingsData = data.streamSettingsData;
+	
+	let streamListSetting = new streamListFromSetting(website);
+	let streamList = streamListSetting.objData;
+	
+	for(let i in streamSettingsData){
+		streamList[id][i] = streamSettingsData[i];
+	}
+	streamListSetting.update();
+}
+
 let port = null;
 function sendDataToPanel(id, data){
 	if(port == null){
@@ -596,6 +621,9 @@ chrome.runtime.onConnect.addListener(function(_port) {
 					break;
 				case "setting_Update":
 					settingUpdate(data);
+					break;
+				case "streamSetting_Update":
+					streamSetting_Update(data);
 					break;
 			}
 		});
@@ -715,6 +743,8 @@ function updatePanelData(updateTheme){
 						facebookID: streamData.facebookID,
 						twitterID: streamData.twitterID
 					}
+					streamInfo.streamSettings = streamList[id];
+					
 					sendDataToPanel("updateData", streamInfo);
 				} else {
 					for(let contentId in liveStatus[website][id]){
@@ -739,6 +769,8 @@ function updatePanelData(updateTheme){
 								facebookID: streamData.facebookID,
 								twitterID: streamData.twitterID
 							}
+							streamInfo.streamSettings = streamList[id];
+							
 							sendDataToPanel("updateData", streamInfo);
 						}
 					}
