@@ -524,6 +524,39 @@ function settingUpdate(data){
 	savePreference(settingName, settingValue, updatePanel);
 }
 
+function shareStream(data){
+	let website = data.website;
+	let id = data.id;
+	let contentId = data.contentId;
+	
+	let streamList = (new streamListFromSetting(website)).objData;
+	
+	let streamData = liveStatus[website][id][contentId];
+	let streamName = streamData.streamName;
+	let streamUrl = streamData.streamUrl;
+	let streamStatus = streamData.streamStatus;
+	
+	let facebookID = (typeof streamList[id].facebook == "string" && streamList[id].facebook != "")? streamList[id].facebook : streamData.twitterID;
+	let twitterID = (typeof streamList[id].twitter == "string" && streamList[id].twitter != "")? streamList[id].twitter : streamData.twitterID;
+	
+	let streamerAlias = streamName;
+	/*
+	if(facebookID != null && facebookID != ""){
+		
+	}*/
+	let reg_testTwitterId= /\s*@(.+)/;
+	if(twitterID != null && twitterID != ""){
+		streamerAlias = ((reg_testTwitterId.test(twitterID))? "" : "@") + twitterID;
+		console.info(`${id}/${contentId} (${website}) twitter ID: ${twitterID}`)
+	}
+	
+	let shareMessage = `${_("I_am_watching_the_stream_of")} ${streamerAlias}, "${streamStatus}"`;
+	
+	// window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${streamUrl}&hashtags=LiveNotifier${(twitterID != "")? `&related=${twitterID}` : ""}&via=LiveNotifier`, '_blank');
+	let url = `https:\/\/twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${streamUrl}${(twitterID != "")? `&related=${twitterID}` : ""}&via=LiveNotifier`
+	chrome.tabs.create({ "url": url });
+}
+
 function streamSetting_Update(data){
 	let website = data.website;
 	let id = data.id;
@@ -622,6 +655,9 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				case "setting_Update":
 					settingUpdate(data);
 					break;
+				case "shareStream":
+					shareStream(data);
+					break;
 				case "streamSetting_Update":
 					streamSetting_Update(data);
 					break;
@@ -704,8 +740,6 @@ function updatePanelData(updateTheme){
 	
 	//Clear stream list in the panel
 	sendDataToPanel("initList", {"group_streams_by_websites": getPreferences("group_streams_by_websites"), "show_offline_in_panel": getPreferences("show_offline_in_panel")});
-	
-	sendDataToPanel("I_am_watching_the_stream_of", _("I_am_watching_the_stream_of"));
 	
 	for(let website in liveStatus){
 		var streamList = (new streamListFromSetting(website)).objData;
@@ -1151,20 +1185,20 @@ function doStreamNotif(website, id, contentId, streamSetting, isStreamOnline){
 	if(isStreamOnline_cleaned){
 		if(getPreferences("notify_online") && streamData.notificationStatus == false){
 			let streamStatus = streamData.streamStatus + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
-			if(streamStatus.length > 0 && streamStatus.length < 60){
+			//if(streamStatus.length > 0 && streamStatus.length < 60){
 				if(streamLogo != ""){
 					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
 					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true));
 				}
 				
-			} else {
+			/*} else {
 				if(streamLogo != ""){
 					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
 					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, contentId, true));
 				}
-			}
+			}*/
 		}
 	} else {
 		if(getPreferences("notify_offline") && streamData.notificationStatus == true){
@@ -1493,12 +1527,6 @@ let pagingPrimary = {
 function processPrimary(id, contentId, website, streamSetting, data){
 	if(typeof liveStatus[website][id][contentId] == "undefined"){
 		liveStatus[website][id][contentId] = {"online": false, "notificationStatus": false, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
-	}
-	if(typeof streamSetting.facebook == "string"){
-		liveStatus[website][id][contentId].facebookID = streamSetting.facebook;
-	}
-	if(typeof streamSetting.twitter == "string"){
-		liveStatus[website][id][contentId].twitterID = streamSetting.twitter;
 	}
 	let liveState = checkLiveStatus[website](id, contentId, data);
 	if(liveState !== null){
