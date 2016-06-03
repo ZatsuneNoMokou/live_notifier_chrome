@@ -145,6 +145,30 @@ for(let website of websites){
 	channelInfos[website] = {};
 }
 
+function encodeString(string){
+	if(typeof string != "string"){
+		console.warn(`encodeString: wrong type (${typeof string})`);
+		return string;
+	} else {
+		// Using a regexp with g flag, in a replace method let it replace all
+		string = string.replace(/%/g,"%25");
+		string = string.replace(/\:/g,"%3A");
+		string = string.replace(/,/g,"%2C");
+	}
+	return string;
+}
+function decodeString(string){
+	if(typeof string != "string"){
+		console.warn(`encodeString: wrong type (${typeof string})`);
+		return string;
+	} else {
+		// Using a regexp with g flag, in a replace method let it replace all
+		string = string.replace(/%3A/g,":");
+		string = string.replace(/%2C/g,",");
+		string = string.replace(/%25/g,"%");
+	}
+	return string;
+}
 class streamListFromSetting{
 	constructor(website){
 		let somethingElseThanSpaces = /[^\s]+/;
@@ -212,9 +236,9 @@ class streamListFromSetting{
 									}
 									obj[id][current_filter_id] = current_data;
 								} else if(current_filter_id == "facebook" || current_filter_id == "twitter"){
-									obj[id][current_filter_id] = current_data;
+									obj[id][current_filter_id] = decodeString(current_data);
 								}else {
-									obj[id][current_filter_id].push(current_data);
+									obj[id][current_filter_id].push(decodeString(current_data));
 								}
 								scan_string = scan_string.substring(next_pos, scan_string.length);
 							}
@@ -270,17 +294,20 @@ class streamListFromSetting{
 					if((j == "hide" || j == "ignore") && this.objData[id][j] == false){
 						continue;
 					}
-					if(typeof this.objData[id][j] == "boolean" || j == "facebook" || j == "twitter"){
+					if(typeof this.objData[id][j] == "boolean"){
 						filters = filters + " " + j + "::" + this.objData[id][j];
+					}
+					if(j == "facebook" || j == "twitter"){
+						filters = filters + " " + j + "::" + encodeString(this.objData[id][j]);
 					} else {
 						for(let k in this.objData[id][j]){
-							filters = filters + " " + j + "::" + this.objData[id][j][k];
+							filters = filters + " " + j + "::" + encodeString(this.objData[id][j][k]);
 						}
 					}
 				}
 			}
 			
-			let URL = (typeof this.objData[id].streamURL != "undefined")? (" " + this.objData[id].streamURL) : "";
+			let URL = (typeof this.objData[id].streamURL != "undefined" && this.objData[id].streamURL != "")? (" " + this.objData[id].streamURL) : "";
 			
 			array.push(`${id}${filters}${URL}`);
 		}
@@ -367,7 +394,7 @@ for(let website in addStream_URLpatterns_strings){
 chrome.contextMenus.create({
 	"title": _("Add_this"),
 	"contexts": ["link"],
-	"documentUrlPatterns": URLContext_Array,
+	"targetUrlPatterns": URLContext_Array,
 	"onclick": function(info, tab){
 		activeTab = tab;
 		let data = info.linkUrl;
