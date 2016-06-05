@@ -401,7 +401,9 @@ function saveEditedStreamButton_onClick(event){
 		gameWhitelist: removeEmplyItems(document.querySelector("#streamEditor #game_whitelist").value.split('\n')),
 		twitter: document.querySelector("#streamEditor #twitter").value,
 		hide: document.querySelector("#streamEditor #hideStream").checked,
-		ignore: document.querySelector("#streamEditor #ignoreStream").checked
+		ignore: document.querySelector("#streamEditor #ignoreStream").checked,
+		notifyOnline: document.querySelector("#streamEditor #notifyOnline").checked,
+		notifyOffline: document.querySelector("#streamEditor #notifyOffline").checked
 	}
 	
 	my_port.sendData("streamSetting_Update", {
@@ -537,6 +539,8 @@ function newEditStreamButton_onClick(event){
 	document.querySelector("#streamEditor #twitter").value = (streamSettings.twitter)? streamSettings.twitter : "";
 	document.querySelector("#streamEditor #hideStream").checked = (typeof streamSettings.hide == "boolean")? streamSettings.hide : false;
 	document.querySelector("#streamEditor #ignoreStream").checked = (typeof streamSettings.ignore == "boolean")? streamSettings.ignore : false;
+	document.querySelector("#streamEditor #notifyOnline").checked = (typeof streamSettings.notifyOnline == "boolean")? streamSettings.notifyOnline : true;
+	document.querySelector("#streamEditor #notifyOffline").checked = (typeof streamSettings.notifyOffline == "boolean")? streamSettings.notifyOffline : false;
 	
 	unhideClassNode(streamEditor);
 	scrollbar_streamEditor_update();
@@ -857,7 +861,8 @@ function load_scrollbar(id){
 	}
 	
 	Ps.initialize(scroll_node, {
-		theme: "slimScrollbar"
+		theme: "slimScrollbar",
+		suppressScrollX: true
 	});
 }
 
@@ -886,7 +891,7 @@ function scrollbar_settings_container_update(){
 	
 	window.onresize = function(){
 		scrollbar_streamList_update();
-		
+		scrollbar_streamEditor_update();
 		scrollbar_settings_container_update();
 	}
 //});

@@ -122,6 +122,12 @@
 	"ignoreStream_title": {
 		"message": "Ignore stream"
 	},
+	"notifyOnline_title": {
+		"message": "Notification when the stream begin"
+	},
+	"notifyOffline_title": {
+		"message": "Notification when the stream end"
+	},
 	"dailymotion_keys_list_title": {
 		"message": "Dailymotion keys to notify"
 	},

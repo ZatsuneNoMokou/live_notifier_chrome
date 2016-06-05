@@ -188,7 +188,7 @@ class streamListFromSetting{
 					let id = result[1];
 					let data = result[2];
 					
-					obj[id] = {streamURL: ""};
+					obj[id] = {hide: false, ignore: false, notifyOnline: getPreferences("notify_online"), notifyOffline: getPreferences("notify_offline"), streamURL: ""};
 					
 					if(typeof data != "undefined"){
 						if(url.test(data) == true){
@@ -226,13 +226,12 @@ class streamListFromSetting{
 									obj[id][current_filter_id] = new Array();
 								}
 								
-								if(current_filter_id == "hide" || current_filter_id == "ignore"){
+								if(current_filter_id == "hide" || current_filter_id == "ignore" || current_filter_id == "notifyOnline" || current_filter_id == "notifyOffline"){
 									let boolean = getBooleanFromVar(current_data);
 									if(typeof boolean == "boolean"){
 										current_data = boolean;
 									} else {
 										console.warn(`${current_filter_id} of ${id} should be a boolean`);
-										current_data = false;
 									}
 									obj[id][current_filter_id] = current_data;
 								} else if(current_filter_id == "facebook" || current_filter_id == "twitter"){
@@ -292,6 +291,12 @@ class streamListFromSetting{
 						continue;
 					}
 					if((j == "hide" || j == "ignore") && this.objData[id][j] == false){
+						continue;
+					}
+					if(j == "notifyOnline" && this.objData[id][j] == getPreferences("notify_online")){
+						continue;
+					}
+					if(j == "notifyOffline" && this.objData[id][j] == getPreferences("notify_offline")){
 						continue;
 					}
 					if(typeof this.objData[id][j] == "boolean"){
@@ -1196,6 +1201,7 @@ function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamO
 }
 
 function doStreamNotif(website, id, contentId, streamSetting, isStreamOnline){
+	let streamList = (new streamListFromSetting(website)).objData;
 	let streamData = liveStatus[website][id][contentId];
 	
 	let streamName = streamData.streamName;
@@ -1210,25 +1216,16 @@ function doStreamNotif(website, id, contentId, streamSetting, isStreamOnline){
 	let isStreamOnline_cleaned = getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamOnline);
 	
 	if(isStreamOnline_cleaned){
-		if(getPreferences("notify_online") && streamData.notificationStatus == false){
+		if(((typeof streamList[id].notifyOnline == "boolean")? streamList[id].notifyOnline : getPreferences("notify_online")) == true && streamData.notificationStatus == false){
 			let streamStatus = streamData.streamStatus + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
-			//if(streamStatus.length > 0 && streamStatus.length < 60){
 				if(streamLogo != ""){
 					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
 					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true));
 				}
-				
-			/*} else {
-				if(streamLogo != ""){
-					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, contentId, true), streamLogo);
-				} else {
-					doNotifUrl(_("Stream_online"), streamName, getStreamURL(website, id, contentId, true));
-				}
-			}*/
 		}
 	} else {
-		if(getPreferences("notify_offline") && streamData.notificationStatus == true){
+		if(((typeof streamList[id].notifyOffline == "boolean")? streamList[id].notifyOffline : getPreferences("notify_offline")) == true && streamData.notificationStatus == true){
 			if(streamLogo != ""){
 				doNotif(_("Stream_offline"),streamName, streamLogo);
 			} else {
@@ -1236,7 +1233,6 @@ function doStreamNotif(website, id, contentId, streamSetting, isStreamOnline){
 			}
 		}
 	}
-	streamData.online = isStreamOnline;
 	streamData.notificationStatus = isStreamOnline;
 }
 
