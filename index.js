@@ -579,13 +579,13 @@ function shareStream(data){
 	let reg_testTwitterId= /\s*@(.+)/;
 	if(twitterID != null && twitterID != ""){
 		streamerAlias = ((reg_testTwitterId.test(twitterID))? "" : "@") + twitterID;
-		console.info(`${id}/${contentId} (${website}) twitter ID: ${twitterID}`)
+		console.info(`${id}/${contentId} (${website}) twitter ID: ${twitterID}`);
 	}
 	
 	let shareMessage = `${_("I_am_watching_the_stream_of")} ${streamerAlias}, "${streamStatus}"`;
 	
-	// window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${streamURL}&hashtags=LiveNotifier${(twitterID != "")? `&related=${twitterID}` : ""}&via=LiveNotifier`, '_blank');
-	let url = `https:\/\/twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${streamURL}${(twitterID != "")? `&related=${twitterID}` : ""}&via=LiveNotifier`
+	let url = `https:\/\/twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${streamURL}&hashtags=LiveNotifier${(twitterID != "")? `&related=${twitterID}` : ""}`;
+	//let url = `https:\/\/twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${streamURL}${(twitterID != "")? `&related=${twitterID}` : ""}&via=LiveNotifier`;
 	chrome.tabs.create({ "url": url });
 }
 

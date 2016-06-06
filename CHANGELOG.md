@@ -1,3 +1,7 @@
+# 5.20.1:
+* Fix: Tempory replaced "via" with hashtag with stream share
+* Fix: Min height on online streams, in panel
+
 # 5.20.0:
 * +: Individual setting for online/offline notification
 * Fix: Infinite scroll with the stream setting

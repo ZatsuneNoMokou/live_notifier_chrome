@@ -94,7 +94,7 @@ var options = {
 		"tittle": "Notification type",
 		"description": "",
 		"type": "menulist",
-		"value": "web",
+		"value": "chrome_api",
 		"options": [
 				{
 					"value": "web",
