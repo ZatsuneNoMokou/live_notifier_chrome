@@ -1,34 +1,11 @@
 'use strict';
 
-let backgroundPage = chrome.extension.getBackgroundPage();
-let appGlobal = backgroundPage.appGlobal;
+let appGlobal = chrome.extension.getBackgroundPage().appGlobal;
 let options = appGlobal.options;
 let options_default = appGlobal.options_default;
 let options_default_sync = appGlobal.options_default_sync;
-let getPreferences = appGlobal.getPreferences;
-let getBooleanFromVar = appGlobal.getBooleanFromVar;
-let _ = appGlobal._;
-let translateNodes = appGlobal.translateNodes;
-let translateNodes_title = appGlobal.translateNodes_title;
-let settingNode_onChange = function(){
-	appGlobal.settingNode_onChange(event, this, port_options);
-}
-let getValueFromNode = appGlobal.getValueFromNode;
 
-function sendDataToMain(portName){
-	this.port = chrome.runtime.connect({name: portName});
-	console.info(`Port (${portName}) connection initiated`);
-	this.sendData = function(id, data){
-		this.port.postMessage({"id": id, "data": data});
-	}
-}
-let port_options =	new sendDataToMain("Live_Streamer_Options");
-let port = port_options.port;
-
-
-port.onDisconnect.addListener(function(port) {
-	console.info(`Port disconnected: ${port.name}`);
-});
+let _ = chrome.i18n.getMessage;
 
 function loadPreferences(){
 	let container = document.querySelector("section#preferences");
@@ -142,35 +119,30 @@ function newPreferenceNode(parent, id, prefObj){
 	
 	switch(prefObj.type){
 		case "string":
-			prefNode.addEventListener("input", settingNode_onChange, false);
+			prefNode.addEventListener("input", settingNode_onChange);
 			break;
 		case "integer":
 		case "bool":
 		case "color":
 		case "menulist":
-			prefNode.addEventListener("change", settingNode_onChange, false);
+			prefNode.addEventListener("change", settingNode_onChange);
 			break;
 		case "control":
 			if(id.indexOf("_import") != -1){
-				prefNode.addEventListener("click", import_onClick, false);
+				prefNode.addEventListener("click", import_onClick);
 			}
 			break;
 	}
 }
 loadPreferences();
 
-function refresh_options(){
-	let prefNodes = document.querySelectorAll(".preferenceInput");
-	for(let i in prefNodes){
-		if(typeof prefNodes[i].tagName == "undefined"){
-			continue;
-		}
-		
-		let prefNode = prefNodes[i];
-		let settingType = prefNode.dataset.settingType;
-		let prefId = prefNode.id;
-		let prefValue = getPreferences(prefId);
-		switch(settingType){
+window.addEventListener('storage', function(event){
+	let prefId = event.key;
+	let prefValue = event.newValue;
+	let prefNode = document.querySelector(`#preferences #${prefId}`);
+	
+	if(prefNode != null && typeof options[prefId].type == "string"){
+		switch(options[prefId].type){
 			case "string":
 			case "color":
 			case "menulist":
@@ -187,38 +159,13 @@ function refresh_options(){
 				break;
 		}
 	}
-}
+});
 
 function init(){
 	translateNodes(document);
 	translateNodes_title(document);
 }
 document.addEventListener('DOMContentLoaded',		init);
-
-let port_mainscript = null
-chrome.runtime.onConnect.addListener(function(_port) {
-	console.info(`Port (${_port.name}) connected`);
-	port_mainscript = _port;
-	port_mainscript.onMessage.addListener(function(message, MessageSender){
-		console.group();
-		console.log("Page option (onMessage):");
-		console.dir(message);
-		console.groupEnd();
-		
-		let id = message.id;
-		let data = message.data;
-		
-		switch(id){
-			case "refreshOptions":
-				refresh_options();
-				break;
-		}
-	});
-	port_mainscript.onDisconnect.addListener(function(port) {
-		console.assert(`Port disconnected: ${port.name}`);
-		port = null;
-	});
-});
 
 // Saves options to chrome.storage
 // Storage area compatibility - Might not be useful for now, but Firefox Webextension doesn't seems to plan using the sync storage area
@@ -305,7 +252,7 @@ function restaureOptionsFromSync(){
 			}
 			
 			/*				Save the settings received from sync				*/
-			appGlobal.settingNode_onChange({type: "change"}, prefNode, port_options);
+			settingNode_onChange({type: "change", srcElement: prefNode, target: prefNode});
 		}
 	});
 }

@@ -15,14 +15,8 @@ let appGlobal = backgroundPage.appGlobal;
 let options = appGlobal.options;
 let options_default = appGlobal.options_default;
 let options_default_sync = appGlobal.options_default_sync;
-let _ = appGlobal._;
-let translateNodes = appGlobal.translateNodes;
-let translateNodes_title = appGlobal.translateNodes_title;
-let getValueFromNode = appGlobal.getValueFromNode;
-let getBooleanFromVar = appGlobal.getBooleanFromVar;
-let settingNode_onChange = function(){
-	appGlobal.settingNode_onChange(event, this, my_port);
-}
+
+let _ = chrome.i18n.getMessage;
 
 port.onDisconnect.addListener(function(port) {
 	console.info(`Port disconnected: ${port.name}`);
@@ -181,18 +175,17 @@ function setting_Toggle(){
 	
 	if(setting_Enabled){
 		setting_Enabled = false;
+		
+		my_port.sendData("refreshPanel","");
+		
 		unhideClassNode(streamList);
 		hideClassNode(settings_node);
-		
-		settings_node.className += " hide";
 		
 		scrollbar_streamList_update();
 	} else {
 		setting_Enabled = true;
 		unhideClassNode(settings_node);
 		hideClassNode(streamList);
-		
-		settings_node.className = settings_node.className.replace(/\s*hide/i,"");
 		
 		scrollbar_settings_container_update();
 	}
@@ -316,13 +309,13 @@ function newPreferenceNode(parent, id, prefObj){
 	
 	switch(prefObj.type){
 		case "string":
-			prefNode.addEventListener("input", settingNode_onChange, false);
+			prefNode.addEventListener("input", settingNode_onChange);
 			break;
 		case "integer":
 		case "bool":
 		case "color":
 		case "menulist":
-			prefNode.addEventListener("change", settingNode_onChange, false);
+			prefNode.addEventListener("change", settingNode_onChange);
 			break;
 		case "control":
 			if(id.indexOf("_import") != -1){
@@ -333,32 +326,45 @@ function newPreferenceNode(parent, id, prefObj){
 }
 loadPreferences();
 
-
-function settingNodesUpdate(data){
-	let settingNode = document.querySelector(`#${data.settingName}`);
+function refreshSettings(event){
+	let prefId = "";
+	let prefValue = "";
+	if(typeof event.key == "string"){
+		prefId = event.key;
+		prefValue = event.newValue;
+	} else if(typeof event.target == "object"){
+		prefId = event.target.id;
+		prefValue = getPreferences(prefId);
+	}
+	let prefNode = document.querySelector(`#preferences #${prefId}`);
 	
-	if(settingNode !== null){
-		console.dir(settingNode)
-		switch(options[data.settingName].type){
-			case "string":
-			case "color":
-			case "menulist":
-				settingNode.value = data.settingValue;
-				break;
-			case "integer":
-				settingNode.value = parseInt(data.settingValue);
-				break;
-			case "bool":
-				settingNode.checked = getBooleanFromVar(data.settingValue);
-				break;
-			case "control":
-				// Nothing to update, no value
-				break;
+	if(!(typeof options[prefId].showPrefInPanel == "boolean" && options[prefId].showPrefInPanel == false) && typeof options[prefId].type == "string"){
+		if(prefNode == null){
+			console.warn(`${prefId} node is null`);
+		} else {
+			switch(options[prefId].type){
+				case "string":
+				case "color":
+				case "menulist":
+					prefNode.value = prefValue;
+					break;
+				case "integer":
+					prefNode.value = parseInt(prefValue);
+					break;
+				case "bool":
+					prefNode.checked = getBooleanFromVar(prefValue);
+					break;
+				case "control":
+					// Nothing to update, no value
+					break;
+			}
+			if(prefId == "panel_theme" || prefId == "background_color"){
+				theme_update({"theme": getPreferences("panel_theme"), "background_color": getPreferences("background_color")});
+			}
 		}
-	} else {
-		console.warn(`${data.settingName} node is null`);
 	}
 }
+window.addEventListener('storage', refreshSettings);
 /*			---- Settings end ----			*/
 
 /*			---- Stream Editor----			*/
@@ -368,6 +374,8 @@ closeEditorButton.addEventListener("click", function(event){
 	let streamList = document.querySelector("#streamList");
 	let streamEditor = document.querySelector("#streamEditor");
 	let settings_node = document.querySelector("#settings_container");
+	
+	my_port.sendData("refreshPanel","");
 	
 	unhideClassNode(streamList);
 	hideClassNode(streamEditor);
@@ -828,9 +836,6 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				break;
 			case "updateData":
 				listener(data);
-				break;
-			case "settingNodesUpdate":
-				settingNodesUpdate(data);
 				break;
 			case "panel_theme":
 				theme_update(data);

@@ -1,114 +1,13 @@
 'use strict';
 
-function getPreferences(prefId){
-	let defaultSettings = options_default;
-	if(typeof localStorage.getItem(prefId) != "undefined" && localStorage.getItem(prefId) != null){
-		let current_pref = localStorage.getItem(prefId);
-		switch(typeof defaultSettings[prefId]){
-			case "string":
-				return current_pref;
-				break;
-			case "number":
-				return parseInt(current_pref);
-				break;
-			case "boolean":
-				return getBooleanFromVar(current_pref);
-			default:
-				return
-		}
-		return localStorage.getItem(prefId);
-	} else if(typeof defaultSettings[prefId] != "undefined"){
-		console.warn(`Preference ${prefId} not found, using default`);
-		savePreference(prefId, defaultSettings[prefId]);
-		return defaultSettings[prefId];
-	}
-}
-function savePreference(prefId, value, updatePanel){
-	localStorage.setItem(prefId, value);
-	if(typeof updatePanel == "undefined" || updatePanel == true){
-		if(port_panel_sender !== null){
-			sendDataToOptionPage("refreshOptions", {});
-		}
-		if(port_panel !== null){
-			refreshPanel({doUpdateTheme: ((prefId == "background_color" || prefId == "panel_theme")? true : false)});
-		}
-		let streamListSetting = /^.*_keys_list$/;
-		if(streamListSetting.test(prefId)){
-			updatePanelData();
-			setIcon();
-		}
-	}
-}
-function getBooleanFromVar(string){
-	switch(typeof string){
-		case "boolean":
-			return string;
-			break;
-		case "number":
-		case "string":
-			if(string == "true" || string == "on" || string == 1){
-				return true;
-			} else if(string == "false" || string == "off" || string == 0){
-				return false;
-			} else {
-				console.warn(`getBooleanFromVar: Unkown boolean (${string})`);
-				return string;
-			}
-			break;
-		default:
-			console.warn(`getBooleanFromVar: Unknown type to make boolean (${typeof string})`);
-	}
-}
-function translateNodes(locale_document){
-	let document = locale_document;
-	let translate_nodes = document.querySelectorAll("[data-translate-id]");
-	for(let i in translate_nodes){
-		let node = translate_nodes[i];
-		if(typeof node.getAttribute == "function"){
-			node.textContent = _(node.getAttribute("data-translate-id"));
-		}
-	}
-}
-function translateNodes_title(locale_document){
-	let document = locale_document;
-	let translate_nodes = document.querySelectorAll("[data-translate-title]");
-	for(let i in translate_nodes){
-		let node = translate_nodes[i];
-		if(typeof node.getAttribute == "function"){
-			node.title = _(node.getAttribute("data-translate-title"));
-		}
-	}
-}
-function getValueFromNode(node){
-	if(node.type == "checkbox") {
-		return node.checked;
-	} else if(node.tagName == "input" && node.type == "number"){
-		return parseInt(node.value);
-	} else if(typeof node.value == "string"){
-		return node.value;
-	} else {
-		console.error("Problem with node trying to get value");
-	}
-}
-
-function settingNode_onChange(event, node, my_port){
-	let setting_Name = node.id;
-	let value = getValueFromNode(node);
-	if(setting_Name == "check_delay" && value < 1){
-		value = 1;
-	}
+window.addEventListener('storage', function(event){
+	let prefId = event.key;
+	let prefValue = event.newValue;
 	
-	let updatePanel = true
-	// if(event.type == "input" && this.tagName == "INPUT" && this.type == "text"){
-	if(event.type == "input"){
-		updatePanel = false;
+	if(prefId = "check_delay" && parseInt(prefValue) < 1){
+		savePreference("check_delay", 1);
 	}
-	my_port.sendData("setting_Update", {settingName: setting_Name, settingValue: value, updatePanel: updatePanel});
-	
-	if(updatePanel){
-		my_port.sendData("refreshPanel", {doUpdateTheme: ((setting_Name == "background_color" || setting_Name == "panel_theme")? true : false)})
-	}
-}
+});
 
 let _ = chrome.i18n.getMessage;
 
@@ -116,19 +15,15 @@ let _ = chrome.i18n.getMessage;
 var appGlobal = {
 	options: options,
 	options_default: options_default,
-	options_default_sync: options_default_sync,
-	getPreferences: getPreferences,
-	getBooleanFromVar: getBooleanFromVar,
-	_: _,
-	translateNodes: translateNodes,
-	translateNodes_title: translateNodes_title,
-	getValueFromNode: getValueFromNode,
-	settingNode_onChange: settingNode_onChange
+	options_default_sync: options_default_sync
 }
 
 function getCheckDelay(){
 	let check_delay_pref = getPreferences('check_delay');
 	if(check_delay_pref == "number" && !isNaN(check_delay_pref)){
+		if(check_delay_pref < 1){
+			savePreference("check_delay", 1);
+		}
 		return ((check_delay_pref <= 1)? check_delay_pref : 1) * 60000;
 	} else {
 		return 5 * 60000;
@@ -552,8 +447,8 @@ function settingUpdate(data){
 		updatePanel = data.updatePanel;
 	}
 	
-	console.log(`${settingName} - ${settingValue} (Update panel: ${updatePanel})`);
-	savePreference(settingName, settingValue, updatePanel);
+	console.log(`${settingName} - ${settingValue}`);
+	savePreference(settingName, settingValue);
 }
 
 function shareStream(data){
@@ -619,22 +514,12 @@ function sendDataToPanel(id, data){
 	}
 }
 
-let port_panel_sender = null;
-function sendDataToOptionPage(id, data){
-	if(port_panel_sender == null){
-		console.info("Port to option page not opened");
-	} else {
-		try{
-			port_panel_sender.postMessage({"id": id, "data": data});
-		}
-		catch(err){
-			console.info(`Port to option page not opened or disconnect (${err})`);
-		}
-	}
-}
-
-let port_options = null;
 let port_panel = null;
+function openPort(portName){
+	let port = chrome.runtime.connect({name: portName});
+	console.info(`Port (${portName}) connection initiated`);
+	return port;
+}
 chrome.runtime.onConnect.addListener(function(_port) {
 	console.info(`Port (${_port.name}) connected`);
 	
@@ -684,23 +569,17 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				case "panel_onload":
 					handleChange(data);
 					break;
-				case "setting_Update":
-					settingUpdate(data);
-					break;
 				case "shareStream":
 					shareStream(data);
 					break;
 				case "streamSetting_Update":
 					streamSetting_Update(data);
 					break;
+				default:
+					console.warn(`Unkown message id (${id})`);
 			}
 		});
-		function openPortToPanel(portName){
-			port = chrome.runtime.connect({name: portName});
-			console.info(`Port (${portName}) connection initiated`);
-			return port;
-		}
-		port = openPortToPanel("Live_Streamer_Main");
+		port = openPort("Live_Streamer_Main");
 		
 		port.onDisconnect.addListener(function(port) {
 			console.info(`Port disconnected: ${port.name}`);
@@ -710,41 +589,6 @@ chrome.runtime.onConnect.addListener(function(_port) {
 		});
 		
 		port_panel.onDisconnect.addListener(function(port) {
-			console.assert(`Port disconnected: ${port.name}`);
-			port_panel = null;
-		});
-	} else if(_port.name == "Live_Streamer_Options"){
-		port_options = _port;
-		port_options.onMessage.addListener(function(message, MessageSender){
-			let data = message.data;
-			
-			switch(message.id){
-				case "importStreams":
-					let website = message.data;
-					console.info(`Importing ${website}...`);
-					importButton(website);
-					break;
-				case "setting_Update":
-					settingUpdate(data);
-					break;
-			}
-		});
-		
-		function openPortToOptionPage(portName){
-			port_panel_sender = chrome.runtime.connect({name: portName});
-			console.info(`Port (${portName}) connection initiated`);
-			return port_panel_sender;
-		}
-		port_panel_sender = openPortToOptionPage("Live_Streamer_Main");
-		
-		port_panel_sender.onDisconnect.addListener(function(port) {
-			console.info(`Port disconnected: ${port.name}`);
-			if(port_panel_sender.name == "Live_Streamer_Main"){
-				port_panel_sender = null;
-			}
-		});
-
-		port_options.onDisconnect.addListener(function(port) {
 			console.assert(`Port disconnected: ${port.name}`);
 			port_panel = null;
 		});
@@ -888,7 +732,6 @@ function handleChange() {
 }
 
 function copyToClipboard(string){
-	
 	let copy = function(string){
 		let copy_form;
 		if(document.querySelector("#copy_form") === null){

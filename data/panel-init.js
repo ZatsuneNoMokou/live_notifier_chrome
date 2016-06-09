@@ -25,10 +25,16 @@ window.onload = function () {
 	let scrollbar_script = document.createElement("script");
 	scrollbar_script.src = "perfect-scrollbar.min.js";
 	scrollbar_script.onload = function(){
-		// Load panel.js after perfect-scrollbar to avoid error(s)
-		let paneljs_node = document.createElement("script");
-		paneljs_node.src = "panel.js";
-		document.querySelector("body").appendChild(paneljs_node);
+		// Load options-api.js after perfect-scrollbar to avoid error(s)
+		let options_api_script = document.createElement("script");
+		options_api_script.src = "options-api.js";
+		options_api_script.onload = function(){
+			// Load panel.js after options-api.js to avoid error(s)
+			let paneljs_node = document.createElement("script");
+			paneljs_node.src = "panel.js";
+			document.querySelector("body").appendChild(paneljs_node);
+			}
+		document.querySelector("body").appendChild(options_api_script);
 		}
 	document.querySelector("body").appendChild(scrollbar_script);
 }
