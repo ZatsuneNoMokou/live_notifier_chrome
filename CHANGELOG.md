@@ -1,3 +1,9 @@
+# 5.21.0:
+* +: Now using localStorage event to update displayed settings and reduce port usage
+* +: Move options functions to options-api.js to make reuse to my other(s) webextension(s) easier
+* i: Minor css change
+* -: Port from/to option page
+
 # 5.20.1:
 * Fix: Tempory replaced "via" with hashtag with stream share
 * Fix: Min height on online streams, in panel
