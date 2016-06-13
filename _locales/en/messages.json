@@ -230,6 +230,30 @@
 	"notify_offline_description": {
 		"message": "Notification when checked"
 	},
+	"statusBlacklist_title":{
+		"message": "Status blacklist"
+	},
+	"statusBlacklist_description":{
+		"message": "Comma separated list"
+	},
+	"statusWhitelist_title":{
+		"message": "Status whitelist"
+	},
+	"statusWhitelist_description":{
+		"message": "Comma separated list"
+	},
+	"gameBlacklist_title":{
+		"message": "Game blacklist"
+	},
+	"gameBlacklist_description":{
+		"message": "Comma separated list"
+	},
+	"gameWhitelist_title":{
+		"message": "Game whitelist"
+	},
+	"gameWhitelist_description":{
+		"message": "Comma separated list"
+	},
 	"group_streams_by_websites_title": {
 		"message": "Group streams by website"
 	},

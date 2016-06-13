@@ -228,7 +228,7 @@ function getPreferenceGroupNode(parent, groupId){
 function import_onClick(){
 	let getWebsite = /^(\w+)_import$/i;
 	let website = getWebsite.exec(this.id)[1];
-	port_options.sendData("importStreams", website);
+	my_port.sendData("importStreams", website);
 }
 function newPreferenceNode(parent, id, prefObj){
 	let node = document.createElement("div");

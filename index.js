@@ -520,6 +520,7 @@ function openPort(portName){
 	console.info(`Port (${portName}) connection initiated`);
 	return port;
 }
+let port_options = null;
 chrome.runtime.onConnect.addListener(function(_port) {
 	console.info(`Port (${_port.name}) connected`);
 	
@@ -592,6 +593,26 @@ chrome.runtime.onConnect.addListener(function(_port) {
 			console.assert(`Port disconnected: ${port.name}`);
 			port_panel = null;
 		});
+	} else if(_port.name == "Live_Streamer_Options"){
+		port_options = _port;
+		port_options.onMessage.addListener(function(message, MessageSender){
+			console.group();
+			//console.assert(port.name);
+			console.log(`onMessage (${_port.name}): ${message}`);
+			console.dir(message);
+			console.groupEnd();
+			
+			let id = message.id;
+			let data = message.data;
+			
+			switch(id){
+				case "importStreams":
+					let website = message.data;
+					console.info(`Importing ${website}...`);
+					importButton(website);
+					break;
+			}
+		});
 	} else if(_port.name == "Live_Streamer_Embed"){
 		let port_embed = _port;
 		port_embed.onMessage.addListener(function(message, MessageSender){
@@ -604,7 +625,7 @@ chrome.runtime.onConnect.addListener(function(_port) {
 			}
 		});
 	} else {
-		console.info("Unkown port name");
+		console.info(`Unkown port name ${_port.name}`);
 	}
 });
 
@@ -681,6 +702,7 @@ function updatePanelData(updateTheme){
 							}
 							streamInfo.streamSettings = streamList[id];
 							
+							doStreamNotif(website, id, contentId, streamList[id], streamData.online);
 							sendDataToPanel("updateData", streamInfo);
 						}
 					}
@@ -710,6 +732,10 @@ function updatePanelData(updateTheme){
 		"notification_type",
 		"notify_online",
 		"notify_offline",
+		"statusBlacklist",
+		"statusWhitelist",
+		"gameBlacklist",
+		"gameWhitelist",
 		"group_streams_by_websites",
 		"show_offline_in_panel",
 		"confirm_addStreamFromPanel",
@@ -814,8 +840,7 @@ function notifAction(type,data){
 	this.data = data;
 }
 function doActionNotif(title, message, action, imgurl){
-	console.info("Notification (" + ((typeof action.type == "string")? action.type : "Unknown/No action" ) + '): "' + message + '"');
-	
+	console.info(`Notification (${(typeof action.type == "string")? action.type : "Unknown/No action"}): "${message}" (${imgurl})`);
 	if(getPreferences("notification_type") == "web"){
 		let options = {
 			body: message,
@@ -904,7 +929,7 @@ function chromeAPINotification(title, message, action, imgurl){
 			notification_id = JSON.stringify(action);
 			break;
 		default:
-			notification_id = JSON.stringify(new notifAction("none", {}));
+			notification_id = JSON.stringify(new notifAction("none", {timestamp: Date.now()}));
 	}
 	chrome.notifications.create(notification_id, options, function(notificationId){
 		if(typeof chrome.runtime.lastError == "object" && typeof chrome.runtime.lastError.message == "string" && chrome.runtime.lastError.message.length > 0){
@@ -976,34 +1001,64 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 	doNotificationAction_Event(notificationId);
 });
 
+function getFilterFromPreference(string){
+	let list = string.split(",");
+	for(let i in list){
+		list[i] = decodeString(list[i]);
+	}
+	return list;
+}
 function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamOnline){
 	let streamData = liveStatus[website][id][contentId];
 	
 	if(streamData.streamStatus != ""){
 		let lowerCase_status = (streamData.streamStatus).toLowerCase();
-		if(isStreamOnline && streamSetting.statusWhitelist){
-			let statusWhitelist = streamSetting.statusWhitelist;
+		if(isStreamOnline){
 			let whitelisted = false;
-			for(let i in statusWhitelist){
-				if(lowerCase_status.indexOf(statusWhitelist[i].toLowerCase()) != -1){
-					whitelisted = true;
-					break;
+			
+			if(streamSetting.statusWhitelist){
+				let statusWhitelist = streamSetting.statusWhitelist;
+				for(let i in statusWhitelist){
+					if(lowerCase_status.indexOf(statusWhitelist[i].toLowerCase()) != -1){
+						whitelisted = true;
+						break;
+					}
 				}
 			}
-			if(whitelisted == false){
+			if(getPreferences("statusWhitelist") != ""){
+				let statusWhitelist_List = getFilterFromPreference(getPreferences("statusWhitelist"));
+				for(let i in statusWhitelist_List){
+					if(lowerCase_status.indexOf(statusWhitelist_List[i].toLowerCase()) != -1){
+						whitelisted = true;
+						break;
+					}
+				}
+			}
+			if((streamSetting.statusWhitelist || getPreferences("statusWhitelist") != "") && whitelisted == false){
 				isStreamOnline = false;
 				console.info(`${id} current status does not contain whitelist element(s)`);
 			}
-		}
-		if(isStreamOnline && streamSetting.statusBlacklist){
-			let statusBlacklist = streamSetting.statusBlacklist;
+			
 			let blacklisted = false;
-			for(let i in statusBlacklist){
-				if(lowerCase_status.indexOf(statusBlacklist[i].toLowerCase()) != -1){
-					blacklisted = true;
+			
+			if(streamSetting.statusBlacklist){
+				let statusBlacklist = streamSetting.statusBlacklist;
+				for(let i in statusBlacklist){
+					if(lowerCase_status.indexOf(statusBlacklist[i].toLowerCase()) != -1){
+						blacklisted = true;
+					}
 				}
 			}
-			if(blacklisted == true){
+			if(getPreferences("statusBlacklist") != ""){
+				let statusBlacklist_List = getFilterFromPreference(getPreferences("statusBlacklist"));
+				for(let i in statusBlacklist_List){
+					if(lowerCase_status.indexOf(statusBlacklist_List[i].toLowerCase()) != -1){
+						blacklisted = true;
+						break;
+					}
+				}
+			}
+			if((streamSetting.statusBlacklist || getPreferences("statusBlacklist") != "") && blacklisted == true){
 				isStreamOnline = false;
 				console.info(`${id} current status contain blacklist element(s)`);
 			}
@@ -1011,72 +1066,96 @@ function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamO
 	}
 	if(typeof streamData.streamGame == "string" && streamData.streamGame != ""){
 		let lowerCase_streamGame = (streamData.streamGame).toLowerCase();
-		if(isStreamOnline && streamSetting.gameWhitelist){
-			let gameWhitelist = streamSetting.gameWhitelist;
+		if(isStreamOnline){
 			let whitelisted = false;
-			for(let i in gameWhitelist){
-				if(lowerCase_streamGame.indexOf(gameWhitelist[i].toLowerCase()) != -1){
-					whitelisted = true;
-					break;
+			if(streamSetting.gameWhitelist){
+				let gameWhitelist = streamSetting.gameWhitelist;
+				for(let i in gameWhitelist){
+					if(lowerCase_streamGame.indexOf(gameWhitelist[i].toLowerCase()) != -1){
+						whitelisted = true;
+						break;
+					}
 				}
 			}
-			if(whitelisted == false){
+			if(getPreferences("gameWhitelist") != ""){
+				let gameWhitelist_List = getFilterFromPreference(getPreferences("gameWhitelist"));
+				for(let i in gameWhitelist_List){
+					if(lowerCase_streamGame.indexOf(gameWhitelist_List[i].toLowerCase()) != -1){
+						whitelisted = true;
+						break;
+					}
+				}
+			}
+			if((streamSetting.gameWhitelist || getPreferences("gameWhitelist") != "") && whitelisted == false){
 				isStreamOnline = false;
 				console.info(`${id} current game does not contain whitelist element(s)`);
 			}
-		}
-		if(isStreamOnline && streamSetting.gameBlacklist){
-			let gameBlacklist = streamSetting.gameBlacklist;
+			
 			let blacklisted = false;
-			for(let i in gameBlacklist){
-				if(lowerCase_streamGame.indexOf(gameBlacklist[i].toLowerCase()) != -1){
-					blacklisted = true;
+			if(streamSetting.gameBlacklist){
+				let gameBlacklist = streamSetting.gameBlacklist;
+				for(let i in gameBlacklist){
+					if(lowerCase_streamGame.indexOf(gameBlacklist[i].toLowerCase()) != -1){
+						blacklisted = true;
+					}
 				}
 			}
-			if(blacklisted == true){
+			if(getPreferences("gameBlacklist") != ""){
+				let gameBlacklist_List = getFilterFromPreference(getPreferences("gameBlacklist"));
+				for(let i in gameBlacklist_List){
+					if(lowerCase_streamGame.indexOf(gameBlacklist_List[i].toLowerCase()) != -1){
+						blacklisted = true;
+						break;
+					}
+				}
+			}
+			if((streamSetting.gameBlacklist || getPreferences("gameBlacklist") != "") && blacklisted == true){
 				isStreamOnline = false;
 				console.info(`${id} current game contain blacklist element(s)`);
 			}
 		}
+		
 	}
 	streamData.online_cleaned = isStreamOnline;
 	return isStreamOnline;
 }
 
-function doStreamNotif(website, id, contentId, streamSetting, isStreamOnline){
+function doStreamNotif(website, id, contentId, streamSetting){
 	let streamList = (new streamListFromSetting(website)).objData;
 	let streamData = liveStatus[website][id][contentId];
+	
+	let online = streamData.online;
 	
 	let streamName = streamData.streamName;
 	let streamOwnerLogo = streamData.streamOwnerLogo;
 	let streamCategoryLogo = streamData.streamCategoryLogo;
 	let streamLogo = "";
-
+	
 	if(typeof streamOwnerLogo == "string" && streamOwnerLogo != ""){
 		streamLogo  = streamOwnerLogo;
 	}
 	
-	let isStreamOnline_cleaned = getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamOnline);
+	let isStreamOnline_cleaned = getCleanedStreamStatus(website, id, contentId, streamSetting, online);
 	
 	if(isStreamOnline_cleaned){
 		if(((typeof streamList[id].notifyOnline == "boolean")? streamList[id].notifyOnline : getPreferences("notify_online")) == true && streamData.notificationStatus == false){
 			let streamStatus = streamData.streamStatus + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
 				if(streamLogo != ""){
-					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true), streamLogo);
+					doNotifUrl(_("Stream online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
-					doNotifUrl(_("Stream_online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true));
+					doNotifUrl(_("Stream online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true));
 				}
 		}
 	} else {
 		if(((typeof streamList[id].notifyOffline == "boolean")? streamList[id].notifyOffline : getPreferences("notify_offline")) == true && streamData.notificationStatus == true){
 			if(streamLogo != ""){
-				doNotif(_("Stream_offline"),streamName, streamLogo);
+				doNotif(_("Stream offline"),streamName, streamLogo);
 			} else {
-				doNotif(_("Stream_offline"),streamName);
+				doNotif(_("Stream offline"),streamName);
 			}
 		}
 	}
-	streamData.notificationStatus = isStreamOnline;
+	streamData.notificationStatus = isStreamOnline_cleaned;
 }
 
 function getOfflineCount(){

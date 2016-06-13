@@ -1,3 +1,9 @@
+# 5.22.0:
+* +: Global filters (blacklist/whitelist status and game)
+* Fix: Notifications using not "cleaned" status
+* Fix: Notifications without action not showing
+* Fix: Port with import buttons
+
 # 5.21.0:
 * +: Now using localStorage event to update displayed settings and reduce port usage
 * +: Move options functions to options-api.js to make reuse to my other(s) webextension(s) easier

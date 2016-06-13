@@ -233,6 +233,30 @@
 	"notify_offline_description": {
 		"message": "Notification quand cochée"
 	},
+	"statusBlacklist_title":{
+		"message": "Liste noire de status"
+	},
+	"statusBlacklist_description":{
+		"message": "Liste séparée de virgules"
+	},
+	"statusWhitelist_title":{
+		"message": "Liste blanche de status"
+	},
+	"statusWhitelist_description":{
+		"message": "Liste séparée de virgules"
+	},
+	"gameBlacklist_title":{
+		"message": "Liste noire de jeu(x)"
+	},
+	"gameBlacklist_description":{
+		"message": "Liste séparée de virgules"
+	},
+	"gameWhitelist_title":{
+		"message": "Liste blanche de jeu(x)"
+	},
+	"gameWhitelist_description":{
+		"message": "Liste séparée de virgules"
+	},
 	"group_streams_by_websites_title": {
 		"message": "Grouper les streams par site"
 	},

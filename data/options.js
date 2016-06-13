@@ -7,6 +7,16 @@ let options_default_sync = appGlobal.options_default_sync;
 
 let _ = chrome.i18n.getMessage;
 
+function sendDataToMain(portName){
+	this.port = chrome.runtime.connect({name: portName});
+	console.info(`Port (${portName}) connection initiated`);
+	this.sendData = function(id, data){
+		this.port.postMessage({"id": id, "data": data});
+	}
+}
+let my_port =	new sendDataToMain("Live_Streamer_Options");
+let port = my_port.port;
+
 function loadPreferences(){
 	let container = document.querySelector("section#preferences");
 	
@@ -38,7 +48,7 @@ function getPreferenceGroupNode(parent, groupId){
 function import_onClick(){
 	let getWebsite = /^(\w+)_import$/i;
 	let website = getWebsite.exec(this.id)[1];
-	port_options.sendData("importStreams", website);
+	my_port.sendData("importStreams", website);
 }
 function newPreferenceNode(parent, id, prefObj){
 	let node = document.createElement("div");
@@ -104,7 +114,7 @@ function newPreferenceNode(parent, id, prefObj){
 	if(prefObj.type != "control"){
 		prefNode.className = "preferenceInput";
 	}
-	if(id.indexOf("_keys_list") != -1){
+	if(id.indexOf("_keys_list") != -1 || id == "statusBlacklist" || id == "statusWhitelist" || id == "gameBlacklist" || id == "gameWhitelist"){
 		node.className += " flex_input_text";
 	}
 	prefNode.setAttribute("data-setting-type", prefObj.type);
