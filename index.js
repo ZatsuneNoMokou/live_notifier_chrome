@@ -40,30 +40,6 @@ for(let website of websites){
 	channelInfos[website] = {};
 }
 
-function encodeString(string){
-	if(typeof string != "string"){
-		console.warn(`encodeString: wrong type (${typeof string})`);
-		return string;
-	} else {
-		// Using a regexp with g flag, in a replace method let it replace all
-		string = string.replace(/%/g,"%25");
-		string = string.replace(/\:/g,"%3A");
-		string = string.replace(/,/g,"%2C");
-	}
-	return string;
-}
-function decodeString(string){
-	if(typeof string != "string"){
-		console.warn(`encodeString: wrong type (${typeof string})`);
-		return string;
-	} else {
-		// Using a regexp with g flag, in a replace method let it replace all
-		string = string.replace(/%3A/g,":");
-		string = string.replace(/%2C/g,",");
-		string = string.replace(/%25/g,"%");
-	}
-	return string;
-}
 class streamListFromSetting{
 	constructor(website){
 		let somethingElseThanSpaces = /[^\s]+/;
@@ -1001,13 +977,6 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 	doNotificationAction_Event(notificationId);
 });
 
-function getFilterFromPreference(string){
-	let list = string.split(",");
-	for(let i in list){
-		list[i] = decodeString(list[i]);
-	}
-	return list;
-}
 function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamOnline){
 	let streamData = liveStatus[website][id][contentId];
 	
@@ -1026,7 +995,7 @@ function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamO
 				}
 			}
 			if(getPreferences("statusWhitelist") != ""){
-				let statusWhitelist_List = getFilterFromPreference(getPreferences("statusWhitelist"));
+				let statusWhitelist_List = getFilterListFromPreference(getPreferences("statusWhitelist"));
 				for(let i in statusWhitelist_List){
 					if(lowerCase_status.indexOf(statusWhitelist_List[i].toLowerCase()) != -1){
 						whitelisted = true;
@@ -1050,7 +1019,7 @@ function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamO
 				}
 			}
 			if(getPreferences("statusBlacklist") != ""){
-				let statusBlacklist_List = getFilterFromPreference(getPreferences("statusBlacklist"));
+				let statusBlacklist_List = getFilterListFromPreference(getPreferences("statusBlacklist"));
 				for(let i in statusBlacklist_List){
 					if(lowerCase_status.indexOf(statusBlacklist_List[i].toLowerCase()) != -1){
 						blacklisted = true;
@@ -1078,7 +1047,7 @@ function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamO
 				}
 			}
 			if(getPreferences("gameWhitelist") != ""){
-				let gameWhitelist_List = getFilterFromPreference(getPreferences("gameWhitelist"));
+				let gameWhitelist_List = getFilterListFromPreference(getPreferences("gameWhitelist"));
 				for(let i in gameWhitelist_List){
 					if(lowerCase_streamGame.indexOf(gameWhitelist_List[i].toLowerCase()) != -1){
 						whitelisted = true;
@@ -1101,7 +1070,7 @@ function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamO
 				}
 			}
 			if(getPreferences("gameBlacklist") != ""){
-				let gameBlacklist_List = getFilterFromPreference(getPreferences("gameBlacklist"));
+				let gameBlacklist_List = getFilterListFromPreference(getPreferences("gameBlacklist"));
 				for(let i in gameBlacklist_List){
 					if(lowerCase_streamGame.indexOf(gameBlacklist_List[i].toLowerCase()) != -1){
 						blacklisted = true;

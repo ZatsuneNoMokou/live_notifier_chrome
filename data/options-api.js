@@ -1,5 +1,43 @@
 'use strict';
 
+function encodeString(string){
+	if(typeof string != "string"){
+		console.warn(`encodeString: wrong type (${typeof string})`);
+		return string;
+	} else {
+		// Using a regexp with g flag, in a replace method let it replace all
+		string = string.replace(/%/g,"%25");
+		string = string.replace(/\:/g,"%3A");
+		string = string.replace(/,/g,"%2C");
+	}
+	return string;
+}
+function decodeString(string){
+	if(typeof string != "string"){
+		console.warn(`encodeString: wrong type (${typeof string})`);
+		return string;
+	} else {
+		// Using a regexp with g flag, in a replace method let it replace all
+		string = string.replace(/%3A/g,":");
+		string = string.replace(/%2C/g,",");
+		string = string.replace(/%25/g,"%");
+	}
+	return string;
+}
+
+function getFilterListFromPreference(string){
+	let list = string.split(",");
+	for(let i in list){
+		if(list[i].length == 0){
+			delete list[i];
+			// Keep a null item, but this null is not considered in for..in loops
+		} else {
+			list[i] = decodeString(list[i]);
+		}
+	}
+	return list;
+}
+
 function getPreferences(prefId){
 	let defaultSettings = options_default;
 	if(typeof localStorage.getItem(prefId) != "undefined" && localStorage.getItem(prefId) != null){
@@ -69,9 +107,20 @@ function translateNodes_title(locale_document){
 	}
 }
 function getValueFromNode(node){
-	if(node.type == "checkbox") {
+	let tagName = node.tagName.toLowerCase();
+	if(tagName == "textarea"){
+		if(node.getAttribute("data-string-list") == "true"){
+			let list = node.value.split("\n");
+			for(let i in list){
+				list[i] = encodeString(list[i]);
+			}
+			return list.join(",");
+		} else {
+			return node.value;
+		}
+	} else if(node.type == "checkbox") {
 		return node.checked;
-	} else if(node.tagName == "input" && node.type == "number"){
+	} else if(tagName == "input" && node.type == "number"){
 		return parseInt(node.value);
 	} else if(typeof node.value == "string"){
 		return node.value;

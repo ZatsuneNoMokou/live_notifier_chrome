@@ -251,9 +251,17 @@ function newPreferenceNode(parent, id, prefObj){
 	let prefNode = null;
 	switch(prefObj.type){
 		case "string":
-			prefNode = document.createElement("input");
-			prefNode.type = "text";
-			prefNode.value = getPreferences(id);
+			if(typeof prefObj.stringList == "boolean" && prefObj.stringList == true){
+				prefNode = document.createElement("textarea");
+				prefNode.setAttribute("data-string-list", "true");
+				prefNode.value = getFilterListFromPreference(getPreferences(id)).join("\n");
+				
+				node.className += " stringList";
+			} else {
+				prefNode = document.createElement("input");
+				prefNode.type = "text";
+				prefNode.value = getPreferences(id);
+			}
 			break;
 		case "integer":
 			prefNode = document.createElement("input");
@@ -344,6 +352,12 @@ function refreshSettings(event){
 		} else {
 			switch(options[prefId].type){
 				case "string":
+					if(typeof options[prefId].stringList == "boolean" && options[prefId].stringList == true){
+						prefNode.value = getFilterListFromPreference(getPreferences(prefId)).join("\n");
+					} else {
+						prefNode.value = prefValue;
+					}
+					break;
 				case "color":
 				case "menulist":
 					prefNode.value = prefValue;
