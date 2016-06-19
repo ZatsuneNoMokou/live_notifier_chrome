@@ -369,7 +369,7 @@ function addStreamFromPanel(data){
 							}
 							if(getPreferences("confirm_addStreamFromPanel")){
 								let addstreamNotifAction = new notifAction("addStream", {id: id, website: website, url: ((type == "embed")? active_tab_url : "")});
-								doActionNotif(`Live notifier (${_("click_to_confirm")})`, `${display_id(id)} ${_("wasnt_configured_and_can_be_added")}`, addstreamNotifAction);
+								doActionNotif(`Live notifier`, `${display_id(id)} ${_("wasnt_configured_and_can_be_added")}`, addstreamNotifAction);
 							} else {
 								streamListSetting.addStream(id, ((type == "embed")? active_tab_url : ""));
 								streamListSetting.update();
@@ -403,7 +403,7 @@ function deleteStreamFromPanel(data){
 	if(streamListSetting.streamExist(id)){
 		if(getPreferences("confirm_deleteStreamFromPanel")){
 			let deletestreamNotifAction = new notifAction("deleteStream", {id: id, website: website});
-			doActionNotif(`Live notifier (${_("click_to_confirm")})`, `${display_id(id)} ${_("will_be_deleted_are_you_sure")}`, deletestreamNotifAction);
+			doActionNotif(`Live notifier`, `${display_id(id)} ${_("will_be_deleted_are_you_sure")}`, deletestreamNotifAction);
 		} else {
 			delete streamListSetting.objData[id];
 			streamListSetting.update();
@@ -476,42 +476,28 @@ function streamSetting_Update(data){
 	streamListSetting.update();
 }
 
-let port = null;
 function sendDataToPanel(id, data){
-	if(port == null){
-		console.info("Port to panel not opened");
-	} else {
-		try{
-			port.postMessage({"id": id, "data": data});
-		}
-		catch(err){
-			console.info(`Port to panel not opened or disconnect (${err})`);
+	function responseCallback(response){
+		if(typeof response != "undefined"){
+			console.group();
+			console.info(`Port response of ${id}: `);
+			console.dir(response);
+			console.groupEnd();
 		}
 	}
+	chrome.runtime.sendMessage({"sender": "Live_Notifier_Main","receiver": "Live_Notifier_Panel", "id": id, "data": data}, responseCallback);
 }
-
-let port_panel = null;
-function openPort(portName){
-	let port = chrome.runtime.connect({name: portName});
-	console.info(`Port (${portName}) connection initiated`);
-	return port;
-}
-let port_options = null;
-chrome.runtime.onConnect.addListener(function(_port) {
-	console.info(`Port (${_port.name}) connected`);
-	
-	if(_port.name == "Live_Streamer_Panel"){
-		port_panel = _port;
-		port_panel.onMessage.addListener(function(message, MessageSender){
-			console.group();
-			//console.assert(port.name);
-			console.log(`onMessage (${_port.name}): ${message}`);
-			console.dir(message);
-			console.groupEnd();
-			
-			let id = message.id;
-			let data = message.data;
-			
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+	if(message.receiver == "Live_Notifier_Main"){
+		console.group()
+		console.info("Message:");
+		console.dir(message);
+		console.groupEnd();
+		
+		let id = message.id;
+		let data = message.data;
+		
+		if(message.sender == "Live_Notifier_Panel" || message.sender == "Live_Notifier_Options"){
 			switch(id){
 				case "refreshPanel":
 					refreshPanel(data);
@@ -555,55 +541,18 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				default:
 					console.warn(`Unkown message id (${id})`);
 			}
-		});
-		port = openPort("Live_Streamer_Main");
-		
-		port.onDisconnect.addListener(function(port) {
-			console.info(`Port disconnected: ${port.name}`);
-			if(port.name == "Live_Streamer_Main"){
-				port = null;
-			}
-		});
-		
-		port_panel.onDisconnect.addListener(function(port) {
-			console.assert(`Port disconnected: ${port.name}`);
-			port_panel = null;
-		});
-	} else if(_port.name == "Live_Streamer_Options"){
-		port_options = _port;
-		port_options.onMessage.addListener(function(message, MessageSender){
-			console.group();
-			//console.assert(port.name);
-			console.log(`onMessage (${_port.name}): ${message}`);
-			console.dir(message);
-			console.groupEnd();
-			
-			let id = message.id;
-			let data = message.data;
-			
-			switch(id){
-				case "importStreams":
-					let website = message.data;
-					console.info(`Importing ${website}...`);
-					importButton(website);
-					break;
-			}
-		});
-	} else if(_port.name == "Live_Streamer_Embed"){
-		let port_embed = _port;
-		port_embed.onMessage.addListener(function(message, MessageSender){
-			let data = message.data;
-			
+		} else if(message.sender == "Live_Streamer_Embed"){
 			switch(message.id){
 				case "addStream":
 					addStreamFromPanel(data);
 					break;
 			}
-		});
-	} else {
-		console.info(`Unkown port name ${_port.name}`);
+		} else {
+			console.warn("Unknown sender");
+		}
 	}
 });
+
 
 function updatePanelData(updateTheme){
 	if(typeof updateTheme == "undefined" || updateTheme == true){
@@ -816,11 +765,14 @@ function notifAction(type,data){
 	this.data = data;
 }
 function doActionNotif(title, message, action, imgurl){
-	console.info(`Notification (${(typeof action.type == "string")? action.type : "Unknown/No action"}): "${message}" (${imgurl})`);
 	if(getPreferences("notification_type") == "web"){
+		console.info(`Notification (${(typeof action.type == "string")? action.type : "Unknown/No action"}): "${message}" (${imgurl})`);
 		let options = {
 			body: message,
 			icon: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL)
+		}
+		if(action.type == "addStream" || action.type == "deleteStream"){
+			title = `${title} (${_("click_to_confirm")})`;
 		}
 		let notif = new Notification(title, options);
 		notif.onclick = function(){
@@ -873,6 +825,7 @@ function doActionNotif_onClick(action, message){
 }
 let chromeAPI_button_availability = true;
 function chromeAPINotification(title, message, action, imgurl){
+	console.warn(chromeAPI_button_availability + " - " + action.type);
 	let options = {
 		type: "basic",
 		title: title,
@@ -880,13 +833,34 @@ function chromeAPINotification(title, message, action, imgurl){
 		iconUrl: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL),
 		isClickable: true
 	}
+	let openUrl = {title: _("Open_in_browser"), iconUrl: "/data/images/ic_open_in_browser_black_24px.svg"};
+	let close = {title: _("Close"), iconUrl: "/data/images/ic_close_black_24px.svg"};
+	
+	let addItem = {title: _("Add"), iconUrl: "/data/images/ic_add_circle_black_24px.svg"};
+	let deleteItem = {title: _("Delete"), iconUrl: "/data/images/ic_delete_black_24px.svg"};
+	let cancel = {title: _("Cancel"), iconUrl: "/data/images/ic_cancel_black_24px.svg"};
+	
+	let ok = {title: _("Ok"), iconUrl: "/data/images/ic_check_black_24px.svg"};
+	
 	if(chromeAPI_button_availability == true){
-		options.buttons = [
-				{
-					title: "Ok",
-					iconUrl: "/data/ic_done_black_24px.svg"
-				}
-			]
+		// 2 buttons max per notification
+		// 2nd button is a cancel (no action) button
+		switch(action.type){
+			case "openUrl":
+				// Notification with openUrl action
+				options.buttons = [openUrl, close]
+				break;
+			case "addStream":
+				options.buttons = [addItem, cancel]
+				break;
+			case "deleteStream":
+				options.buttons = [deleteItem, cancel]
+				break;
+			default:
+				options.buttons = [close];
+		}
+	} else if(action.type == "addStream" || action.type == "deleteStream"){
+		options.title = `${options.title} (${_("click_to_confirm")})`;
 	}
 	
 	let notification_id = "";
@@ -915,7 +889,7 @@ function chromeAPINotification(title, message, action, imgurl){
 			
 			if(error == "Adding buttons to notifications is not supported."){
 				chromeAPI_button_availability = false;
-				console.log("Buttons not supported, retying notification without them.")
+				console.log("Buttons not supported, retrying notification without them.")
 				chromeAPINotification(title, message, action, imgurl);
 			}
 		}
@@ -974,7 +948,10 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 	console.info(`${notificationId} (onButtonClicked) - Button index: ${buttonIndex}`);
 	chrome.notifications.clear(notificationId);
 	
-	doNotificationAction_Event(notificationId);
+	// 0 is the first button, used as button of action
+	if(buttonIndex == 0){
+		doNotificationAction_Event(notificationId);
+	}
 });
 
 function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamOnline){

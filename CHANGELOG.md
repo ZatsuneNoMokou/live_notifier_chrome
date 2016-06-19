@@ -1,3 +1,8 @@
+# 5.24.0:
+* +: Simplified port usage, no longer use connect/disconnect
+* +: More button on notifications (when buttons are supported)
+* Fix: Stop displaying "click to confirm" in notification titles when buttons (Webextension) are used 
+
 # 5.23.0:
 * +: List support using textarea in settings (option and panel, except Firefox option page)
 * +: Better support for global filters

@@ -17,13 +17,8 @@ for(let i in embed_selectors){
 	}
 }
 
-function sendDataToMain(portName){
-	this.port = chrome.extension.connect({name: portName});
-	this.sendData = function(id, data){
-		this.port.postMessage({"id": id, "data": data});
-	}
+function sendDataToMain(id, data){
+	chrome.runtime.sendMessage({"sender": "Live_Notifier_Embed","receiver": "Live_Notifier_Main", "id": id, "data": data});
 }
-var my_port =	new sendDataToMain("Live_Streamer_Embed");
-var port = my_port.port;
 
-my_port.sendData("addStream", message);
+sendDataToMain("addStream", message);

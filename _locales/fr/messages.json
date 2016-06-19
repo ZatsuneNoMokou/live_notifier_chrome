@@ -7,6 +7,24 @@
 		"message": "Soyez notifiés des streams de Dailymotion, Hitbox, Twitch et Beam.",
 		"description": "this will be used as short description in web stores: MUST BE 132 characters OR LESS"
 	},
+	"Open_in_browser": {
+		"message": "Ouvrir dans le navigateur"
+	},
+	"Close": {
+		"message": "Fermer"
+	},
+	"Add": {
+		"message": "Ajouter"
+	},
+	"Delete": {
+		"message": "Supprimer"
+	},
+	"Cancel": {
+		"message": "Annuler"
+	},
+	"Ok": {
+		"message": "Ok"
+	},
 	"Stream_online": {
 		"message": "Stream en ligne"
 	},

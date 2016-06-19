@@ -7,6 +7,24 @@
 		"message": "Be notified of streams from Dailymotion, Hitbox, Twitch and Bream.",
 		"description": "this will be used as short description in web stores: MUST BE 132 characters OR LESS"
 	},
+	"Open_in_browser": {
+		"message": "Open in browser"
+	},
+	"Close": {
+		"message": "Close"
+	},
+	"Add": {
+		"message": "Add"
+	},
+	"Delete": {
+		"message": "Delete"
+	},
+	"Cancel": {
+		"message": "Cancel"
+	},
+	"Ok": {
+		"message": "Ok"
+	},
 	"Stream_online": {
 		"message": "Stream online"
 	},

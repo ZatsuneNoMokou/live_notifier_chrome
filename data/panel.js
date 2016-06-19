@@ -1,14 +1,15 @@
 'use strict';
 
-function sendDataToMain(portName){
-	this.port = chrome.runtime.connect({name: portName});
-	console.info(`Port (${portName}) connection initiated`);
-	this.sendData = function(id, data){
-		this.port.postMessage({"id": id, "data": data});
+function sendDataToMain(id, data){
+	function responseCallback(response){
+		if(typeof response != "undefined"){
+			console.group();
+			console.info(`Port response of ${id}: `);
+			console.groupEnd();
+		}
 	}
+	chrome.runtime.sendMessage({"sender": "Live_Notifier_Panel","receiver": "Live_Notifier_Main", "id": id, "data": data}, responseCallback);
 }
-let my_port =	new sendDataToMain("Live_Streamer_Panel");
-let port = my_port.port;
 
 var backgroundPage = chrome.extension.getBackgroundPage();
 let appGlobal = backgroundPage.appGlobal;
@@ -18,21 +19,17 @@ let options_default_sync = appGlobal.options_default_sync;
 
 let _ = chrome.i18n.getMessage;
 
-port.onDisconnect.addListener(function(port) {
-	console.info(`Port disconnected: ${port.name}`);
-});
-
 var refreshStreamsButton = document.querySelector("#refreshStreams");
 
 function refreshButtonClick(){
-	my_port.sendData("refreshStreams","");
+	sendDataToMain("refreshStreams","");
 }
 refreshStreamsButton.addEventListener("click",refreshButtonClick,false);
 
 var addStreamButton = document.querySelector("#addStream");
 
 function addStreamButtonClick(){
-	my_port.sendData("addStream","");
+	sendDataToMain("addStream","");
 }
 addStreamButton.addEventListener("click",addStreamButtonClick,false);
 
@@ -58,7 +55,7 @@ function drop(event) {
 	
 	let data = JSON.parse(event.dataTransfer.getData("text"));
 	
-	my_port.sendData("deleteStream", {id: data.id, website: data.website});
+	sendDataToMain("deleteStream", {id: data.id, website: data.website});
 }
 function dragenter(event){
 	if(event.target.className.indexOf('dragover') != -1){
@@ -176,7 +173,7 @@ function setting_Toggle(){
 	if(setting_Enabled){
 		setting_Enabled = false;
 		
-		my_port.sendData("refreshPanel","");
+		sendDataToMain("refreshPanel","");
 		
 		unhideClassNode(streamList);
 		hideClassNode(settings_node);
@@ -228,7 +225,7 @@ function getPreferenceGroupNode(parent, groupId){
 function import_onClick(){
 	let getWebsite = /^(\w+)_import$/i;
 	let website = getWebsite.exec(this.id)[1];
-	my_port.sendData("importStreams", website);
+	sendDataToMain("importStreams", website);
 }
 function newPreferenceNode(parent, id, prefObj){
 	let node = document.createElement("div");
@@ -389,7 +386,7 @@ closeEditorButton.addEventListener("click", function(event){
 	let streamEditor = document.querySelector("#streamEditor");
 	let settings_node = document.querySelector("#settings_container");
 	
-	my_port.sendData("refreshPanel","");
+	sendDataToMain("refreshPanel","");
 	
 	unhideClassNode(streamList);
 	hideClassNode(streamEditor);
@@ -428,7 +425,7 @@ function saveEditedStreamButton_onClick(event){
 		notifyOffline: document.querySelector("#streamEditor #notifyOffline").checked
 	}
 	
-	my_port.sendData("streamSetting_Update", {
+	sendDataToMain("streamSetting_Update", {
 		website: website,
 		id: id,
 		contentId: contentId,
@@ -485,7 +482,7 @@ function newDeleteStreamButton_onClick(event){
 	let id = node.getAttribute("data-id");
 	let website = node.getAttribute("data-website");
 	
-	my_port.sendData("deleteStream", {id: id, website: website});
+	sendDataToMain("deleteStream", {id: id, website: website});
 }
 function newDeleteStreamButton(id, website){
 	let node = document.createElement("span");
@@ -508,7 +505,7 @@ function newShareStreamButton_onClick(event){
 	let id = node.getAttribute("data-id");
 	let contentId = node.getAttribute("data-contentId");
 	
-	my_port.sendData("shareStream", {
+	sendDataToMain("shareStream", {
 		website: node.getAttribute("data-website"),
 		id: node.getAttribute("data-id"),
 		contentId: node.getAttribute("data-contentId"),
@@ -590,7 +587,7 @@ function newCopyLivestreamerCmdButton_onClick(event){
 	let contentId = node.getAttribute("data-contentId");
 	let website = node.getAttribute("data-website");
 	
-	my_port.sendData("copyLivestreamerCmd", {id: id, contentId: contentId, website: website});
+	sendDataToMain("copyLivestreamerCmd", {id: id, contentId: contentId, website: website});
 }
 function newCopyLivestreamerCmdButton(id, contentId, website){
 	let node = document.createElement("span");
@@ -800,9 +797,9 @@ function streamItemClick(){
 	let streamUrl = node.getAttribute("data-streamUrl");
 	
 	if(online){
-		my_port.sendData("openOnlineLive", {id: id, website: website, streamUrl: streamUrl});
+		sendDataToMain("openOnlineLive", {id: id, website: website, streamUrl: streamUrl});
 	} else {
-		my_port.sendData("openTab", streamUrl);
+		sendDataToMain("openTab", streamUrl);
 	}
 }
 
@@ -825,13 +822,10 @@ function theme_update(data){
 	}
 }
 
-let port_mainscript = null
-chrome.runtime.onConnect.addListener(function(_port) {
-	console.info(`Port (${_port.name}) connected`);
-	port_mainscript = _port;
-	port_mainscript.onMessage.addListener(function(message, MessageSender){
-		console.group();
-		console.log("Panel (onMessage):");
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+	if(message.receiver == "Live_Notifier_Panel"){
+		console.group()
+		console.info("Message:");
 		console.dir(message);
 		console.groupEnd();
 		
@@ -858,11 +852,7 @@ chrome.runtime.onConnect.addListener(function(_port) {
 				current_version(data);
 				break;
 		}
-	});
-	port_mainscript.onDisconnect.addListener(function(port) {
-		console.assert(`Port disconnected: ${port.name}`);
-		port = null;
-	});
+	}
 });
 
 let scrollbar = {"streamList": null, "settings_container": null};
@@ -899,7 +889,7 @@ function scrollbar_settings_container_update(){
 }
 
 //document.addEventListener('DOMContentLoaded', function () {
-	my_port.sendData("panel_onload","");
+	sendDataToMain("panel_onload","");
 	
 	translateNodes(document);
 	translateNodes_title(document);

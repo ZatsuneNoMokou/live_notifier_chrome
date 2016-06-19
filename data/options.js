@@ -7,15 +7,15 @@ let options_default_sync = appGlobal.options_default_sync;
 
 let _ = chrome.i18n.getMessage;
 
-function sendDataToMain(portName){
-	this.port = chrome.runtime.connect({name: portName});
-	console.info(`Port (${portName}) connection initiated`);
-	this.sendData = function(id, data){
-		this.port.postMessage({"id": id, "data": data});
+function sendDataToMain(id, data){
+	function responseCallback(response){
+		console.group();
+		console.info(`Port response of ${id}: `);
+		console.dir(response);
+		console.groupEnd();
 	}
+	chrome.runtime.sendMessage({"sender": "Live_Notifier_Options","receiver": "Live_Notifier_Main", "id": id, "data": data}, responseCallback);
 }
-let my_port =	new sendDataToMain("Live_Streamer_Options");
-let port = my_port.port;
 
 function loadPreferences(){
 	let container = document.querySelector("section#preferences");
@@ -48,7 +48,7 @@ function getPreferenceGroupNode(parent, groupId){
 function import_onClick(){
 	let getWebsite = /^(\w+)_import$/i;
 	let website = getWebsite.exec(this.id)[1];
-	my_port.sendData("importStreams", website);
+	sendDataToMain("importStreams", website);
 }
 function newPreferenceNode(parent, id, prefObj){
 	let node = document.createElement("div");
