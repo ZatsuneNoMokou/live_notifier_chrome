@@ -17,6 +17,15 @@ let options = appGlobal.options;
 let options_default = appGlobal.options_default;
 let options_default_sync = appGlobal.options_default_sync;
 
+let streamListFromSetting = appGlobal.streamListFromSetting;
+let liveStatus = appGlobal.liveStatus;
+let channelInfos = appGlobal.channelInfos;
+let getCleanedStreamStatus = appGlobal.getCleanedStreamStatus;
+let getStreamURL = appGlobal.getStreamURL;
+let getOfflineCount = appGlobal.getOfflineCount;
+let doStreamNotif = appGlobal.doStreamNotif;
+let setIcon = appGlobal.setIcon;
+
 let _ = chrome.i18n.getMessage;
 
 var refreshStreamsButton = document.querySelector("#refreshStreams");
@@ -251,29 +260,29 @@ function newPreferenceNode(parent, id, prefObj){
 			if(typeof prefObj.stringList == "boolean" && prefObj.stringList == true){
 				prefNode = document.createElement("textarea");
 				prefNode.setAttribute("data-string-list", "true");
-				prefNode.value = getFilterListFromPreference(getPreferences(id)).join("\n");
+				prefNode.value = getFilterListFromPreference(getPreference(id)).join("\n");
 				
 				node.className += " stringList";
 			} else {
 				prefNode = document.createElement("input");
 				prefNode.type = "text";
-				prefNode.value = getPreferences(id);
+				prefNode.value = getPreference(id);
 			}
 			break;
 		case "integer":
 			prefNode = document.createElement("input");
 			prefNode.type = "number";
-			prefNode.value = parseInt(getPreferences(id));
+			prefNode.value = parseInt(getPreference(id));
 			break;
 		case "bool":
 			prefNode = document.createElement("input");
 			prefNode.type = "checkbox";
-			prefNode.checked = getBooleanFromVar(getPreferences(id));
+			prefNode.checked = getBooleanFromVar(getPreference(id));
 			break;
 		case "color":
 			prefNode = document.createElement("input");
 			prefNode.type = "color";
-			prefNode.value = getPreferences(id);
+			prefNode.value = getPreference(id);
 			break;
 		case "control":
 			prefNode = document.createElement("button");
@@ -292,7 +301,7 @@ function newPreferenceNode(parent, id, prefObj){
 				
 				prefNode.add(optionNode);
 			}
-			prefNode.value = getPreferences(id);
+			prefNode.value = getPreference(id);
 			break;
 	}
 	prefNode.id = id;
@@ -339,7 +348,7 @@ function refreshSettings(event){
 		prefValue = event.newValue;
 	} else if(typeof event.target == "object"){
 		prefId = event.target.id;
-		prefValue = getPreferences(prefId);
+		prefValue = getPreference(prefId);
 	}
 	let prefNode = document.querySelector(`#preferences #${prefId}`);
 	
@@ -350,7 +359,7 @@ function refreshSettings(event){
 			switch(options[prefId].type){
 				case "string":
 					if(typeof options[prefId].stringList == "boolean" && options[prefId].stringList == true){
-						prefNode.value = getFilterListFromPreference(getPreferences(prefId)).join("\n");
+						prefNode.value = getFilterListFromPreference(getPreference(prefId)).join("\n");
 					} else {
 						prefNode.value = prefValue;
 					}
@@ -370,7 +379,7 @@ function refreshSettings(event){
 					break;
 			}
 			if(prefId == "panel_theme" || prefId == "background_color"){
-				theme_update({"theme": getPreferences("panel_theme"), "background_color": getPreferences("background_color")});
+				theme_update({"theme": getPreference("panel_theme"), "background_color": getPreference("background_color")});
 			}
 		}
 	}
@@ -436,6 +445,72 @@ saveEditedStreamButton.addEventListener("click", saveEditedStreamButton_onClick,
 
 /*			---- Stream Editor end----			*/
 
+function updatePanelData(data){
+	console.log("Updating panel data");
+	
+	if(typeof data.doUpdateTheme == "boolean" && data.doUpdateTheme == true){
+		theme_update({"theme": getPreference("panel_theme"), "background_color": getPreference("background_color")});
+	}
+	
+	//Clear stream list in the panel
+	initList({"group_streams_by_websites": getPreference("group_streams_by_websites"), "show_offline_in_panel": getPreference("show_offline_in_panel")});
+	
+	for(let website in liveStatus){
+		var streamList = (new streamListFromSetting(website)).objData;
+		for(let id in liveStatus[website]){
+			// Make sure that the stream from the status is still in the settings
+			if(id in streamList){
+				if(typeof streamList[id].ignore == "boolean" && streamList[id].ignore == true){
+					console.info(`[Live notifier - Panel] Ignoring ${id}`);
+					continue;
+				}
+				if(typeof streamList[id].hide == "boolean" && streamList[id].hide == true){
+					console.info(`[Live notifier - Panel] Hiding ${id}`);
+					continue;
+				}
+				
+				if(JSON.stringify(liveStatus[website][id]) == "{}"){
+					let streamData = channelInfos[website][id];
+					let contentId = id;
+					
+					console.info(`No data found, using channel infos: ${id} (${website})`);
+					
+					listener(website, id, contentId, "channel", streamList[id], channelInfos[website][id]);
+				} else {
+					for(let contentId in liveStatus[website][id]){
+						let streamData = liveStatus[website][id][contentId];
+						
+						getCleanedStreamStatus(website, id, contentId, streamList[id], streamData.online);
+						
+						if(streamData.online_cleaned || (getPreference("show_offline_in_panel") && !streamData.online_cleaned)){
+							doStreamNotif(website, id, contentId, streamList[id], streamData.online);
+							
+							listener(website, id, contentId, "live", streamList[id], liveStatus[website][id][contentId]);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	//Update online steam count in the panel
+	let onlineCount = appGlobal["onlineCount"];
+	listenerOnlineCount((onlineCount == 0)? _("No_stream_online") :  _("count_stream_online", onlineCount.toString()));
+	
+	if(getPreference("show_offline_in_panel")){
+		var offlineCount = getOfflineCount();
+		listenerOfflineCount((offlineCount == 0)? _("No_stream_offline") :  _("count_stream_offline", offlineCount.toString()));
+	} else {
+		listenerOfflineCount("");
+	}
+	
+	setIcon();
+	
+	//Update Live notifier version displayed in the panel preferences
+	if(typeof appGlobal["version"] == "string"){
+		current_version(appGlobal["version"]);
+	}
+}
 
 function removeAllChildren(node){
 	// Taken from https://stackoverflow.com/questions/683366/remove-all-the-children-dom-elements-in-div
@@ -628,11 +703,11 @@ function showNonEmptySitesBlocks(){
 		}
 	}
 }
-function insertStreamNode(newLine, data){
+function insertStreamNode(newLine, website, id, contentId, type, streamData, online){
 	let statusNode;
 	let statusStreamList;
 	
-	if(data.online){
+	if(online){
 		statusNode = document.querySelector("#streamListOnline");
 		statusStreamList = document.querySelectorAll("#streamListOnline .item-stream");
 	} else {
@@ -641,7 +716,7 @@ function insertStreamNode(newLine, data){
 	}
 	
 	if(group_streams_by_websites){
-		streamNodes[((data.online)? "online" : "offline")][data.website].appendChild(newLine);
+		streamNodes[((online)? "online" : "offline")][website].appendChild(newLine);
 		return true;
 	} else {
 		if(statusStreamList.length > 0){
@@ -649,7 +724,7 @@ function insertStreamNode(newLine, data){
 				let streamNode = statusStreamList[i];
 				if(typeof streamNode.getAttribute == "function"){
 					let streamNode_title = streamNode.getAttribute("data-streamName");
-					if(data.streamName.toLowerCase() < streamNode_title.toLowerCase()){
+					if(streamData.streamName.toLowerCase() < streamNode_title.toLowerCase()){
 						streamNode.parentNode.insertBefore(newLine,streamNode);
 						return true;
 					}
@@ -661,19 +736,31 @@ function insertStreamNode(newLine, data){
 	}
 }
 
-function listener(data){
+function listener(website, id, contentId, type, streamSettings, streamData){
+	let online = (type == "channel")? streamData.online : streamData.online_cleaned;
+	
+	let streamName = streamData.streamName;
+	let streamStatus = streamData.streamStatus;
+	let streamGame = streamData.streamGame;
+	let streamOwnerLogo = streamData.streamOwnerLogo;
+	let streamCategoryLogo = streamData.streamCategoryLogo;
+	let streamCurrentViewers = streamData.streamCurrentViewers;
+	let streamUrl = getStreamURL(website, id, contentId, true);
+	let facebookID = streamData.facebookID;
+	let twitterID = streamData.twitterID;
+	
 	var newLine = document.createElement("div");
-	newLine.id = `${data.website}/${data.id}/${data.contentId}`;
+	newLine.id = `${website}/${id}/${contentId}`;
 	
 	let stream_right_container_node;
-	if(data.online && typeof data.streamCurrentViewers == "number"){
+	if(online && typeof streamCurrentViewers == "number"){
 		stream_right_container_node = document.createElement("span");
 		stream_right_container_node.id = "stream_right_container";
 		
 		var viewerCountNode = document.createElement("span");
 		viewerCountNode.className = "streamCurrentViewers";
 		
-		let viewer_number = (typeof data.streamCurrentViewers == "number")? data.streamCurrentViewers : parseInt(data.streamCurrentViewers);
+		let viewer_number = (typeof streamCurrentViewers == "number")? streamCurrentViewers : parseInt(streamCurrentViewers);
 		viewerCountNode.textContent = (viewer_number < 1000)? viewer_number : ((Math.round(viewer_number / 100)/10)+ "k");
 		
 		var viewerCountLogoNode = document.createElement("i");
@@ -684,11 +771,9 @@ function listener(data){
 		newLine.appendChild(stream_right_container_node);
 	}
 	
-	let streamOwnerLogo = data.streamOwnerLogo;
-	let streamCategoryLogo = data.streamCategoryLogo;
 	let streamLogo = "";
 	
-	if(data.online && typeof streamCategoryLogo == "string" && streamCategoryLogo != ""){
+	if(online && typeof streamCategoryLogo == "string" && streamCategoryLogo != ""){
 		streamLogo  = streamCategoryLogo;
 	} else if(typeof streamOwnerLogo == "string" && streamOwnerLogo != ""){
 		streamLogo  = streamOwnerLogo;
@@ -704,69 +789,69 @@ function listener(data){
 	if(typeof streamLogo == "string" && streamLogo != ""){
 		var imgStreamStatusLogo = document.createElement("img");
 		imgStreamStatusLogo.className = "streamStatusLogo";
-		imgStreamStatusLogo.src = (data.online)? "online-stream.svg" : "offline-stream.svg";
+		imgStreamStatusLogo.src = (online)? "online-stream.svg" : "offline-stream.svg";
 		titleLine.appendChild(imgStreamStatusLogo);
 	}
-	titleLine.textContent = data.streamName;
+	titleLine.textContent = streamName;
 	newLine.appendChild(titleLine);
 	
-	if(data.online){
-		if(data.streamStatus != ""){
+	if(online){
+		if(streamStatus != ""){
 			var statusLine = document.createElement("span");
 			statusLine.className = "streamStatus";
-			statusLine.textContent = data.streamStatus + ((data.streamGame.length > 0)? (" (" + data.streamGame + ")") : "");
+			statusLine.textContent = streamStatus + ((streamGame.length > 0)? (" (" + streamGame + ")") : "");
 			newLine.appendChild(statusLine);
 			
-			newLine.setAttribute("data-streamStatus", data.streamStatus);
-			newLine.setAttribute("data-streamStatusLowerCase", data.streamStatus.toLowerCase());
+			newLine.setAttribute("data-streamStatus", streamStatus);
+			newLine.setAttribute("data-streamStatusLowerCase", streamStatus.toLowerCase());
 		}
 		
-		if(data.streamGame.length > 0){
-			newLine.setAttribute("data-streamGame", data.streamGame);
-			newLine.setAttribute("data-streamGameLowerCase", data.streamGame.toLowerCase());
+		if(streamGame.length > 0){
+			newLine.setAttribute("data-streamGame", streamGame);
+			newLine.setAttribute("data-streamGameLowerCase", streamGame.toLowerCase());
 		}
 		
 		newLine.className += " item-stream onlineItem";
-		insertStreamNode(newLine, data);
+		insertStreamNode(newLine, website, id, contentId, type, streamData, online);
 	} else {
 		newLine.className += " item-stream offlineItem";
-		insertStreamNode(newLine, data);
+		insertStreamNode(newLine, website, id, contentId, type, streamData, online);
 	}
 	newLine.className += " cursor";
 	
-	newLine.setAttribute("data-streamId", data.id);
-	newLine.setAttribute("data-contentId", data.contentId);
-	newLine.setAttribute("data-online", data.online);
-	newLine.setAttribute("data-streamName", data.streamName);
-	newLine.setAttribute("data-streamNameLowerCase", data.streamName.toLowerCase());
-	newLine.setAttribute("data-streamWebsite", data.website);
-	newLine.setAttribute("data-streamWebsiteLowerCase", data.website.toLowerCase());
-	newLine.setAttribute("data-streamUrl", data.streamUrl);
-	if(typeof data.facebookID == "string" && data.facebookID != ""){
-		newLine.setAttribute("data-facebookID", data.facebookID);
+	newLine.setAttribute("data-streamId", id);
+	newLine.setAttribute("data-contentId", contentId);
+	newLine.setAttribute("data-online", online);
+	newLine.setAttribute("data-streamName", streamName);
+	newLine.setAttribute("data-streamNameLowerCase", streamName.toLowerCase());
+	newLine.setAttribute("data-streamWebsite", website);
+	newLine.setAttribute("data-streamWebsiteLowerCase", website.toLowerCase());
+	newLine.setAttribute("data-streamUrl", streamUrl);
+	if(typeof facebookID == "string" && facebookID != ""){
+		newLine.setAttribute("data-facebookID", facebookID);
 	}
-	if(typeof data.facebookID == "string" && data.twitterID != ""){
-		newLine.setAttribute("data-twitterID", data.twitterID);
+	if(typeof facebookID == "string" && twitterID != ""){
+		newLine.setAttribute("data-twitterID", twitterID);
 	}
 	newLine.addEventListener("click", streamItemClick);
 	
 	/*			---- Control span ----			*/
 	let control_span = document.createElement("span");
 	control_span.className = "stream_control";
-	let deleteButton_node = newDeleteStreamButton(data.id, data.website);
+	let deleteButton_node = newDeleteStreamButton(id, website);
 	control_span.appendChild(deleteButton_node);
 	
 	let copyLivestreamerCmd_node = null;
 	let editStream_node = null;
 	let shareStream_node = null;
-	if(data.type == "live"){
-		copyLivestreamerCmd_node = newCopyLivestreamerCmdButton(data.id, data.contentId, data.website);
+	if(type == "live"){
+		copyLivestreamerCmd_node = newCopyLivestreamerCmdButton(id, contentId, website);
 		control_span.appendChild(copyLivestreamerCmd_node);
 	}
-	editStream_node = newEditStreamButton(data.id, data.contentId, data.website, data.streamName, data.streamSettings);
+	editStream_node = newEditStreamButton(id, contentId, website, streamName, streamSettings);
 	control_span.appendChild(editStream_node);
-	if(data.online){
-		shareStream_node = newShareStreamButton(data.id, data.contentId, data.website, data.streamName, data.streamUrl, data.streamStatus, (typeof data.facebookID == "string")? data.facebookID: "", (typeof data.twitterID == "string")? data.twitterID: "");
+	if(online){
+		shareStream_node = newShareStreamButton(id, contentId, website, streamName, streamUrl, streamStatus, (typeof facebookID == "string")? facebookID: "", (typeof twitterID == "string")? twitterID: "");
 		control_span.appendChild(shareStream_node);
 		
 		stream_right_container_node.appendChild(control_span);
@@ -803,9 +888,9 @@ function streamItemClick(){
 	}
 }
 
-function current_version(data){
+function current_version(version){
 	let current_version_node = document.querySelector("#current_version");
-	current_version_node.textContent = data.current_version;
+	current_version_node.textContent = version;
 }
 
 var theme_cache_update = backgroundPage.theme_cache_update;
@@ -833,23 +918,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 		let data = message.data;
 		
 		switch(id){
-			case "initList":
-				initList(data);
-				break;
-			case "updateOnlineCount":
-				listenerOnlineCount(data);
-				break;
-			case "updateOfflineCount":
-				listenerOfflineCount(data);
-				break;
-			case "updateData":
-				listener(data);
-				break;
-			case "panel_theme":
-				theme_update(data);
-				break;
-			case "current_version":
-				current_version(data);
+			case "updatePanelData":
+				updatePanelData(data);
 				break;
 		}
 	}

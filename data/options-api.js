@@ -38,7 +38,7 @@ function getFilterListFromPreference(string){
 	return list;
 }
 
-function getPreferences(prefId){
+function getPreference(prefId){
 	let defaultSettings = options_default;
 	if(typeof localStorage.getItem(prefId) != "undefined" && localStorage.getItem(prefId) != null){
 		let current_pref = localStorage.getItem(prefId);

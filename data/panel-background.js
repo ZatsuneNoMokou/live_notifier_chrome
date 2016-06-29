@@ -1,7 +1,7 @@
 'use strict';
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var getPreferences = backgroundPage.getPreferences;
+var getPreference = backgroundPage.getPreference;
 
 backgroundPage.color = function(hexColorCode) {
 	let getCodes =  /^#([\da-fA-F]{2,2})([\da-fA-F]{2,2})([\da-fA-F]{2,2})$/;
@@ -96,4 +96,4 @@ header, .item-stream, footer{box-shadow: 0px 0px 5px 0px hsl(${baseColor_hsl.H},
 }
 
 // Build theme cache on addon load
-backgroundPage.theme_cache_update(document, {"theme": getPreferences("panel_theme"), "background_color": getPreferences("background_color")});
+backgroundPage.theme_cache_update(document, {"theme": getPreference("panel_theme"), "background_color": getPreference("background_color")});

@@ -1,11 +1,18 @@
 'use strict';
 
 var options = {
+	"stream_keys_list": {
+		"title": "Stream keys to notify",
+		"description": "Stream list in a comma separated list.",
+		"type": "string",
+		"value": "",
+		"showPrefInPanel": false
+	},
 	/*			Dailymotion			*/
 	"dailymotion_keys_list": {
 		"title": "Dailymotion keys to notify",
 		"description": "Stream list in a comma separated list.",
-		"type": "string",
+		"type": "hidden",
 		"value": "",
 		"showPrefInPanel": false,
 		"group": "dailymotion"
@@ -27,7 +34,7 @@ var options = {
 	"hitbox_keys_list": {
 		"title": "Hitbox keys to notify",
 		"description": "Stream list in a comma separated list.",
-		"type": "string",
+		"type": "hidden",
 		"value": "",
 		"showPrefInPanel": false,
 		"group": "hitbox"
@@ -49,7 +56,7 @@ var options = {
 	"twitch_keys_list": {
 		"title": "Twitch keys to notify",
 		"description": "Stream list in a comma separated list.",
-		"type": "string",
+		"type": "hidden",
 		"value": "",
 		"showPrefInPanel": false,
 		"group": "twitch"
@@ -71,7 +78,7 @@ var options = {
 	"beam_keys_list": {
 		"title": "Beam keys to notify",
 		"description": "Stream list in a comma separated list.",
-		"type": "string",
+		"type": "hidden",
 		"value": "",
 		"showPrefInPanel": false,
 		"group": "beam"

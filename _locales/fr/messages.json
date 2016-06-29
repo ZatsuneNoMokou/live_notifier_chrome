@@ -146,10 +146,10 @@
 	"notifyOffline_title": {
 		"message": "Notification lorsque le stream fini"
 	},
-	"dailymotion_keys_list_title": {
-		"message": "Clés Dailymotion à notifier"
+	"stream_keys_list_title": {
+		"message": "Clés de streams à notifier"
 	},
-	"dailymotion_keys_list_description": {
+	"stream_keys_list_description": {
 		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
 	"dailymotion_user_id_description": {
@@ -167,12 +167,6 @@
 	"dailymotion_import":{
 		"message": "Importer"
 	},
-	"hitbox_keys_list_title": {
-		"message": "Clés Hitbox à notifier"
-	},
-	"hitbox_keys_list_description": {
-		"message": "Liste des streams dans une liste séparée par des virgules."
-	},
 	"hitbox_user_id_title": {
 		"message": "Votre id Hitbox"
 	},
@@ -185,12 +179,6 @@
 	"hitbox_import": {
 		"message": "Importer"
 	},
-	"twitch_keys_list_title": {
-		"message": "Clés Twitch à notifier"
-	},
-	"twitch_keys_list_description": {
-		"message": "Liste des streams dans une liste séparée par des virgules."
-	},
 	"twitch_user_id_title": {
 		"message": "Votre id Twitch"
 	},
@@ -202,12 +190,6 @@
 	},
 	"twitch_import": {
 		"message": "Importer"
-	},
-	"beam_keys_list_title": {
-		"message": "Clés Beam keys à notifier"
-	},
-	"beam_keys_list_description": {
-		"message": "Liste des streams dans une liste séparée par des virgules."
 	},
 	"beam_user_id_title": {
 		"message": "Votre id Beam"

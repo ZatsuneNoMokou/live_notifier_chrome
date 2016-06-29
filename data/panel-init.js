@@ -1,10 +1,10 @@
 'use strict';
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var getPreferences = backgroundPage.getPreferences;
+var getPreference = backgroundPage.getPreference;
 
 var theme_cache_update = backgroundPage.theme_cache_update;
-var panelColorStylesheet = theme_cache_update(document, {"theme": getPreferences("panel_theme"), "background_color": getPreferences("background_color")});
+var panelColorStylesheet = theme_cache_update(document, {"theme": getPreference("panel_theme"), "background_color": getPreference("background_color")});
 
 if(typeof panelColorStylesheet == "object" && panelColorStylesheet !== null){
 	console.info("Theme update");

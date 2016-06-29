@@ -1,3 +1,12 @@
+# 6.0.0
+* i: Moved panel data update to panel script, reducing port usage
+* +: Fused website preferences, avoiding one pref per website
+* +: streamListFromSetting use a variable as cache to not re-process each time
+* Fix: Header min height
+* Fix: Load canvas sooner to avoid icon/badge load problems
+* Fix: streamListFromSetting send empty objects if no stream of a website, to avoid errors or undefined
+* Fix: Renamed getPreferences to getPreference, because it make more sense
+
 # 5.24.0:
 * +: Simplified port usage, no longer use connect/disconnect
 * +: More button on notifications (when buttons are supported)
@@ -75,7 +84,7 @@
 * Fix: French localization
 
 # 5.14.0:
-* +: Option page reworked, more automated, sync part not changed (Chrome only)
+* +: Option page reworked, more automated, sync part not changed
 
 # 5.13.1:
 * Fix: Stream key list update
@@ -138,7 +147,7 @@
 * Fix: Context menu title
 
 # 5.8.0:
-* +: Add streams from context menu (displayed on more pages, Chrome API doesn't allow regexp)
+* +: Add streams from context menu (displayed on more pages, Webextension API doesn't allow regexp)
 * +: Dailymotion channel pattern missing
 * Fix: Better error detection from Hitbox
 * Fix: Channel patterns allowing empty id
@@ -149,10 +158,10 @@
 
 # 5.7.2
 * Fix: Dailymotion channels pattern missing
-* Fix: Notication with Chrome API and button available
+* Fix: Notication with Webextension API and button available
 
 # 5.7.1:
-* Fix: Notication with Chrome API and button available
+* Fix: Notication with Webextension API and button available
 
 # 5.7.0
 * +: Alphabetical order of streams (and no longer grouped by website)
@@ -174,7 +183,7 @@
 
 # 5.5.1:
 * Fix: Error importing streams in Beam when id does not exist
-* Fix: Notification with Chrome API for Opera (Known issue: events)
+* Fix: Notification with Webextension API for Opera (Known issue: events)
 
 # 5.5.0:
 * +: Support importing followed streams in Beam
@@ -303,8 +312,8 @@
 * +: Main icon size
 
 # 4.0.0
+* i: Starting Webextension version
 * +: New addon icon (SVG). Source picture from https://pixabay.com/fr/surveiller-live-%C3%A9cran-978055/ in CC0 (Public Domain)
-* i: Début portage Chrome
 
 # 3.3.5
 * Fix: Locale
