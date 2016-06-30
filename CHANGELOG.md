@@ -1,3 +1,9 @@
+# 6.1.0
+* i: The function importing stream key list (before 6.x.x) now delete the old preferences, not only keeping empty strings
+* +: Stream key list in a textarea
+* Fix: Space after comma when streamListFromSetting update the stream list
+* Fix: Forgotten sender, in index.js, to receive from embeds
+
 # 6.0.0
 * i: Moved panel data update to panel script, reducing port usage
 * +: Fused website preferences, avoiding one pref per website

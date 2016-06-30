@@ -43,12 +43,12 @@ for(let website of websites){
 }
 
 if(getPreference("stream_keys_list") == ""){
-	(function(){
+	let importSreamsFromOldVersion = function(){
 		let somethingElseThanSpaces = /[^\s]+/;
 		let newPrefTable = new Array();
 		for(let website of websites){
 			let pref = getPreference(`${website}_keys_list`);
-			if(pref != "" && somethingElseThanSpaces.test(pref)){
+			if(typeof pref != "undefined" && pref != "" && somethingElseThanSpaces.test(pref)){
 				let myTable = pref.split(",");
 				for(let i in myTable){
 					newPrefTable.push(`${website}::${myTable[i]}`);
@@ -57,9 +57,10 @@ if(getPreference("stream_keys_list") == ""){
 		}
 		savePreference("stream_keys_list", newPrefTable.join(", "));
 		for(let website of websites){
-			savePreference(`${website}_keys_list`, "");
+			localStorage.removeItem(`${website}_keys_list`);
 		}
-	})();
+	}
+	importSreamsFromOldVersion();
 }
 
 let streamListFromSetting_cache = null;
@@ -243,7 +244,7 @@ class streamListFromSetting{
 				array.push(`${website}::${id}${filters}${URL}`);
 			}
 		}
-		let newSettings = array.join(",");
+		let newSettings = array.join(", ");
 		savePreference("stream_keys_list", newSettings);
 		setIcon();
 		console.log(`Stream key list update: ${localStorage.getItem(`stream_keys_list`)}`);
@@ -556,7 +557,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 		let id = message.id;
 		let data = message.data;
 		
-		if(message.sender == "Live_Notifier_Panel" || message.sender == "Live_Notifier_Options"){
+		if(message.sender == "Live_Notifier_Panel" || message.sender == "Live_Notifier_Embed" || message.sender == "Live_Notifier_Options"){
 			switch(id){
 				case "refreshPanel":
 					refreshPanel(data);

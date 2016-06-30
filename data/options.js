@@ -71,7 +71,11 @@ function newPreferenceNode(parent, id, prefObj){
 	let prefNode = null;
 	switch(prefObj.type){
 		case "string":
-			if(typeof prefObj.stringList == "boolean" && prefObj.stringList == true){
+			if(typeof prefObj.stringTextArea == "boolean" && prefObj.stringTextArea == true){
+				prefNode = document.createElement("textarea");
+				prefNode.setAttribute("data-string-textarea", "true");
+				prefNode.value = getPreference(id);
+			} else if(typeof prefObj.stringList == "boolean" && prefObj.stringList == true){
 				prefNode = document.createElement("textarea");
 				prefNode.setAttribute("data-string-list", "true");
 				prefNode.value = getFilterListFromPreference(getPreference(id)).join("\n");

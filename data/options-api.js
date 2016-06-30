@@ -109,7 +109,9 @@ function translateNodes_title(locale_document){
 function getValueFromNode(node){
 	let tagName = node.tagName.toLowerCase();
 	if(tagName == "textarea"){
-		if(node.getAttribute("data-string-list") == "true"){
+		if(node.getAttribute("data-string-textarea") == "true"){
+			return node.value.replace(/\n/g, "");
+		} else if(node.getAttribute("data-string-list") == "true"){
 			let list = node.value.split("\n");
 			for(let i in list){
 				list[i] = encodeString(list[i]);

@@ -5,6 +5,7 @@ var options = {
 		"title": "Stream keys to notify",
 		"description": "Stream list in a comma separated list.",
 		"type": "string",
+		"stringTextArea": true,
 		"value": "",
 		"showPrefInPanel": false
 	},
