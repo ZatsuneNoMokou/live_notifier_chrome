@@ -1,3 +1,6 @@
+# 6.1.1
+* Fix: Twitter share back with via instead of hashtag
+
 # 6.1.0
 * i: The function importing stream key list (before 6.x.x) now delete the old preferences, not only keeping empty strings
 * +: Stream key list in a textarea
