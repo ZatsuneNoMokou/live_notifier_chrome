@@ -1,3 +1,6 @@
+# 6.2.0
+* +: Now use Element.classList to change classes
+
 # 6.1.1
 * Fix: Twitter share back with via instead of hashtag
 

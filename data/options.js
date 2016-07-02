@@ -37,9 +37,9 @@ function getPreferenceGroupNode(parent, groupId){
 	if(groupNode == null){
 		groupNode = document.createElement("p");
 		groupNode.id = groupId;
-		groupNode.className = "pref_group";
+		groupNode.classList.add("pref_group");
 		if(groupId == "dailymotion" || groupId == "hitbox" || groupId == "twitch" || groupId == "beam"){
-			groupNode.className += " website_pref"
+			groupNode.classList.add("website_pref");
 		}
 		parent.appendChild(groupNode);
 	}
@@ -52,10 +52,10 @@ function import_onClick(){
 }
 function newPreferenceNode(parent, id, prefObj){
 	let node = document.createElement("div");
-	node.className = "preferenceContainer";
+	node.classList.add("preferenceContainer");
 	
 	let labelNode = document.createElement("label");
-	labelNode.className = "preference";
+	labelNode.classList.add("preference");
 	if(typeof prefObj.description == "string"){
 		labelNode.title = prefObj.description;
 	}
@@ -122,10 +122,10 @@ function newPreferenceNode(parent, id, prefObj){
 	}
 	prefNode.id = id;
 	if(prefObj.type != "control"){
-		prefNode.className = "preferenceInput";
+		prefNode.classList.add("preferenceInput");
 	}
 	if(id.indexOf("_keys_list") != -1 || id == "statusBlacklist" || id == "statusWhitelist" || id == "gameBlacklist" || id == "gameWhitelist"){
-		node.className += " flex_input_text";
+		node.classList.add("flex_input_text");
 	}
 	prefNode.setAttribute("data-setting-type", prefObj.type);
 	
