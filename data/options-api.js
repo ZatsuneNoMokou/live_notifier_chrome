@@ -90,8 +90,8 @@ function translateNodes(locale_document){
 	let translate_nodes = document.querySelectorAll("[data-translate-id]");
 	for(let i in translate_nodes){
 		let node = translate_nodes[i];
-		if(typeof node.getAttribute == "function"){
-			node.textContent = _(node.getAttribute("data-translate-id"));
+		if(typeof node.tagName == "string"){
+			node.textContent = _(node.dataset.translateId);
 		}
 	}
 }
@@ -101,17 +101,17 @@ function translateNodes_title(locale_document){
 	let translate_nodes = document.querySelectorAll("[data-translate-title]");
 	for(let i in translate_nodes){
 		let node = translate_nodes[i];
-		if(typeof node.getAttribute == "function"){
-			node.title = _(node.getAttribute("data-translate-title"));
+		if(typeof node.tagName == "string"){
+			node.title = _(node.dataset.translateTitle);
 		}
 	}
 }
 function getValueFromNode(node){
 	let tagName = node.tagName.toLowerCase();
 	if(tagName == "textarea"){
-		if(node.getAttribute("data-string-textarea") == "true"){
+		if(node.dataset.stringTextarea == "true"){
 			return node.value.replace(/\n/g, "");
-		} else if(node.getAttribute("data-string-list") == "true"){
+		} else if(node.dataset.stringList == "true"){
 			let list = node.value.split("\n");
 			for(let i in list){
 				list[i] = encodeString(list[i]);

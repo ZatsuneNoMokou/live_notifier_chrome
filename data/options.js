@@ -60,12 +60,12 @@ function newPreferenceNode(parent, id, prefObj){
 		labelNode.title = prefObj.description;
 	}
 	labelNode.htmlFor = id;
-	labelNode.setAttribute("data-translate-title",`${id}_description`)
+	labelNode.dataset.translateTitle = `${id}_description`;
 	
 	let title = document.createElement("span");
 	title.id = `${id}_title`;
 	title.textContent = prefObj.title
-	title.setAttribute("data-translate-id",`${id}_title`)
+	title.dataset.translateId = `${id}_title`;
 	labelNode.appendChild(title);
 	
 	let prefNode = null;
@@ -73,11 +73,11 @@ function newPreferenceNode(parent, id, prefObj){
 		case "string":
 			if(typeof prefObj.stringTextArea == "boolean" && prefObj.stringTextArea == true){
 				prefNode = document.createElement("textarea");
-				prefNode.setAttribute("data-string-textarea", "true");
+				prefNode.dataset.stringTextarea = true;
 				prefNode.value = getPreference(id);
 			} else if(typeof prefObj.stringList == "boolean" && prefObj.stringList == true){
 				prefNode = document.createElement("textarea");
-				prefNode.setAttribute("data-string-list", "true");
+				prefNode.dataset.stringList = true;
 				prefNode.value = getFilterListFromPreference(getPreference(id)).join("\n");
 			} else {
 				prefNode = document.createElement("input");
@@ -113,7 +113,7 @@ function newPreferenceNode(parent, id, prefObj){
 				let optionNode = document.createElement("option");
 				optionNode.text = option.label;
 				optionNode.value = option.value;
-				optionNode.setAttribute("data-translate-id",`${id}_${option.value}`);
+				optionNode.dataset.translateId = `${id}_${option.value}`;
 				
 				prefNode.add(optionNode);
 			}
@@ -127,10 +127,10 @@ function newPreferenceNode(parent, id, prefObj){
 	if(id.indexOf("_keys_list") != -1 || id == "statusBlacklist" || id == "statusWhitelist" || id == "gameBlacklist" || id == "gameWhitelist"){
 		node.classList.add("flex_input_text");
 	}
-	prefNode.setAttribute("data-setting-type", prefObj.type);
+	prefNode.dataset.settingType = prefObj.type;
 	
 	if(prefObj.type != "menulist"){
-		prefNode.setAttribute("data-translate-id", id);
+		prefNode.dataset.translateId = id;
 	}
 	
 	node.appendChild(labelNode);

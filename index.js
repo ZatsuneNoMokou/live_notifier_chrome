@@ -177,6 +177,8 @@ class streamListFromSetting{
 	streamExist(website, id){
 		for(let i in this.objDataAll[website]){
 			if(i.toLowerCase() == id.toLowerCase()){
+				console.log(i);
+				console.log(id);
 				return true;
 			}
 		}
@@ -1031,11 +1033,11 @@ function doStreamNotif(website, id, contentId, streamSetting){
 	
 	if(isStreamOnline_cleaned){
 		if(((typeof streamList[id].notifyOnline == "boolean")? streamList[id].notifyOnline : getPreference("notify_online")) == true && streamData.notificationStatus == false){
-			let streamStatus = streamData.streamStatus + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
+			let streamStatus = (streamData.streamStatus != "")? streamData.streamStatus : "" + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
 				if(streamLogo != ""){
-					doNotifUrl(_("Stream online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true), streamLogo);
+					doNotifUrl(_("Stream online"), `${streamName}${streamStatus}`, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
-					doNotifUrl(_("Stream online"), streamName + ": " + streamStatus, getStreamURL(website, id, contentId, true));
+					doNotifUrl(_("Stream online"), `${streamName}${streamStatus}`, getStreamURL(website, id, contentId, true));
 				}
 		}
 	} else {
@@ -1538,7 +1540,7 @@ let checkLiveStatus = {
 				data = data["stream"];
 				if(data != null){
 					streamData.streamName = data["channel"]["display_name"];
-					streamData.streamStatus = data["channel"]["status"];
+					streamData.streamStatus = (data["channel"]["status"] != null)? data["channel"]["status"] : "";
 					streamData.streamGame = (data["game"] !== null && typeof data["game"] == "string")? data["game"] : "";
 					if(typeof data.channel["logo"] == "string" && data.channel["logo"] != "") {
 						streamData.streamOwnerLogo = data.channel["logo"];

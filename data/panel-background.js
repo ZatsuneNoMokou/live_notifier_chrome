@@ -45,7 +45,7 @@ backgroundPage.theme_cache_update = function(document, data){
 	let background_color = data.background_color;
 	let panelColorStylesheet = document.querySelector("#panel-color-stylesheet");
 	
-	if(panelColorStylesheet !== null && panel_theme == panelColorStylesheet.getAttribute("data-theme") && background_color == panelColorStylesheet.getAttribute("data-background_color")){
+	if(panelColorStylesheet !== null && panel_theme == panelColorStylesheet.dataset.theme && background_color == panelColorStylesheet.dataset.background_color){
 		console.info("Loaded theme is already good");
 		return null;
 	} else {
@@ -84,8 +84,8 @@ header button, button, .item-stream {background-color: hsl(${baseColor_hsl.H}, $
 #deleteStreamTooltip {background-color: hsla(${baseColor_hsl.H}, ${baseColor_hsl.S}, ${values[2]}, 0.95);};
 header, .item-stream, footer{box-shadow: 0px 0px 5px 0px hsl(${baseColor_hsl.H}, ${baseColor_hsl.S}, ${values[3]});}
 			`
-			panelColorStylesheet.setAttribute("data-theme", panel_theme);
-			panelColorStylesheet.setAttribute("data-background_color", background_color);
+			panelColorStylesheet.dataset.theme = panel_theme;
+			panelColorStylesheet.dataset.background_color = background_color;
 			//console.log(baseColor.rgbCode());
 			//console.log("hsl(" + baseColor_hsl.H + ", " + baseColor_hsl.S + ", " + baseColor_hsl.L + ")");
 			
