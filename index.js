@@ -33,6 +33,7 @@ function getCheckDelay(){
 let myIconURL = "/data/live_offline.svg";
 
 let websites = ["beam","dailymotion","hitbox","twitch"];
+appGlobal["websites"] = websites;
 let liveStatus = {};
 appGlobal["liveStatus"] = liveStatus;
 let channelInfos = {};
@@ -177,14 +178,11 @@ class streamListFromSetting{
 	streamExist(website, id){
 		for(let i in this.objDataAll[website]){
 			if(i.toLowerCase() == id.toLowerCase()){
-				console.log(i);
-				console.log(id);
 				return true;
 			}
 		}
 		return false;
 	}
-	
 	addStream(website, id, url){
 		if(this.streamExist(website, id) == false){
 			this.objDataAll[website][id] = {streamURL: url};
@@ -203,6 +201,9 @@ class streamListFromSetting{
 		if(this.streamExist(website, id)){
 			delete this.objDataAll[website][id];
 			delete this.objData[id];
+			if(typeof liveStatus[website][id] != "undefined"){
+				delete liveStatus[website][id];
+			}
 			console.log(`${id} has been deleted`);
 		}
 	}
@@ -1033,7 +1034,7 @@ function doStreamNotif(website, id, contentId, streamSetting){
 	
 	if(isStreamOnline_cleaned){
 		if(((typeof streamList[id].notifyOnline == "boolean")? streamList[id].notifyOnline : getPreference("notify_online")) == true && streamData.notificationStatus == false){
-			let streamStatus = (streamData.streamStatus != "")? streamData.streamStatus : "" + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
+			let streamStatus = ((streamData.streamStatus != "")? ": " + streamData.streamStatus : "") + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
 				if(streamLogo != ""){
 					doNotifUrl(_("Stream online"), `${streamName}${streamStatus}`, getStreamURL(website, id, contentId, true), streamLogo);
 				} else {
@@ -1063,7 +1064,7 @@ function getOfflineCount(){
 		for(let id in streamList){
 			if(typeof streamList[id].ignore == "boolean" && streamList[id].ignore == true){
 				// Ignoring stream with ignore set to true from online count
-				console.log(`[Live notifier - getOfflineCount] ${id} of ${website} is ignored`);
+				//console.log(`[Live notifier - getOfflineCount] ${id} of ${website} is ignored`);
 				continue;
 			}
 			
@@ -1093,7 +1094,7 @@ function setIcon() {
 		for(let id in liveStatus[website]){
 			if(id in streamList && (typeof streamList[id].ignore == "boolean" && streamList[id].ignore == true)){
 				// Ignoring stream with ignore set to true from online count
-				console.log(`[Live notifier - setIcon] ${id} of ${website} is ignored`);
+				//console.log(`[Live notifier - setIcon] ${id} of ${website} is ignored`);
 				continue;
 			} else {
 				for(let contentId in liveStatus[website][id]){
@@ -1230,12 +1231,13 @@ function isValidResponse(website, data){
 	}
 	switch(website){
 		case "dailymotion":
-			if(data.mode != "live" && typeof data.list == "undefined"){
-				console.warn(`[${website}] Unable to get stream state (not a stream).`);
-				return false;
-			}
 			if(typeof data.error == "object"){
 				console.warn(`[${website}] Unable to get stream state (error detected).`);
+				return false;
+			} else if(typeof data.id == "string"){
+				return true;
+			} else if(data.mode != "live" && typeof data.list == "undefined"){
+				console.warn(`[${website}] Unable to get stream state (not a stream).`);
 				return false;
 			}
 			break;
@@ -1276,11 +1278,10 @@ function checkLives(){
 		console.info(website);
 		console.dir(streamList);
 		console.groupEnd();
-		//console.info(`${website}: ${JSON.stringify(streamList)}`);
 		
 		for(let id in streamList){
 			if(typeof streamList[id].ignore == "boolean" && streamList[id].ignore == true){
-				console.info(`Ignoring ${id}`);
+				//console.info(`Ignoring ${id}`);
 				continue;
 			}
 			getPrimary(id, website, streamList[id]);
@@ -1294,7 +1295,6 @@ function checkLives(){
 }
 
 function getPrimary(id, website, streamSetting, url, pageNumber){
-	//let request_id = id;
 	let current_API = new API(website, id);
 	if(typeof url == "string"){
 		current_API.url = url;
@@ -1308,32 +1308,34 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 	xhr.send();
 	
 	xhr.addEventListener("load", function(){
-			let data = JSON.parse(xhr.responseText);
-			if(isValidResponse(website, data) == false){
-				console.timeEnd(id);
-				console.groupEnd();
-				return null;
-			}
-			
-			console.group();
-			console.info(`${website} - ${id} (${current_API.url})`);
-			console.dir(data);
-			
-			if(typeof liveStatus[website][id] == "undefined"){
-				liveStatus[website][id] = {};
-			}
-			
-			if(website_channel_id.test(id)){
-				if(typeof pageNumber == "number"){
-					pagingPrimary[website](id, website, streamSetting, data, pageNumber)
-				} else {
-					pagingPrimary[website](id, website, streamSetting, data)
-				}
+		let data = null;
+		try {
+			data = JSON.parse(xhr.responseText);
+		}
+		catch(err) {
+			console.warn(err);
+		}
+		
+		console.group();
+		console.info(`${website} - ${id} (${current_API.url})`);
+		console.dir(data);
+		
+		if(typeof liveStatus[website][id] == "undefined"){
+			liveStatus[website][id] = {};
+		}
+		
+		if(website_channel_id.test(id)){
+			if(typeof pageNumber == "number"){
+				pagingPrimary[website](id, website, streamSetting, data, pageNumber)
 			} else {
-				processPrimary(id, id, website, streamSetting, data);
+				pagingPrimary[website](id, website, streamSetting, data)
 			}
+		} else {
+			processPrimary(id, id, website, streamSetting, data);
+		}
 	});
 }
+appGlobal["getPrimary"] = getPrimary;
 
 function pagingPrimaryEnd(id){
 	setIcon();
@@ -1343,24 +1345,28 @@ function pagingPrimaryEnd(id){
 let pagingPrimary = {
 	"dailymotion":
 		function(id, website, streamSetting, data, pageNumber){
-			let list = data.list;
-			
-			if(data.total == 0){
-				getChannelInfo(website, id);
-				pagingPrimaryEnd(id);
-			} else {
-				for(let i in list){
-					let contentId = list[i].id;
-					processPrimary(id, contentId, website, streamSetting, list[i]);
-				}
+			if(isValidResponse(website, data) == true){
+				let list = data.list;
 				
-				if(data.has_more){
-					let next_url = (new API(website, website_channel_id.exec(id)[1])).url;
-					let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-					getPrimary(id, website, streamSetting, next_url + "&page=" + next_page_number, next_page_number);
-				} else {
+				if(data.total == 0){
+					getChannelInfo(website, id);
 					pagingPrimaryEnd(id);
+				} else {
+					for(let i in list){
+						let contentId = list[i].id;
+						processPrimary(id, contentId, website, streamSetting, list[i]);
+					}
+					
+					if(data.has_more){
+						let next_url = (new API(website, website_channel_id.exec(id)[1])).url;
+						let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
+						getPrimary(id, website, streamSetting, next_url + "&page=" + next_page_number, next_page_number);
+					} else {
+						pagingPrimaryEnd(id);
+					}
 				}
+			} else {
+				pagingPrimaryEnd(id);
 			}
 		}
 }
@@ -1369,35 +1375,35 @@ function processPrimary(id, contentId, website, streamSetting, data){
 	if(typeof liveStatus[website][id][contentId] == "undefined"){
 		liveStatus[website][id][contentId] = {"online": false, "notificationStatus": false, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
-	let liveState = checkLiveStatus[website](id, contentId, data);
-	if(liveState !== null){
-		//let second_API = new API_second(website, id);
-		let second_API = new API_second(website, contentId);
-		
-		if(second_API.url !== null && second_API.overrideMimeType !== null){
-			let xhr_second = new XMLHttpRequest();
-			xhr_second.open('GET', second_API.url, true);
-			xhr_second.overrideMimeType(second_API.overrideMimeType);
-			xhr_second.send();
+	if(isValidResponse(website, data) == true){
+		let liveState = checkLiveStatus[website](id, contentId, data);
+		if(liveState !== null){
+			let second_API = new API_second(website, contentId);
 			
-			xhr_second.addEventListener("load", function(){
-				let data_second = JSON.parse(xhr_second.responseText);
+			if(second_API.url !== null && second_API.overrideMimeType !== null){
+				let xhr_second = new XMLHttpRequest();
+				xhr_second.open('GET', second_API.url, true);
+				xhr_second.overrideMimeType(second_API.overrideMimeType);
+				xhr_second.send();
 				
-				console.info(website + " - " + id + " (" + second_API.url + ")");
-				console.dir(data_second);
-				
-				seconderyInfo[website](id, contentId, data_second, liveState);
-				
+				xhr_second.addEventListener("load", function(){
+					let data_second = JSON.parse(xhr_second.responseText);
+					
+					console.info(website + " - " + id + " (" + second_API.url + ")");
+					console.dir(data_second);
+					
+					seconderyInfo[website](id, contentId, data_second, liveState);
+					
+					doStreamNotif(website, id, contentId, streamSetting, liveState);
+					setIcon();
+				});
+			} else {
 				doStreamNotif(website, id, contentId, streamSetting, liveState);
-				setIcon();
-			});
+			}
 		} else {
-			doStreamNotif(website, id, contentId, streamSetting, liveState);
+			console.warn("Unable to get stream state.");
 		}
-	} else {
-		console.warn("Unable to get stream state.");
 	}
-	
 	setIcon();
 	
 	console.timeEnd(id);
@@ -1407,7 +1413,7 @@ function getChannelInfo(website, id){
 	let channelInfos_API = new API_channelInfos(website, id);
 	
 	if(typeof channelInfos["dailymotion"][id] == "undefined"){
-		channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+		channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
 	
 	if(channelInfos_API.url !== null && channelInfos_API.overrideMimeType !== null){
@@ -1422,7 +1428,9 @@ function getChannelInfo(website, id){
 			console.info(website + " - " + id + " (" + channelInfos_API.url + ")");
 			console.dir(data_channelInfos);
 			
-			channelInfosProcess[website](id, data_channelInfos);
+			if(isValidResponse(website, data_channelInfos) == true){
+				channelInfosProcess[website](id, data_channelInfos);
+			}
 		});
 	}
 }
@@ -1507,9 +1515,9 @@ let checkLiveStatus = {
 				if(streamData.streamCategoryLogo = "http://edge.sf.hitbox.tv/static/img/generic/blank.gif"){
 					streamData.streamCategoryLogo = "";
 				}
-				if(data.channel["user_logo"] !== null){
+				if(typeof data.channel["user_logo"] !== "string" && data.channel["user_logo"].indexOf("/static/img/generic/default-user-") == -1){
 					streamData.streamOwnerLogo = "http://edge.sf.hitbox.tv" + data.channel["user_logo"];
-				} else if(data["user_logo_small"] !== null){
+				} else if(typeof data.channel["user_logo"] !== "string" && data.channel["user_logo"].indexOf("/static/img/generic/default-user-") == -1){
 					streamData.streamOwnerLogo = "http://edge.sf.hitbox.tv" + data.channel["user_logo_small"];
 				} else {
 					streamData.streamOwnerLogo = "";

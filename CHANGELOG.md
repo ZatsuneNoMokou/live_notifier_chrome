@@ -1,3 +1,10 @@
+# 6.3.2
+* Fix: Check streams that are not checked yet (manualled added for exemple), when opening panel
+* Fix: Delete stream data when deleting a stream, opening the panel (stream already deleted)
+* Fix: Valid stream data detection
+* Fix: Ignore default Hitbox user logos
+* Fix: Online stream notification
+
 # 6.3.0
 * +: Replaced setAttribute and getAttribute for data-* attribute by dataset.*
 * +: Some material icons now inserted by CSS instead of js created node

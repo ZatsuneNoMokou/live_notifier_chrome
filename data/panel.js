@@ -18,6 +18,7 @@ let options_default = appGlobal.options_default;
 let options_default_sync = appGlobal.options_default_sync;
 
 let streamListFromSetting = appGlobal.streamListFromSetting;
+let websites = appGlobal.websites;
 let liveStatus = appGlobal.liveStatus;
 let channelInfos = appGlobal.channelInfos;
 let getCleanedStreamStatus = appGlobal.getCleanedStreamStatus;
@@ -25,6 +26,8 @@ let getStreamURL = appGlobal.getStreamURL;
 let getOfflineCount = appGlobal.getOfflineCount;
 let doStreamNotif = appGlobal.doStreamNotif;
 let setIcon = appGlobal.setIcon;
+
+let getPrimary = appGlobal.getPrimary
 
 let _ = chrome.i18n.getMessage;
 
@@ -443,11 +446,11 @@ function updatePanelData(data){
 			// Make sure that the stream from the status is still in the settings
 			if(id in streamList){
 				if(typeof streamList[id].ignore == "boolean" && streamList[id].ignore == true){
-					console.info(`[Live notifier - Panel] Ignoring ${id}`);
+					//console.info(`[Live notifier - Panel] Ignoring ${id}`);
 					continue;
 				}
 				if(typeof streamList[id].hide == "boolean" && streamList[id].hide == true){
-					console.info(`[Live notifier - Panel] Hiding ${id}`);
+					//console.info(`[Live notifier - Panel] Hiding ${id}`);
 					continue;
 				}
 				
@@ -471,9 +474,35 @@ function updatePanelData(data){
 						}
 					}
 				}
+			} else {
+				delete liveStatus[website][id];
+				console.info(`${id} from ${website} was already deleted but not from liveStatus`);
 			}
 		}
 	}
+	let notCheckedYet = false;
+	for(let i in websites){
+		let website = websites[i];
+		var streamList = (new streamListFromSetting(website)).objData;
+		for(let id in streamList){
+			if(!(id in liveStatus[website])){
+				notCheckedYet = true;
+				console.info(`${id} from ${website} is not checked yet`);
+				try{
+					getPrimary(id, website, id);
+				}
+				catch(error){
+					console.warn(`[Live notifier] ${error}`);
+				}
+			}
+		}
+	}
+	if(notCheckedYet == true){
+		setTimeout(function(){
+			sendDataToMain("refreshPanel", "");
+		}, 5000);
+	}
+	setIcon();
 	
 	//Update online steam count in the panel
 	let onlineCount = appGlobal["onlineCount"];
@@ -486,7 +515,6 @@ function updatePanelData(data){
 		listenerOfflineCount("");
 	}
 	
-	setIcon();
 	
 	//Update Live notifier version displayed in the panel preferences
 	if(typeof appGlobal["version"] == "string"){
