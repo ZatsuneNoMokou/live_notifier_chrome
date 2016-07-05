@@ -4,8 +4,7 @@
 	"short_name": "LiveNotifier",
 	"description": "__MSG_extShortDesc__",
 	"author": "ZatsuneNoMokou",
-	"version": "6.3.2",
-	"homepage_url": "https://gitlab.com/ZatsuneNoMokou/live_notifier_chrome",
+	"version": "6.3.3",
 	"icons": {
 		"128": "/icon_128.png"
 	},
@@ -16,6 +15,8 @@
 		"default_icon": "/icon.png",
 		"default_popup": "/data/panel.html",
 		"icons": {
+			"48": "/icon_48.png",
+			"96": "/icon_96.png",
 			"128": "/icon_128.png"
 		}
 	},

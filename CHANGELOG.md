@@ -1,3 +1,8 @@
+# 6.3.3
+* -: Old settings, option-data.js
+* Fix: No longer store live notifier version in a pref, using load or install reason to make update notification
+* Fix: When the settings has no default value, getPreference return directly the value from localeStorage, if any
+
 # 6.3.2
 * Fix: Check streams that are not checked yet (manualled added for exemple), when opening panel
 * Fix: Delete stream data when deleting a stream, opening the panel (stream already deleted)

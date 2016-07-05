@@ -43,6 +43,7 @@ for(let website of websites){
 	channelInfos[website] = {};
 }
 
+/* 		----- Importation/Removal of old preferences -----		*/
 if(getPreference("stream_keys_list") == ""){
 	let importSreamsFromOldVersion = function(){
 		let somethingElseThanSpaces = /[^\s]+/;
@@ -63,6 +64,10 @@ if(getPreference("stream_keys_list") == ""){
 	}
 	importSreamsFromOldVersion();
 }
+if(typeof getPreference("livenotifier_version") == "string"){
+	localStorage.removeItem("livenotifier_version");
+}
+/* 		----- Fin Importation/Removal des vieux paramères -----		*/
 
 let streamListFromSetting_cache = null;
 class streamListFromSetting{
@@ -1790,25 +1795,32 @@ var interval
 checkLives();
 
 // Checking if updated
-let current_version = "";
-(function checkIfUpdated(){
+let previousVersion = "";
+let current_version = appGlobal["version"] = chrome.runtime.getManifest().version;
+function checkIfUpdated(details){
 	let getVersionNumbers =  /^(\d*)\.(\d*)\.(\d*)$/;
-	let last_executed_version = getPreference("livenotifier_version");
-	appGlobal["version"] = current_version = chrome.runtime.getManifest().version;
 	
-	let last_executed_version_numbers = getVersionNumbers.exec(last_executed_version);
-	let current_version_numbers = getVersionNumbers.exec(current_version);
+	let installReason = details.reason;
+	console.info(`Runtime onInstalled reason: ${installReason}`);
 	
-	if(last_executed_version != current_version && last_executed_version != "0.0.0"){
-		if(current_version_numbers.length == 4 && last_executed_version_numbers.length == 4){
-			if(current_version_numbers[1] > last_executed_version_numbers[1]){
-				doNotif("Live notifier", _("Addon_have_been_updated", current_version));
-			} else if((current_version_numbers[1] == last_executed_version_numbers[1]) && (current_version_numbers[2] > last_executed_version_numbers[2])){
-				doNotif("Live notifier", _("Addon_have_been_updated", current_version));
-			} else if((current_version_numbers[1] == last_executed_version_numbers[1]) && (current_version_numbers[2] == last_executed_version_numbers[2]) && (current_version_numbers[3] > last_executed_version_numbers[3])){
-				doNotif("Live notifier", _("Addon_have_been_updated", current_version));
+	// Checking if updated
+	if(installReason == "update"){
+		previousVersion = details.previousVersion;
+		let previousVersion_numbers = getVersionNumbers.exec(previousVersion);
+		let current_version_numbers = getVersionNumbers.exec(current_version);
+		
+		if(previousVersion != current_version){
+			if(current_version_numbers.length == 4 && previousVersion_numbers.length == 4){
+				if(current_version_numbers[1] > previousVersion_numbers[1]){
+					doNotif("Live notifier", _("Addon_have_been_updated", current_version));
+				} else if((current_version_numbers[1] == previousVersion_numbers[1]) && (current_version_numbers[2] > previousVersion_numbers[2])){
+					doNotif("Live notifier", _("Addon_have_been_updated", current_version));
+				} else if((current_version_numbers[1] == previousVersion_numbers[1]) && (current_version_numbers[2] == previousVersion_numbers[2]) && (current_version_numbers[3] > previousVersion_numbers[3])){
+					doNotif("Live notifier", _("Addon_have_been_updated", current_version));
+				}
 			}
 		}
 	}
-	savePreference("livenotifier_version", current_version);
-})();
+	chrome.runtime.onInstalled.removeListener(checkIfUpdated);
+}
+chrome.runtime.onInstalled.addListener(checkIfUpdated);

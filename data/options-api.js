@@ -51,10 +51,14 @@ function getPreference(prefId){
 				break;
 			case "boolean":
 				return getBooleanFromVar(current_pref);
+			case "undefined":
+				console.warn(`The setting ${prefId} has no default value: ${typeof defaultSettings[prefId]}`);
+				return current_pref;
+				break;
 			default:
-				return
+				console.warn(`Unknown default type for the setting ${prefId}: ${typeof defaultSettings[prefId]}`);
+				return current_pref;
 		}
-		return localStorage.getItem(prefId);
 	} else if(typeof defaultSettings[prefId] != "undefined"){
 		console.warn(`Preference ${prefId} not found, using default`);
 		savePreference(prefId, defaultSettings[prefId]);
