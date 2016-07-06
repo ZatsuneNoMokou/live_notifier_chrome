@@ -457,7 +457,7 @@ function addStreamFromPanel(data){
 	}
 	if(typeof data != "object" && type != "ContextMenu"){
 		if(!data.hasOwnProperty("embed_list")){
-			chrome.tabs.executeScript(current_tab.id, {file: "/data/page_getEmbedList.js"});
+			chrome.tabs.executeScript(current_tab.id, {file: "/data/js/page_getEmbedList.js"});
 		}
 	} else {
 		doNotif("Live notifier", _("No_supported_stream_detected_in_the_current_tab_so_nothing_to_add"));
