@@ -1,3 +1,7 @@
+# 7.0.0-pre1
+* i: Moved JS files
+* +: loadJS, to load JS files
+
 # 6.3.3
 * -: Old settings, option-data.js
 * Fix: No longer store live notifier version in a pref, using load or install reason to make update notification

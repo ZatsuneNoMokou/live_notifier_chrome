@@ -4,12 +4,12 @@
 	"short_name": "LiveNotifier",
 	"description": "__MSG_extShortDesc__",
 	"author": "ZatsuneNoMokou",
-	"version": "6.3.3",
+	"version": "7.0.0-pre1",
 	"icons": {
 		"128": "/icon_128.png"
 	},
 	"background": {
-		"scripts": [ "data/options-data.js", "data/options-api.js", "index.js", "data/panel-background.js", "canvg/rgbcolor.js", "canvg/StackBlur.js", "canvg/canvg.js" ]
+		"scripts": [ "/data/js/loadJS.js", "/data/js/options-data.js", "/data/js/options-api.js", "index.js", "/data/js/panel/panel-background.js" ]
 	},
 	"browser_action": {
 		"default_icon": "/icon.png",

@@ -1,5 +1,10 @@
 'use strict';
 
+// Avoid keeping init node in memory
+let panelinitjs_node = document.querySelector("#panelInit");
+panelinitjs_node.parentNode.removeChild(panelinitjs_node)
+
+
 function sendDataToMain(id, data){
 	function responseCallback(response){
 		if(typeof response != "undefined"){

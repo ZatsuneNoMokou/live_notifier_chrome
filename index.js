@@ -1788,7 +1788,8 @@ function loadBadges(){
 		offline_badgeData = context_offline.getImageData(0, 0, 19, 19);
 	});
 }
-loadBadges();
+loadJS("/data/js/", ["canvg/rgbcolor.js", "canvg/StackBlur.js", "canvg/canvg.js"], loadBadges);
+
 
 // Begin to check lives
 var interval
