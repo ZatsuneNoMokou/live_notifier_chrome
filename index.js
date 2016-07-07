@@ -1220,10 +1220,14 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 			}
 			
 			if(website_channel_id.test(id)){
-				if(typeof pageNumber == "number"){
-					websites[website].channelList(id, website, streamSetting, data, pageNumber)
+				if(isValidResponse(website, data) == true){
+					if(typeof pageNumber == "number"){
+						websites[website].channelList(id, website, streamSetting, data, pageNumber)
+					} else {
+						websites[website].channelList(id, website, streamSetting, data)
+					}
 				} else {
-					websites[website].channelList(id, website, streamSetting, data)
+					channelListEnd(id);
 				}
 			} else {
 				processPrimary(id, id, website, streamSetting, data);
@@ -1279,8 +1283,8 @@ function processPrimary(id, contentId, website, streamSetting, data){
 function getChannelInfo(website, id){
 	let channelInfos_API = websites[website].API_channelInfos(id);
 	
-	if(typeof channelInfos["dailymotion"][id] == "undefined"){
-		let defaultChannelInfos = channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+	if(typeof channelInfos[website][id] == "undefined"){
+		let defaultChannelInfos = channelInfos[website][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
 	if(websites[website].hasOwnProperty("API_second") == true){
 		Request_Get({

@@ -81,28 +81,24 @@ websites.dailymotion = {
 		},
 	"channelList":
 		function(id, website, streamSetting, data, pageNumber){
-			if(isValidResponse(website, data) == true){
-				let list = data.list;
-				
-				if(data.total == 0){
-					getChannelInfo(website, id);
-					channelListEnd(id);
-				} else {
-					for(let i in list){
-						let contentId = list[i].id;
-						processPrimary(id, contentId, website, streamSetting, list[i]);
-					}
-					
-					if(data.has_more){
-						let next_url = websites[website].API(website_channel_id.exec(id)[1]).url;
-						let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-						getPrimary(id, website, streamSetting, next_url + "&page=" + next_page_number, next_page_number);
-					} else {
-						channelListEnd(id);
-					}
-				}
-			} else {
+			let list = data.list;
+			
+			if(data.total == 0){
+				getChannelInfo(website, id);
 				channelListEnd(id);
+			} else {
+				for(let i in list){
+					let contentId = list[i].id;
+					processPrimary(id, contentId, website, streamSetting, list[i]);
+				}
+				
+				if(data.has_more){
+					let next_url = websites[website].API(website_channel_id.exec(id)[1]).url;
+					let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
+					getPrimary(id, website, streamSetting, next_url + "&page=" + next_page_number, next_page_number);
+				} else {
+					channelListEnd(id);
+				}
 			}
 		},
 	"channelInfosProcess":
@@ -140,7 +136,7 @@ websites.dailymotion = {
 			}
 			
 			if(data.has_more){
-				let next_url = websites.hitbox.importAPI(id).url;
+				let next_url = websites.dailymotion.importAPI(id).url;
 				let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
 				importStreams("dailymotion", id, next_url + "&page=" + next_page_number, next_page_number);
 			} else {

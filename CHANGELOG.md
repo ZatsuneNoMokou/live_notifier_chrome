@@ -1,4 +1,4 @@
-# 7.0.0-pre3
+# 7.0.0-pre4
 * i: Moved JS files
 * +: loadJS, to load JS files
 * +: Moved stream platforms related code to other script files

@@ -3,7 +3,6 @@ function loadJS(prefix, list, callback){
 		callback = null;
 	}
 	if(list.hasOwnProperty(length) == true && list.length > 0){
-		
 		let currentScripts = document.scripts;
 		for(let i in currentScripts){
 			if(typeof currentScripts[i].src == "string" && currentScripts[i].src.indexOf(list[0]) != -1){
