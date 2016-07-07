@@ -32,42 +32,18 @@ function getCheckDelay(){
 
 let myIconURL = "/data/live_offline.svg";
 
-let websites = ["beam","dailymotion","hitbox","twitch"];
+//let websites = ["beam","dailymotion","hitbox","twitch"];
+
+let websites = {};
 appGlobal["websites"] = websites;
 let liveStatus = {};
 appGlobal["liveStatus"] = liveStatus;
 let channelInfos = {};
 appGlobal["channelInfos"] = channelInfos;
-for(let website of websites){
+/*for(let website in websites){
 	liveStatus[website] = {};
 	channelInfos[website] = {};
-}
-
-/* 		----- Importation/Removal of old preferences -----		*/
-if(getPreference("stream_keys_list") == ""){
-	let importSreamsFromOldVersion = function(){
-		let somethingElseThanSpaces = /[^\s]+/;
-		let newPrefTable = new Array();
-		for(let website of websites){
-			let pref = getPreference(`${website}_keys_list`);
-			if(typeof pref != "undefined" && pref != "" && somethingElseThanSpaces.test(pref)){
-				let myTable = pref.split(",");
-				for(let i in myTable){
-					newPrefTable.push(`${website}::${myTable[i]}`);
-				}
-			}
-		}
-		savePreference("stream_keys_list", newPrefTable.join(", "));
-		for(let website of websites){
-			localStorage.removeItem(`${website}_keys_list`);
-		}
-	}
-	importSreamsFromOldVersion();
-}
-if(typeof getPreference("livenotifier_version") == "string"){
-	localStorage.removeItem("livenotifier_version");
-}
-/* 		----- Fin Importation/Removal des vieux paramères -----		*/
+}*/
 
 let streamListFromSetting_cache = null;
 class streamListFromSetting{
@@ -86,8 +62,8 @@ class streamListFromSetting{
 		}
 		
 		let obj = {};
-		for(let i in websites){
-			obj[websites[i]] = {};
+		for(let website in websites){
+			obj[website] = {};
 		}
 		if(pref != "" && somethingElseThanSpaces.test(pref)){
 			let myTable = pref.split(",");
@@ -399,10 +375,10 @@ function addStreamFromPanel(data){
 						return true;
 					} else {
 						let id_toChecked = id;
-						let current_API = new API(website, id);
+						let current_API = websites[website].API(id);
 						
 						if(website_channel_id.test(source_website)){
-							current_API = new API_channelInfos(website, `channel::${id}`);
+							current_API = websites[website].API_channelInfos(`channel::${id}`);
 						}
 						
 						let xhr = new XMLHttpRequest();
@@ -1062,8 +1038,7 @@ appGlobal["doStreamNotif"] = doStreamNotif;
 function getOfflineCount(){
 	var offlineCount = 0;
 	
-	for(let i in websites){
-		let website = websites[i];
+	for(let website in websites){
 		let streamList = (new streamListFromSetting(website)).objData;
 		
 		for(let id in streamList){
@@ -1143,140 +1118,38 @@ appGlobal["setIcon"] = setIcon;
 let website_channel_id = /channel\:\:(.*)/;
 let facebookID_from_url = /(?:http|https):\/\/(?:www\.)?facebook.com\/([^\/]+)(?:\/.*)?/;
 let twitterID_from_url = /(?:http|https):\/\/(?:www\.)?twitter.com\/([^\/]+)(?:\/.*)?/;
-function API(website, id){
-	this.id = id;
-	this.url = "";
-	this.overrideMimeType = "";
-	
-	switch(website){
-		case "dailymotion":
-			if(website_channel_id.test(id)){
-				this.url = `https://api.dailymotion.com/videos?live_onair&owners=${website_channel_id.exec(id)[1]}&fields=id,title,owner,audience,url,mode,onair?_= ${new Date().getTime()}`;
-			} else {
-				this.url = `https://api.dailymotion.com/video/${id}?fields=title,owner,user.username,audience,url,mode,onair?_=${new Date().getTime()}`;
-			}
-			this.overrideMimeType = "text/plain; charset=latin1";
-			break;
-		case "hitbox":
-			this.url = `https://api.hitbox.tv/media/live/${id}`;
-			this.overrideMimeType = "text/plain; charset=utf-8";
-			break;
-		case "twitch":
-			this.url = `https://api.twitch.tv/kraken/streams/${id}`;
-			this.overrideMimeType = "application/vnd.twitchtv.v3+json; charset=utf-8"; //"text/plain; charset=utf-8";
-			break;
-		case "beam":
-			this.url = `https://beam.pro/api/v1/channels/${id}`;
-			this.overrideMimeType = "text/plain; charset=utf-8";
-			break;
-	}
-}
-function API_channelInfos(website, id){
-	this.id = id;
-	this.url = "";
-	this.overrideMimeType = "";
-	
-	switch(website){
-		case "dailymotion":
-			this.url = `https://api.dailymotion.com/user/${website_channel_id.exec(id)[1]}?fields=id,username,screenname,url,avatar_720_url,facebook_url,twitter_url`;
-			this.overrideMimeType = "text/plain; charset=latin1";
-			break;
-		default:
-			this.url = null;
-			this.overrideMimeType = null;
-	}
-}
-function API_second(website, id){
-	this.id = id;
-	this.url = "";
-	this.overrideMimeType = "";
-	
-	switch(website){
-		case "dailymotion":
-			this.url = `https://api.dailymotion.com/video/${id}?fields=id,user.screenname,game.title,user.avatar_720_url,user.facebook_url,user.twitter_url`;
-			this.overrideMimeType = "text/plain; charset=latin1";
-			break;
-		case "twitch":
-			this.url = `https://api.twitch.tv/kraken/users/${id}`;
-			this.overrideMimeType = "application/vnd.twitchtv.v3+json; charset=utf-8"; //"text/plain; charset=utf-8";
-			break;
-		default:
-			this.url = null;
-			this.overrideMimeType = null;
-	}
-}
-function importAPI(website, id){
-	this.id = id;
-	this.url = "";
-	this.overrideMimeType = "";
-	
-	switch(website){
-		case "dailymotion":
-			this.url = `https://api.dailymotion.com/user/${id}/following?fields=id,username,facebook_url,twitter_url?_=${new Date().getTime()}`;
-			this.overrideMimeType = "text/plain; charset=latin1";
-			break;
-		case "hitbox":
-			this.url = `https://api.hitbox.tv/following/user?user_name=${id}`;
-			this.overrideMimeType = "text/plain; charset=utf-8";
-			break;
-		case "twitch":
-			this.url = `https://api.twitch.tv/kraken/users/${id}/follows/channels`;
-			this.overrideMimeType = "application/vnd.twitchtv.v3+json; charset=utf-8";
-			break;
-		case "beam":
-			this.url = `https://beam.pro/api/v1/users/${id}/follows?limit=-1&fields=id,token`;
-			this.overrideMimeType = "text/plain; charset=utf-8";
-			break;
-	}
-}
+
 function isValidResponse(website, data){
 	if(data == null || typeof data != "object" || JSON.stringify == "{}"){
 		console.warn("Unable to get stream state (no connection).");
 		return false;
 	}
-	switch(website){
-		case "dailymotion":
-			if(typeof data.error == "object"){
-				console.warn(`[${website}] Unable to get stream state (error detected).`);
-				return false;
-			} else if(typeof data.id == "string"){
-				return true;
-			} else if(data.mode != "live" && typeof data.list == "undefined"){
-				console.warn(`[${website}] Unable to get stream state (not a stream).`);
-				return false;
-			}
+	let state = websites[website].isValidResponse(data);
+	switch(state){
+		case "error":
+			console.warn(`[${website}] Unable to get stream state (error detected).`);
+			return false;
 			break;
-		case "hitbox":
-			if(data.error == "live"){
-				console.warn(`[${website}] Unable to get stream state (error detected).`);
-				return false;
-			}
-			if(data.error == true){
-				console.warn(`[${website}] Unable to get stream state (error detected).`);
-				return false;
-			}
+		case "notstream":
+			console.warn(`[${website}] Unable to get stream state (not a stream).`);
+			return false;
 			break;
-		case "twitch":
-			if(data.error == "Not Found"){
-				console.warn(`[${website}] Unable to get stream state (error detected).`);
-				return false;
-			}
-			break;
-		case "beam":
-			if(data == "Channel not found." || data.statusCode == 404){
-				console.warn(`[${website}] Unable to get stream state (error detected).`);
-				return false;
-			}
+		case "":
+		case "success":
+			return true
+		default:
+			console.warn(`[${website}] Unknown validation state (${state}).`);
+			return true;
 			break;
 	}
+	
 	return true;
 }
 
 function checkLives(){
 	console.group();
 	
-	for(let i in websites){
-		let website = websites[i];
+	for(let website in websites){
 		let streamList = (new streamListFromSetting(website)).objData;
 		
 		console.group();
@@ -1300,7 +1173,7 @@ function checkLives(){
 }
 
 function getPrimary(id, website, streamSetting, url, pageNumber){
-	let current_API = new API(website, id);
+	let current_API = websites[website].API(id);
 	if(typeof url == "string"){
 		current_API.url = url;
 	}
@@ -1331,9 +1204,9 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 		
 		if(website_channel_id.test(id)){
 			if(typeof pageNumber == "number"){
-				pagingPrimary[website](id, website, streamSetting, data, pageNumber)
+				websites[website].channelList(id, website, streamSetting, data, pageNumber)
 			} else {
-				pagingPrimary[website](id, website, streamSetting, data)
+				websites[website].channelList(id, website, streamSetting, data)
 			}
 		} else {
 			processPrimary(id, id, website, streamSetting, data);
@@ -1342,50 +1215,22 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 }
 appGlobal["getPrimary"] = getPrimary;
 
-function pagingPrimaryEnd(id){
+function channelListEnd(id){
 	setIcon();
 	console.timeEnd(id);
 	console.groupEnd();
 }
-let pagingPrimary = {
-	"dailymotion":
-		function(id, website, streamSetting, data, pageNumber){
-			if(isValidResponse(website, data) == true){
-				let list = data.list;
-				
-				if(data.total == 0){
-					getChannelInfo(website, id);
-					pagingPrimaryEnd(id);
-				} else {
-					for(let i in list){
-						let contentId = list[i].id;
-						processPrimary(id, contentId, website, streamSetting, list[i]);
-					}
-					
-					if(data.has_more){
-						let next_url = (new API(website, website_channel_id.exec(id)[1])).url;
-						let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-						getPrimary(id, website, streamSetting, next_url + "&page=" + next_page_number, next_page_number);
-					} else {
-						pagingPrimaryEnd(id);
-					}
-				}
-			} else {
-				pagingPrimaryEnd(id);
-			}
-		}
-}
 
 function processPrimary(id, contentId, website, streamSetting, data){
 	if(typeof liveStatus[website][id][contentId] == "undefined"){
-		liveStatus[website][id][contentId] = {"online": false, "notificationStatus": false, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+		let defaultStatus = liveStatus[website][id][contentId] = {"online": false, "notificationStatus": false, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
 	if(isValidResponse(website, data) == true){
-		let liveState = checkLiveStatus[website](id, contentId, data);
+		let liveState = websites[website].checkLiveStatus(id, contentId, data);
 		if(liveState !== null){
-			let second_API = new API_second(website, contentId);
-			
-			if(second_API.url !== null && second_API.overrideMimeType !== null){
+			if(websites[website].hasOwnProperty("API_second") == true){
+				let second_API = websites[website].API_second(contentId);
+				
 				let xhr_second = new XMLHttpRequest();
 				xhr_second.open('GET', second_API.url, true);
 				xhr_second.overrideMimeType(second_API.overrideMimeType);
@@ -1397,7 +1242,7 @@ function processPrimary(id, contentId, website, streamSetting, data){
 					console.info(website + " - " + id + " (" + second_API.url + ")");
 					console.dir(data_second);
 					
-					seconderyInfo[website](id, contentId, data_second, liveState);
+					websites[website].seconderyInfo(id, contentId, data_second, liveState);
 					
 					doStreamNotif(website, id, contentId, streamSetting, liveState);
 					setIcon();
@@ -1415,13 +1260,12 @@ function processPrimary(id, contentId, website, streamSetting, data){
 	console.groupEnd();
 }
 function getChannelInfo(website, id){
-	let channelInfos_API = new API_channelInfos(website, id);
+	let channelInfos_API = websites[website].API_channelInfos(id);
 	
 	if(typeof channelInfos["dailymotion"][id] == "undefined"){
-		channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+		let defaultChannelInfos = channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
-	
-	if(channelInfos_API.url !== null && channelInfos_API.overrideMimeType !== null){
+	if(websites[website].hasOwnProperty("API_second") == true){
 		let xhr_channelInfos = new XMLHttpRequest();
 		xhr_channelInfos.open('GET', channelInfos_API.url, true);
 		xhr_channelInfos.overrideMimeType(channelInfos_API.overrideMimeType);
@@ -1434,181 +1278,10 @@ function getChannelInfo(website, id){
 			console.dir(data_channelInfos);
 			
 			if(isValidResponse(website, data_channelInfos) == true){
-				channelInfosProcess[website](id, data_channelInfos);
+				websites[website].channelInfosProcess(id, data_channelInfos);
 			}
 		});
 	}
-}
-let channelInfosProcess = {
-	"dailymotion":
-		function(id, data){
-			let streamData = channelInfos["dailymotion"][id];
-			if(data.hasOwnProperty("screenname")){
-				streamData.streamName = data["screenname"];
-				streamData.streamURL = data.url;
-				if(typeof data["avatar_720_url"] == "string" && data["avatar_720_url"] != ""){
-					streamData.streamOwnerLogo = data["avatar_720_url"];
-				}
-				
-				if(typeof data["facebook_url"] == "string" && data["facebook_url"] != "" && facebookID_from_url.test(data["facebook_url"])){
-					streamData.facebookID = facebookID_from_url.exec(data["facebook_url"])[1];
-				}
-				if(typeof data["twitter_url"] == "string" && data["twitter_url"] != "" && twitterID_from_url.test(data["twitter_url"])){
-					streamData.facebookID = twitterID_from_url.exec(data["twitter_url"])[1];
-				}
-			}
-		}
-}
-
-//Fonction principale : check si le live est on
-let checkLiveStatus = {
-	"beam":
-		function(id, contentId, data){
-			let streamData = liveStatus["beam"][id][contentId];
-			
-			streamData.streamName = data.user["username"];
-			streamData.streamStatus = data["name"];
-			
-			if(typeof data.user["avatarUrl"] == "string" && data.user["avatarUrl"] != ""){
-				streamData.streamOwnerLogo = data["user"]["avatarUrl"];
-			}
-			streamData.streamCurrentViewers = parseInt(data["viewersCurrent"]);
-			if(typeof data.user.social["twitter"] == "string" && data.user.social["twitter"] != "" && twitterID_from_url.test(data.user.social["twitter"])){
-				streamData.twitterID = twitterID_from_url.exec(data.user.social["twitter"])[1];
-			}
-			
-			streamData.online = data["online"];
-			return streamData.online;
-		},
-	"dailymotion":
-		function(id, contentId, data){
-			let streamData = liveStatus["dailymotion"][id][contentId];
-			streamData.streamName = data.title;
-			streamData.streamCurrentViewers = JSON.parse(data.audience);
-			streamData.streamURL = data.url;
-			if(typeof data.onair == "boolean"){
-				streamData.online = data.onair;
-				return streamData.online;
-			} else {
-				return null;
-			}
-		},
-	"hitbox":
-		function(id, contentId, data){
-			let streamData = liveStatus["hitbox"][id][contentId];
-			if(data.hasOwnProperty("livestream") == false){
-				if(data.error_msg="no_media_found"){
-					streamData.online = false;
-				}
-				streamData.streamName = id;
-				return null;
-			}
-			if(typeof data["livestream"][0] == "object"){
-				data = data["livestream"][0];
-				streamData.streamName = data["media_user_name"];
-				streamData.streamStatus = data["media_status"];
-				if(typeof data["category_name"] == "string" && data["category_name"] != ""){
-					streamData.streamGame = data["category_name"];
-				}
-				if(data["category_logo_large"] !== null){
-					streamData.streamCategoryLogo = "http://edge.sf.hitbox.tv" + data["category_logo_large"];
-				} else if(data["category_logo_small"] !== null){
-					streamData.streamCategoryLogo = "http://edge.sf.hitbox.tv" + data["category_logo_small"];
-				} else {
-					streamData.streamCategoryLogo = "";
-				}
-				if(streamData.streamCategoryLogo = "http://edge.sf.hitbox.tv/static/img/generic/blank.gif"){
-					streamData.streamCategoryLogo = "";
-				}
-				if(typeof data.channel["user_logo"] !== "string" && data.channel["user_logo"].indexOf("/static/img/generic/default-user-") == -1){
-					streamData.streamOwnerLogo = "http://edge.sf.hitbox.tv" + data.channel["user_logo"];
-				} else if(typeof data.channel["user_logo"] !== "string" && data.channel["user_logo"].indexOf("/static/img/generic/default-user-") == -1){
-					streamData.streamOwnerLogo = "http://edge.sf.hitbox.tv" + data.channel["user_logo_small"];
-				} else {
-					streamData.streamOwnerLogo = "";
-				}
-				if(typeof data.channel["channel_link"] == "string" && data.channel["channel_link"] != ""){
-					streamData.streamURL = data.channel["channel_link"];
-				}
-				streamData.streamCurrentViewers = parseInt(data["media_views"]);
-				
-				streamData.online = (data["media_is_live"] == "1")? true : false;
-				if(typeof data.channel["twitter_account"] == "string" && data.channel["twitter_account"] != "" && typeof data.channel["twitter_account"] == "string" && data.channel["twitter_enabled"] == "1"){
-					streamData.twitterID = data.channel["twitter_account"];
-				}
-				return streamData.online;
-				/* if(data["media_is_live"] == "1"){
-					return true;
-				} else {
-					return false
-				}*/
-			} else {
-				return null;
-			}
-		},
-	"twitch":
-		function(id, contentId, data){
-			let streamData = liveStatus["twitch"][id][contentId];
-			if(data.hasOwnProperty("stream")){
-				data = data["stream"];
-				if(data != null){
-					streamData.streamName = data["channel"]["display_name"];
-					streamData.streamStatus = (data["channel"]["status"] != null)? data["channel"]["status"] : "";
-					streamData.streamGame = (data["game"] !== null && typeof data["game"] == "string")? data["game"] : "";
-					if(typeof data.channel["logo"] == "string" && data.channel["logo"] != "") {
-						streamData.streamOwnerLogo = data.channel["logo"];
-					}
-					if(typeof data.channel["url"] == "string" && data.channel["url"] != "") {
-						streamData.streamURL = data.channel["url"];
-					}
-					streamData.streamCurrentViewers = parseInt(data["viewers"]);
-					
-					streamData.online = true;
-					return streamData.online;
-				} else {
-					if(streamData.streamName == ""){
-						streamData.streamName = id;
-					}
-					streamData.online = false;
-					return streamData.online;
-				}
-			} else {
-				return null;
-			}
-		}
-}
-let seconderyInfo = {
-	"dailymotion":
-		function(id, contentId, data, isStreamOnline){
-			let streamData = liveStatus["dailymotion"][id][contentId];
-			if(data.hasOwnProperty("user.screenname")){
-				if(isStreamOnline){
-					streamData.streamStatus = streamData.streamName;
-					streamData.streamGame = (data["game.title"] !== null && typeof data["game.title"] == "string")? data["game.title"] : "";
-				}
-				if(typeof data["user.avatar_720_url"] == "string" && data["user.avatar_720_url"] != ""){
-					streamData.streamOwnerLogo = data["user.avatar_720_url"];
-				}
-				streamData.streamName = data["user.screenname"];
-				
-				if(typeof data["user.facebook_url"] == "string" && data["user.facebook_url"] != "" && facebookID_from_url.test(data["user.facebook_url"])){
-					streamData.facebookID = facebookID_from_url.exec(data["user.facebook_url"])[1];
-				}
-				if(typeof data["user.twitter_url"] == "string" && data["user.twitter_url"] != "" && twitterID_from_url.test(data["user.twitter_url"])){
-					streamData.facebookID = twitterID_from_url.exec(data["user.twitter_url"])[1];
-				}
-			}
-		},
-	"twitch":
-		function(id, contentId, data, isStreamOnline){
-			let streamData = liveStatus["twitch"][id][contentId];
-			if(typeof data["display_name"] == "string"){
-				streamData.streamName = data["display_name"];
-			}
-			if(typeof data["logo"] == "string" && data["logo"] != ""){
-				streamData.streamOwnerLogo = data["logo"];
-			}
-		}
 }
 
 function importButton(website){
@@ -1639,8 +1312,9 @@ function importButton(website){
 		importStreams(website, getPreference(`${website}_user_id`));
 	}
 }
+
 function importStreams(website, id, url, pageNumber){
-	let current_API = new importAPI(website, id);
+	let current_API = websites[website].importAPI(id);
 	if(typeof url == "string" && url != ""){
 		current_API.url = url;
 	} else {
@@ -1659,9 +1333,9 @@ function importStreams(website, id, url, pageNumber){
 		console.dir(data);
 		
 		if(typeof pageNumber == "number"){
-			importStreamWebsites[website](id, data, pageNumber);
+			websites[website].importStreamWebsites(id, data, pageNumber);
 		} else {
-			importStreamWebsites[website](id, data);
+			websites[website].importStreamWebsites(id, data);
 		}
 		console.groupEnd();
 		setTimeout(function(){
@@ -1673,75 +1347,6 @@ function importStreamsEnd(id){
 	setIcon();
 	console.timeEnd(id);
 }
-let importStreamWebsites = {
-	"beam": function(id, data){
-		let streamListSetting = new streamListFromSetting("beam");
-		let streamList = streamListSetting.objData;
-		if(typeof data == "object"){
-			for(let item of data){
-				streamListSetting.addStream("beam", item["token"], "");
-			}
-			streamListSetting.update();
-		}
-	},
-	"dailymotion": function(id, data, pageNumber){
-		let streamListSetting = new streamListFromSetting("dailymotion");
-		let streamList = streamListSetting.objData;
-		
-		if(data.total > 0){
-			for(let item of data.list){
-				if(!streamListSetting.streamExist("dailymotion", `channel::${item.id}`) && !streamListSetting.streamExist("dailymotion", `channel::${item.username}`)){
-					streamListSetting.addStream("dailymotion", `channel::${item.id}`, "");
-				} else {
-					console.log(`${item.username} already exist`);
-				}
-			}
-			streamListSetting.update();
-		}
-		
-		if(data.has_more){
-			let next_url = new importAPI("dailymotion", id).url;
-			let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-			importStreams("dailymotion", id, next_url + "&page=" + next_page_number, next_page_number);
-		} else {
-			importStreamsEnd(id);
-		}
-	},
-	"hitbox": function(id, data, pageNumber){
-		let streamListSetting = new streamListFromSetting("hitbox");
-		let streamList = streamListSetting.objData;
-		if(typeof data.following == "object"){
-			for(let item of data.following){
-				streamListSetting.addStream("hitbox", item["user_name"], "");
-			}
-			streamListSetting.update();
-			
-			if(data.following.length > 0){
-				let next_url = new importAPI("hitbox", id).url;
-				let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-				importStreams("hitbox", id, next_url + "&offset=" + next_page_number, next_page_number);
-			} else {
-				importStreamsEnd(id);
-			}
-		}
-	},
-	"twitch": function(id, data){
-		let streamListSetting = new streamListFromSetting("twitch");
-		let streamList = streamListSetting.objData;
-		if(typeof data.follows == "object"){
-			for(let item of data.follows){
-				streamListSetting.addStream("twitch", item["channel"]["display_name"], "");
-			}
-			streamListSetting.update();
-			if(data.follows.length > 0 && typeof data._links.next == "string"){
-				importStreams("twitch", id, data._links.next);
-			} else {
-				importStreamsEnd(id);
-			}
-		}
-	}
-}
-
 
 //				------ Load / Unload Event(s) ------				//
 
@@ -1793,7 +1398,41 @@ loadJS("/data/js/", ["canvg/rgbcolor.js", "canvg/StackBlur.js", "canvg/canvg.js"
 
 // Begin to check lives
 var interval
-checkLives();
+loadJS("/data/js/platforms/", ["beam.js", "dailymotion.js", "hitbox.js", "twitch.js"], function(){
+	/* 		----- Importation/Removal of old preferences -----		*/
+	if(getPreference("stream_keys_list") == ""){
+		let importSreamsFromOldVersion = function(){
+			let somethingElseThanSpaces = /[^\s]+/;
+			let newPrefTable = new Array();
+			for(let website in websites){
+				let pref = getPreference(`${website}_keys_list`);
+				if(typeof pref != "undefined" && pref != "" && somethingElseThanSpaces.test(pref)){
+					let myTable = pref.split(",");
+					for(let i in myTable){
+						newPrefTable.push(`${website}::${myTable[i]}`);
+					}
+				}
+			}
+			savePreference("stream_keys_list", newPrefTable.join(", "));
+			for(let website in websites){
+				localStorage.removeItem(`${website}_keys_list`);
+			}
+		}
+		importSreamsFromOldVersion();
+	}
+	if(typeof getPreference("livenotifier_version") == "string"){
+		localStorage.removeItem("livenotifier_version");
+	}
+	/* 		----- Fin Importation/Removal des vieux paramères -----		*/
+	
+	for(let website in websites){
+		liveStatus[website] = {};
+		channelInfos[website] = {};
+	}
+	
+	checkLives();
+});
+
 
 // Checking if updated
 let previousVersion = "";

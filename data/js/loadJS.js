@@ -13,9 +13,10 @@ function loadJS(prefix, list, callback){
 				return false;
 			}
 		}
+		let reg = /^.*\/$/;
 		
 		let newJS = document.createElement("script");
-		newJS.src = prefix + list[0];
+		newJS.src = prefix + ((reg.test(prefix))? "" : "/") + list[0];
 		newJS.onload = function(){
 			newJS.onload = null;
 			list.shift();

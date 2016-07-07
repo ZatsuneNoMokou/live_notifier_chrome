@@ -1,6 +1,7 @@
 # 7.0.0-pre1
 * i: Moved JS files
 * +: loadJS, to load JS files
+* +: Moved stream platforms related code to other script files
 
 # 6.3.3
 * -: Old settings, option-data.js

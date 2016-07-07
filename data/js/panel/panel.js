@@ -486,8 +486,7 @@ function updatePanelData(data){
 		}
 	}
 	let notCheckedYet = false;
-	for(let i in websites){
-		let website = websites[i];
+	for(let website in websites){
 		var streamList = (new streamListFromSetting(website)).objData;
 		for(let id in streamList){
 			if(!(id in liveStatus[website])){
