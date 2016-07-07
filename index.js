@@ -32,18 +32,45 @@ function getCheckDelay(){
 
 let myIconURL = "/data/live_offline.svg";
 
-//let websites = ["beam","dailymotion","hitbox","twitch"];
-
 let websites = {};
 appGlobal["websites"] = websites;
 let liveStatus = {};
 appGlobal["liveStatus"] = liveStatus;
 let channelInfos = {};
 appGlobal["channelInfos"] = channelInfos;
-/*for(let website in websites){
-	liveStatus[website] = {};
-	channelInfos[website] = {};
-}*/
+
+function Request_Get(options){
+	if(typeof options.url != "string" && typeof options.onComplete != "function"){
+		console.warn("Error in options");
+	} else {
+		let xhr;
+		if(typeof options.anonymous == "boolean"){
+			xhr = new XMLHttpRequest({anonymous:true});
+		} else {
+			xhr = new XMLHttpRequest();
+		}
+		
+		xhr.open('GET', options.url, true);
+		if(typeof options.overrideMimeType == "string"){
+			xhr.overrideMimeType(options.overrideMimeType);
+		}
+		
+		xhr.addEventListener("load", function(){
+			let response = {
+				"url": xhr.responseURL,
+				"text": xhr.responseText,
+				"json": null,
+				"status": xhr.status,
+				"statusText": xhr.statusText,
+				"header": xhr.getAllResponseHeaders()
+			}
+			try{response.json = JSON.parse(xhr.responseText);}
+			catch(error){/*console.warn(error);*/}
+			options.onComplete(response);
+		});
+		xhr.send();
+	}
+}
 
 let streamListFromSetting_cache = null;
 class streamListFromSetting{
@@ -381,50 +408,48 @@ function addStreamFromPanel(data){
 							current_API = websites[website].API_channelInfos(`channel::${id}`);
 						}
 						
-						let xhr = new XMLHttpRequest();
-						xhr.open('GET', current_API.url, true);
-						xhr.overrideMimeType(current_API.overrideMimeType);
-						xhr.send();
-						
-						xhr.addEventListener("load", function(){
-							let data = JSON.parse(xhr.responseText);
-							
-							console.group()
-							console.info(`${website} - ${current_API.url}`);
-							console.dir(data);
-							console.groupEnd();
-							
-							if(isValidResponse(website, data) == false){
-								if(website == "dailymotion" && (website_channel_id.test(source_website) || data.mode == "vod")){
-									let username = (data.mode == "vod")? data["user.username"] : data.username;
-									let id_username = `channel::${username}`;
-									let id_owner = `channel::${(data.mode == "vod")? data.owner : data.id}`;
-									
-									// Use username (login) as channel id
-									id = id_username;
-									if(streamListSetting.streamExist(website, id_username) || streamListSetting.streamExist(website, id_owner)){
-										doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
-										return true;
+						Request_Get({
+							url: current_API.url,
+							overrideMimeType: current_API.overrideMimeType,
+							onComplete: function (response) {
+								let data = response.json;
+								
+								console.group()
+								console.info(`${website} - ${response.url}`);
+								console.dir(data);
+								console.groupEnd();
+								
+								if(isValidResponse(website, data) == false){
+									if(website == "dailymotion" && (website_channel_id.test(source_website) || data.mode == "vod")){
+										let username = (data.mode == "vod")? data["user.username"] : data.username;
+										let id_username = `channel::${username}`;
+										let id_owner = `channel::${(data.mode == "vod")? data.owner : data.id}`;
+										
+										// Use username (login) as channel id
+										id = id_username;
+										if(streamListSetting.streamExist(website, id_username) || streamListSetting.streamExist(website, id_owner)){
+											doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
+											return true;
+										}
+									} else {
+										doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_but_not_detected_as_channel")}`);
+										return null;
 									}
+								}
+								if(getPreference("confirm_addStreamFromPanel")){
+									let addstreamNotifAction = new notifAction("addStream", {id: id, website: website, url: ((type == "embed")? active_tab_url : "")});
+									doActionNotif(`Live notifier`, `${display_id(id)} ${_("wasnt_configured_and_can_be_added")}`, addstreamNotifAction);
 								} else {
-									doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_but_not_detected_as_channel")}`);
-									return null;
+									streamListSetting.addStream(website, id, ((type == "embed")? active_tab_url : ""));
+									streamListSetting.update();
+									doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_and_have_been_added")}`);
+									// Update the panel for the new stream added
+									setTimeout(function(){
+										refreshPanel(false);
+									}, 5000);
 								}
 							}
-							if(getPreference("confirm_addStreamFromPanel")){
-								let addstreamNotifAction = new notifAction("addStream", {id: id, website: website, url: ((type == "embed")? active_tab_url : "")});
-								doActionNotif(`Live notifier`, `${display_id(id)} ${_("wasnt_configured_and_can_be_added")}`, addstreamNotifAction);
-							} else {
-								streamListSetting.addStream(website, id, ((type == "embed")? active_tab_url : ""));
-								streamListSetting.update();
-								doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_and_have_been_added")}`);
-								// Update the panel for the new stream added
-								setTimeout(function(){
-									refreshPanel(false);
-								}, 5000);
-							}
 						})
-						
 						return true;
 					}
 				}
@@ -1180,36 +1205,29 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 	
 	//console.time(id);
 	
-	let xhr = new XMLHttpRequest();
-	xhr.open('GET', current_API.url, true);
-	xhr.overrideMimeType(current_API.overrideMimeType);
-	xhr.send();
-	
-	xhr.addEventListener("load", function(){
-		let data = null;
-		try {
-			data = JSON.parse(xhr.responseText);
-		}
-		catch(err) {
-			console.warn(err);
-		}
-		
-		console.group();
-		console.info(`${website} - ${id} (${current_API.url})`);
-		console.dir(data);
-		
-		if(typeof liveStatus[website][id] == "undefined"){
-			liveStatus[website][id] = {};
-		}
-		
-		if(website_channel_id.test(id)){
-			if(typeof pageNumber == "number"){
-				websites[website].channelList(id, website, streamSetting, data, pageNumber)
-			} else {
-				websites[website].channelList(id, website, streamSetting, data)
+	Request_Get({
+		url: current_API.url,
+		overrideMimeType: current_API.overrideMimeType,
+		onComplete: function (response) {
+			let data = response.json;
+			
+			console.group();
+			console.info(`${website} - ${id} (${response.url})`);
+			console.dir(data);
+			
+			if(typeof liveStatus[website][id] == "undefined"){
+				liveStatus[website][id] = {};
 			}
-		} else {
-			processPrimary(id, id, website, streamSetting, data);
+			
+			if(website_channel_id.test(id)){
+				if(typeof pageNumber == "number"){
+					websites[website].channelList(id, website, streamSetting, data, pageNumber)
+				} else {
+					websites[website].channelList(id, website, streamSetting, data)
+				}
+			} else {
+				processPrimary(id, id, website, streamSetting, data);
+			}
 		}
 	});
 }
@@ -1231,21 +1249,20 @@ function processPrimary(id, contentId, website, streamSetting, data){
 			if(websites[website].hasOwnProperty("API_second") == true){
 				let second_API = websites[website].API_second(contentId);
 				
-				let xhr_second = new XMLHttpRequest();
-				xhr_second.open('GET', second_API.url, true);
-				xhr_second.overrideMimeType(second_API.overrideMimeType);
-				xhr_second.send();
-				
-				xhr_second.addEventListener("load", function(){
-					let data_second = JSON.parse(xhr_second.responseText);
-					
-					console.info(website + " - " + id + " (" + second_API.url + ")");
-					console.dir(data_second);
-					
-					websites[website].seconderyInfo(id, contentId, data_second, liveState);
-					
-					doStreamNotif(website, id, contentId, streamSetting, liveState);
-					setIcon();
+				Request_Get({
+					url: second_API.url,
+					overrideMimeType: second_API.overrideMimeType,
+					onComplete: function (response) {
+						let data_second = response.json;
+						
+						console.info(`${website} - ${id} (${response.url})`);
+						console.dir(data_second);
+						
+						websites[website].seconderyInfo(id, contentId, data_second, liveState);
+						
+						doStreamNotif(website, id, contentId, streamSetting, liveState);
+						setIcon();
+					}
 				});
 			} else {
 				doStreamNotif(website, id, contentId, streamSetting, liveState);
@@ -1266,19 +1283,18 @@ function getChannelInfo(website, id){
 		let defaultChannelInfos = channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
 	if(websites[website].hasOwnProperty("API_second") == true){
-		let xhr_channelInfos = new XMLHttpRequest();
-		xhr_channelInfos.open('GET', channelInfos_API.url, true);
-		xhr_channelInfos.overrideMimeType(channelInfos_API.overrideMimeType);
-		xhr_channelInfos.send();
-		
-		xhr_channelInfos.addEventListener("load", function(){
-			let data_channelInfos = JSON.parse(xhr_channelInfos.responseText);
-			
-			console.info(website + " - " + id + " (" + channelInfos_API.url + ")");
-			console.dir(data_channelInfos);
-			
-			if(isValidResponse(website, data_channelInfos) == true){
-				websites[website].channelInfosProcess(id, data_channelInfos);
+		Request_Get({
+			url: channelInfos_API.url,
+			overrideMimeType: channelInfos_API.overrideMimeType,
+			onComplete: function (response) {
+				let data_channelInfos = response.json;
+				
+				console.info(`${website} - ${id} (${response.url})`);
+				console.dir(data_channelInfos);
+				
+				if(isValidResponse(website, data_channelInfos) == true){
+					websites[website].channelInfosProcess(id, data_channelInfos);
+				}
 			}
 		});
 	}
@@ -1286,26 +1302,26 @@ function getChannelInfo(website, id){
 
 function importButton(website){
 	if(website == "beam"){
-		let xhr = new XMLHttpRequest();
-		xhr.open('GET', `https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`, true);
-		xhr.overrideMimeType("text/plain; charset=utf-8");
-		xhr.send();
-		xhr.addEventListener("load", function(){
-			let data = JSON.parse(xhr.responseText); //xhr.responseText;
-			
-			if(!isValidResponse(website, data)){
-				console.warn(`Sometimes bad things just happen - ${website} - https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`);
-				doNotif("Live notifier", _("beam_import_error"));
-			} else {
-				console.group();
-				console.info(`${website} - https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`);
-				console.dir(data);
+		Request_Get({
+			url: `https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`,
+			overrideMimeType: "text/plain; charset=utf-8",
+			onComplete: function (response) {
+				let data = response.json;
 				
-				let numerical_id = data.user.id;
-				
-				console.groupEnd();
-				
-				importStreams(website, numerical_id);
+				if(!isValidResponse(website, data)){
+					console.warn(`Sometimes bad things just happen - ${website} - https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`);
+					doNotif("Live notifier", _("beam_import_error"));
+				} else {
+					console.group();
+					console.info(`${website} - https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`);
+					console.dir(data);
+					
+					let numerical_id = data.user.id;
+					
+					console.groupEnd();
+					
+					importStreams(website, numerical_id);
+				}
 			}
 		});
 	} else {
@@ -1320,27 +1336,26 @@ function importStreams(website, id, url, pageNumber){
 	} else {
 		console.time(current_API.id);
 	}
-	let xhr = new XMLHttpRequest();
-	xhr.open('GET', current_API.url, true);
-	xhr.overrideMimeType(current_API.overrideMimeType);
-	xhr.send();
-	
-	xhr.addEventListener("load", function(){
-		let data = JSON.parse(xhr.responseText);
-		
-		console.group();
-		console.info(`${website} - ${id} (${current_API.url})`);
-		console.dir(data);
-		
-		if(typeof pageNumber == "number"){
-			websites[website].importStreamWebsites(id, data, pageNumber);
-		} else {
-			websites[website].importStreamWebsites(id, data);
+	Request_Get({
+		url: current_API.url,
+		overrideMimeType: current_API.overrideMimeType,
+		onComplete: function (response) {
+			let data = response.json;
+			
+			console.group();
+			console.info(`${website} - ${id} (${current_API.url})`);
+			console.dir(data);
+			
+			if(typeof pageNumber == "number"){
+				websites[website].importStreamWebsites(id, data, pageNumber);
+			} else {
+				websites[website].importStreamWebsites(id, data);
+			}
+			console.groupEnd();
+			setTimeout(function(){
+				refreshPanel(false);
+			}, 5000);
 		}
-		console.groupEnd();
-		setTimeout(function(){
-			refreshPanel(false);
-		}, 5000);
 	});
 }
 function importStreamsEnd(id){
@@ -1363,15 +1378,14 @@ function loadBadges(){
 	canvas_online.id = 'canvas_online';
 	document.querySelector('body').appendChild(canvas_online);
 	let context_online = canvas_online.getContext('2d');
-	
-	let xhr_online = new XMLHttpRequest();
-	xhr_online.open('GET', "/data/live_online.svg", true);
-	xhr_online.overrideMimeType("text/plain; charset=utf-8");
-	xhr_online.send();
-	
-	xhr_online.addEventListener("load", function(){
-		context_online.drawSvg(xhr_online.responseText, 0, 0, 19, 19);
-		online_badgeData = context_online.getImageData(0, 0, 19, 19);
+
+	Request_Get({
+		url: "/data/live_online.svg",
+		overrideMimeType: "text/plain; charset=utf-8",
+		onComplete: function (response) {
+			context_online.drawSvg(response.text, 0, 0, 19, 19);
+			online_badgeData = context_online.getImageData(0, 0, 19, 19);
+		}
 	});
 	
 	old_node = document.querySelector('#canvas_offline');
@@ -1383,14 +1397,13 @@ function loadBadges(){
 	document.querySelector('body').appendChild(canvas_offline);
 	let context_offline = canvas_offline.getContext('2d');
 	
-	let xhr_offline = new XMLHttpRequest();
-	xhr_offline.open('GET', "/data/live_offline.svg", true);
-	xhr_offline.overrideMimeType("text/plain; charset=utf-8");
-	xhr_offline.send();
-	
-	xhr_offline.addEventListener("load", function(){
-		context_offline.drawSvg(xhr_offline.responseText, 0, 0, 19, 19);
-		offline_badgeData = context_offline.getImageData(0, 0, 19, 19);
+	Request_Get({
+		url: "/data/live_offline.svg",
+		overrideMimeType: "text/plain; charset=utf-8",
+		onComplete: function (response) {
+			context_offline.drawSvg(response.text, 0, 0, 19, 19);
+			offline_badgeData = context_offline.getImageData(0, 0, 19, 19);
+		}
 	});
 }
 loadJS("/data/js/", ["canvg/rgbcolor.js", "canvg/StackBlur.js", "canvg/canvg.js"], loadBadges);

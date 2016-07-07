@@ -1,7 +1,8 @@
-# 7.0.0-pre2
+# 7.0.0-pre3
 * i: Moved JS files
 * +: loadJS, to load JS files
 * +: Moved stream platforms related code to other script files
+* +: Custom Request function to act alike Firefox Request API (return null when response cannot be parsed in JSON)
 
 # 6.3.3
 * -: Old settings, option-data.js

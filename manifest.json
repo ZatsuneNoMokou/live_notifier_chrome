@@ -4,7 +4,7 @@
 	"short_name": "LiveNotifier",
 	"description": "__MSG_extShortDesc__",
 	"author": "ZatsuneNoMokou",
-	"version": "7.0.0-pre2",
+	"version": "7.0.0-pre3",
 	"icons": {
 		"128": "/icon_128.png"
 	},
