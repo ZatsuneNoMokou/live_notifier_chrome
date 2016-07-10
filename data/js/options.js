@@ -148,7 +148,11 @@ function newPreferenceNode(parent, id, prefObj){
 			prefNode.addEventListener("change", settingNode_onChange);
 			break;
 		case "control":
-			if(id.indexOf("_import") != -1){
+			if(id == "export_preferences"){
+				prefNode.addEventListener("click", exportPrefsToFile);
+			} else if(id == "import_preferences"){
+				prefNode.addEventListener("click", importPrefsFromFile);
+			} else if(id.indexOf("_import") != -1){
 				prefNode.addEventListener("click", import_onClick);
 			}
 			break;
@@ -175,6 +179,7 @@ window.addEventListener('storage', function(event){
 				prefNode.checked = getBooleanFromVar(prefValue);
 				break;
 			case "control":
+			case "file":
 				// Nothing to update, no value
 				break;
 		}
@@ -192,34 +197,9 @@ document.addEventListener('DOMContentLoaded',		init);
 let storage = (typeof chrome.storage.sync == "object")? chrome.storage.sync : chrome.storage.local;
 
 // Save states using in chrome.storage.
+
 function saveOptionsInSync(){
-	let settingsDataToSync = {};
-	
-	let prefNodes = document.querySelectorAll(".preferenceInput");
-	for(let i in prefNodes){
-		let prefNode = prefNodes[i]
-		if(typeof prefNode.tagName == "undefined"){
-			continue;
-		}
-		let settingType = prefNode.dataset.settingType;
-		let prefId = prefNode.id;
-		switch(settingType){
-			case "string":
-			case "color":
-			case "menulist":
-				settingsDataToSync[prefId] = prefNode.value;
-				break;
-			case "integer":
-				settingsDataToSync[prefId] = parseInt(prefNode.value);
-				break;
-			case "bool":
-				settingsDataToSync[prefId] = getBooleanFromVar(prefNode.checked);
-				break;
-			case "control":
-				// Nothing to update, no value
-				break;
-		}
-	}
+	let settingsDataToSync = getSyncPreferences();
 	
 	storage.set(settingsDataToSync, function() {
 		// Update status to let user know options were saved.
@@ -230,7 +210,7 @@ function saveOptionsInSync(){
 		}
 		setTimeout(function() {
 			status.textContent = '';
-		}, 2000);
+		}, 2500);
 	});
 }
 // Restores states using the preferences stored in chrome.storage.
@@ -267,6 +247,7 @@ function restaureOptionsFromSync(){
 					prefNode.checked = getBooleanFromVar(items[id]);
 					break;
 				case "control":
+				case "file":
 					// Nothing to update, no value
 					break;
 			}

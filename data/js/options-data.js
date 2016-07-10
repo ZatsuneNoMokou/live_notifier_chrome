@@ -52,14 +52,6 @@ var options = {
 		"group": "twitch"
 	},
 	/*			Beam			*/
-	"beam_keys_list": {
-		"title": "Beam keys to notify",
-		"description": "Stream list in a comma separated list.",
-		"type": "hidden",
-		"value": "",
-		"showPrefInPanel": false,
-		"group": "beam"
-	},
 	"beam_user_id": {
 		"title": "Your Beam id",
 		"description": "Enter your Beam id to be able to import the stream(s) you follow.",
@@ -79,6 +71,7 @@ var options = {
 		"description": "",
 		"type": "menulist",
 		"value": "chrome_api",
+		"sync": false,
 		"options": [
 				{
 					"value": "web",
@@ -153,7 +146,7 @@ var options = {
 		"title": "Show offline streams in the panel",
 		"description": "Shown when checked",
 		"type": "bool",
-		"value": false,
+		"value": true,
 		"group": "showInPanel"
 	},
 	/*			Confirm add / delete			*/
@@ -195,6 +188,19 @@ var options = {
 		"type": "color",
 		"value": "#000000",
 		"group": "theme"
+	},
+	/*			Import/Export Prefs			*/
+	"export_preferences": {
+		"title": "Export preferences from a file",
+		"label": "Export preferences",
+		"type": "control",
+		"group": "importexport_prefs"
+	},
+	"import_preferences": {
+		"title": "Import preferences from a file",
+		"label": "Import preferences",
+		"type": "control",
+		"group": "importexport_prefs"
 	},
 	/*			Livestreamer			*/
 	"livestreamer_cmd_to_clipboard": {

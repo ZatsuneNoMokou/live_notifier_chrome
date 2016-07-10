@@ -1203,7 +1203,7 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 		current_API.url = url;
 	}
 	
-	//console.time(id);
+	console.time(`${website}::${id}`);
 	
 	Request_Get({
 		url: current_API.url,
@@ -1219,15 +1219,33 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 				liveStatus[website][id] = {};
 			}
 			
-			if(website_channel_id.test(id)){
+			if(website_channel_id.test(id) == true){
 				if(isValidResponse(website, data) == true){
+					let streamListData;
 					if(typeof pageNumber == "number"){
-						websites[website].channelList(id, website, streamSetting, data, pageNumber)
+						streamListData = websites[website].channelList(id, website, data, pageNumber);
 					} else {
-						websites[website].channelList(id, website, streamSetting, data)
+						streamListData = websites[website].channelList(id, website, data);
+					}
+					
+					if(JSON.stringify(streamListData.streamList) == "{}"){
+						getChannelInfo(website, id);
+						channelListEnd(website, id);
+					} else {
+						for(let i in streamListData.streamList){
+							let contentId = i;
+							processPrimary(id, contentId, website, streamSetting, streamListData.streamList[i]);
+						}
+						if(streamListData.hasOwnProperty("next") == true){
+							if(streamListData.next == null){
+								channelListEnd(website, id);
+							} else {
+								getPrimary(id, website, streamSetting, streamListData.url, streamListData.next_page_number);
+							}
+						}
 					}
 				} else {
-					channelListEnd(id);
+					channelListEnd(website, id);
 				}
 			} else {
 				processPrimary(id, id, website, streamSetting, data);
@@ -1237,9 +1255,9 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 }
 appGlobal["getPrimary"] = getPrimary;
 
-function channelListEnd(id){
+function channelListEnd(website, id){
 	setIcon();
-	console.timeEnd(id);
+	console.timeEnd(`${website}::${id}`);
 	console.groupEnd();
 }
 
@@ -1248,7 +1266,7 @@ function processPrimary(id, contentId, website, streamSetting, data){
 		let defaultStatus = liveStatus[website][id][contentId] = {"online": false, "notificationStatus": false, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
 	if(isValidResponse(website, data) == true){
-		let liveState = websites[website].checkLiveStatus(id, contentId, data);
+		let liveState = websites[website].checkLiveStatus(id, contentId, data, liveStatus[website][id][contentId]);
 		if(liveState !== null){
 			if(websites[website].hasOwnProperty("API_second") == true){
 				let second_API = websites[website].API_second(contentId);
@@ -1262,7 +1280,7 @@ function processPrimary(id, contentId, website, streamSetting, data){
 						console.info(`${website} - ${id} (${response.url})`);
 						console.dir(data_second);
 						
-						websites[website].seconderyInfo(id, contentId, data_second, liveState);
+						websites[website].seconderyInfo(id, contentId, data_second, liveStatus[website][id][contentId], liveState);
 						
 						doStreamNotif(website, id, contentId, streamSetting, liveState);
 						setIcon();
@@ -1277,14 +1295,14 @@ function processPrimary(id, contentId, website, streamSetting, data){
 	}
 	setIcon();
 	
-	console.timeEnd(id);
+	console.timeEnd(`${website}::${id}`);
 	console.groupEnd();
 }
 function getChannelInfo(website, id){
 	let channelInfos_API = websites[website].API_channelInfos(id);
 	
 	if(typeof channelInfos[website][id] == "undefined"){
-		let defaultChannelInfos = channelInfos[website][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+		let defaultChannelInfos = channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
 	if(websites[website].hasOwnProperty("API_second") == true){
 		Request_Get({
@@ -1297,7 +1315,7 @@ function getChannelInfo(website, id){
 				console.dir(data_channelInfos);
 				
 				if(isValidResponse(website, data_channelInfos) == true){
-					websites[website].channelInfosProcess(id, data_channelInfos);
+					websites[website].channelInfosProcess(id, data_channelInfos, channelInfos[website][id]);
 				}
 			}
 		});
@@ -1314,7 +1332,7 @@ function importButton(website){
 				
 				if(!isValidResponse(website, data)){
 					console.warn(`Sometimes bad things just happen - ${website} - https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`);
-					doNotif("Live notifier", _("beam_import_error"));
+					doNotif("Live notifier", _("beam import error"));
 				} else {
 					console.group();
 					console.info(`${website} - https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`);
@@ -1338,7 +1356,7 @@ function importStreams(website, id, url, pageNumber){
 	if(typeof url == "string" && url != ""){
 		current_API.url = url;
 	} else {
-		console.time(current_API.id);
+		console.time(`${website}::${id}`);
 	}
 	Request_Get({
 		url: current_API.url,
@@ -1350,11 +1368,32 @@ function importStreams(website, id, url, pageNumber){
 			console.info(`${website} - ${id} (${current_API.url})`);
 			console.dir(data);
 			
+			let streamListSetting = new streamListFromSetting(website);
+			let streamList = streamListSetting.objData;
+			
+			let importStreamList_Data;
 			if(typeof pageNumber == "number"){
-				websites[website].importStreamWebsites(id, data, pageNumber);
+				importStreamList_Data = websites[website].importStreamWebsites(id, data, streamListSetting, pageNumber);
 			} else {
-				websites[website].importStreamWebsites(id, data);
+				importStreamList_Data = websites[website].importStreamWebsites(id, data, streamListSetting);
 			}
+			
+			
+			for(let id of importStreamList_Data.list){
+				streamListSetting.addStream(website, id, "");
+			}
+			streamListSetting.update();
+			
+			if(importStreamList_Data.hasOwnProperty("next") == true && importStreamList_Data.next != null){
+				if(importStreamList_Data.next.hasOwnProperty("pageNumber") == true){
+					importStreams(website, id, importStreamList_Data.next.url, importStreamList_Data.next.pageNumber);
+				} else {
+					importStreams(website, id, importStreamList_Data.next.url);
+				}
+			} else {
+				importStreamsEnd(website, id);
+			}
+			
 			console.groupEnd();
 			setTimeout(function(){
 				refreshPanel(false);
@@ -1362,9 +1401,9 @@ function importStreams(website, id, url, pageNumber){
 		}
 	});
 }
-function importStreamsEnd(id){
+function importStreamsEnd(website, id){
 	setIcon();
-	console.timeEnd(id);
+	console.timeEnd(`${website}::${id}`);
 }
 
 //				------ Load / Unload Event(s) ------				//
@@ -1437,9 +1476,21 @@ loadJS("/data/js/platforms/", ["beam.js", "dailymotion.js", "hitbox.js", "twitch
 		}
 		importSreamsFromOldVersion();
 	}
+	
 	if(typeof getPreference("livenotifier_version") == "string"){
 		localStorage.removeItem("livenotifier_version");
 	}
+	
+	let storage = (typeof chrome.storage.sync == "object")? chrome.storage.sync : chrome.storage.local;
+	let toRemove = ["livenotifier_version"];
+	for(let website in websites){
+		toRemove.push(`${website}_keys_list`);
+	}
+	storage.remove(toRemove, function(){
+		if(typeof chrome.runtime.lastError != "undefined"){
+			console.warn(`Error removing preference(s) from sync: ${chrome.runtime.lastError}`);
+		}
+	});
 	/* 		----- Fin Importation/Removal des vieux paramères -----		*/
 	
 	for(let website in websites){

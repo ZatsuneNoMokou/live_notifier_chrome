@@ -32,8 +32,8 @@ websites.twitch = {
 			}
 		},
 	"checkLiveStatus":
-		function(id, contentId, data){
-			let streamData = liveStatus["twitch"][id][contentId];
+		function(id, contentId, data, currentLiveStatus){
+			let streamData = currentLiveStatus;
 			if(data.hasOwnProperty("stream")){
 				data = data["stream"];
 				if(data != null){
@@ -62,8 +62,8 @@ websites.twitch = {
 			}
 		},
 	"seconderyInfo":
-		function(id, contentId, data, isStreamOnline){
-			let streamData = liveStatus["twitch"][id][contentId];
+		function(id, contentId, data, currentLiveStatus, isStreamOnline){
+			let streamData = currentLiveStatus;
 			if(typeof data["display_name"] == "string"){
 				streamData.streamName = data["display_name"];
 			}
@@ -72,19 +72,23 @@ websites.twitch = {
 			}
 		},
 	"importStreamWebsites":
-		function(id, data){
-			let streamListSetting = new streamListFromSetting("twitch");
-			let streamList = streamListSetting.objData;
+		function(id, data, streamListSetting){
+			let obj = {
+				list: []
+			}
+			
 			if(typeof data.follows == "object"){
 				for(let item of data.follows){
-					streamListSetting.addStream("twitch", item["channel"]["display_name"], "");
+					obj.list.push(item["channel"]["display_name"]);
 				}
-				streamListSetting.update();
+				
 				if(data.follows.length > 0 && typeof data._links.next == "string"){
-					importStreams("twitch", id, data._links.next);
+					obj.next = {"url": data._links.next};
 				} else {
-					importStreamsEnd(id);
+					obj.next = null;
 				}
 			}
+			
+			return obj;
 		}
 }

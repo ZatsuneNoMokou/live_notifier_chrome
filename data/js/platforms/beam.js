@@ -24,8 +24,8 @@ websites.beam = {
 			}
 		},
 	"checkLiveStatus":
-		function(id, contentId, data){
-			let streamData = liveStatus["beam"][id][contentId];
+		function(id, contentId, data, currentLiveStatus){
+			let streamData = currentLiveStatus;
 			
 			streamData.streamName = data.user["username"];
 			streamData.streamStatus = data["name"];
@@ -42,14 +42,16 @@ websites.beam = {
 			return streamData.online;
 		},
 	"importStreamWebsites":
-		function(id, data){
-			let streamListSetting = new streamListFromSetting("beam");
-			let streamList = streamListSetting.objData;
+		function(id, data, streamListSetting){
+			let obj = {
+				list: []
+			}
+			
 			if(typeof data == "object"){
 				for(let item of data){
-					streamListSetting.addStream("beam", item["token"], "");
+					obj.list.push(item["token"]);
 				}
-				streamListSetting.update();
 			}
+			return obj;
 		}
 }

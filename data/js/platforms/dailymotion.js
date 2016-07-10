@@ -46,8 +46,8 @@ websites.dailymotion = {
 			}
 		},
 	"checkLiveStatus":
-		function(id, contentId, data){
-			let streamData = liveStatus["dailymotion"][id][contentId];
+		function(id, contentId, data, currentLiveStatus){
+			let streamData = currentLiveStatus;
 			streamData.streamName = data.title;
 			streamData.streamCurrentViewers = JSON.parse(data.audience);
 			streamData.streamURL = data.url;
@@ -59,8 +59,8 @@ websites.dailymotion = {
 			}
 		},
 	"seconderyInfo":
-		function(id, contentId, data, isStreamOnline){
-			let streamData = liveStatus["dailymotion"][id][contentId];
+		function(id, contentId, data, currentLiveStatus, isStreamOnline){
+			let streamData = currentLiveStatus;
 			if(data.hasOwnProperty("user.screenname")){
 				if(isStreamOnline){
 					streamData.streamStatus = streamData.streamName;
@@ -80,30 +80,33 @@ websites.dailymotion = {
 			}
 		},
 	"channelList":
-		function(id, website, streamSetting, data, pageNumber){
+		function(id, website, data, pageNumber){
 			let list = data.list;
 			
+			let obj = {
+				streamList: {}
+			}
 			if(data.total == 0){
-				getChannelInfo(website, id);
-				channelListEnd(id);
+				return obj;
 			} else {
 				for(let i in list){
 					let contentId = list[i].id;
-					processPrimary(id, contentId, website, streamSetting, list[i]);
+					obj.streamList[contentId] = list[i];
 				}
 				
 				if(data.has_more){
-					let next_url = websites[website].API(website_channel_id.exec(id)[1]).url;
+					let next_url = websites.dailymotion.API(website_channel_id.exec(id)[1]).url;
 					let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-					getPrimary(id, website, streamSetting, next_url + "&page=" + next_page_number, next_page_number);
+					obj.next = {"url": next_url + "&page=" + next_page_number, "pageNumber": next_page_number};
 				} else {
-					channelListEnd(id);
+					obj.next = null;
 				}
+				return obj;
 			}
 		},
 	"channelInfosProcess":
-		function(id, data){
-			let streamData = channelInfos["dailymotion"][id];
+		function(id, data, currentChannelInfo){
+			let streamData = currentChannelInfo;
 			if(data.hasOwnProperty("screenname")){
 				streamData.streamName = data["screenname"];
 				streamData.streamURL = data.url;
@@ -120,27 +123,29 @@ websites.dailymotion = {
 			}
 		},
 	"importStreamWebsites":
-		function(id, data, pageNumber){
-			let streamListSetting = new streamListFromSetting("dailymotion");
-			let streamList = streamListSetting.objData;
+		function(id, data, streamListSetting, pageNumber){
+			let obj = {
+				list: []
+			}
 			
 			if(data.total > 0){
 				for(let item of data.list){
 					if(!streamListSetting.streamExist("dailymotion", `channel::${item.id}`) && !streamListSetting.streamExist("dailymotion", `channel::${item.username}`)){
-						streamListSetting.addStream("dailymotion", `channel::${item.id}`, "");
+						obj.list.push(`channel::${item.id}`);
 					} else {
 						console.log(`${item.username} already exist`);
 					}
 				}
-				streamListSetting.update();
 			}
 			
 			if(data.has_more){
-				let next_url = websites.dailymotion.importAPI(id).url;
-				let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-				importStreams("dailymotion", id, next_url + "&page=" + next_page_number, next_page_number);
+				let nextPageNumber = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
+				let nextUrl = websites.dailymotion.importAPI(id).url + "&page=" + nextPageNumber;
+				obj.next = {"url": nextUrl, "pageNumber": nextPageNumber}
 			} else {
-				importStreamsEnd(id);
+				obj.next = null;
 			}
+			
+			return obj;
 		}
 }

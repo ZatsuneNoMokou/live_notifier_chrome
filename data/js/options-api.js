@@ -65,6 +65,20 @@ function getPreference(prefId){
 		return defaultSettings[prefId];
 	}
 }
+function getSyncPreferences(){
+	let obj = {};
+	for(let prefId in options){
+		let option = options[prefId];
+		if(option.hasOwnProperty("sync") == true && option.sync == false){
+			continue;
+		} else if(option.type == "control" || option.type == "file"){
+			continue;
+		} else {
+			obj[prefId] = getPreference(prefId);
+		}
+	}
+	return obj;
+}
 function savePreference(prefId, value){
 	localStorage.setItem(prefId, value);
 }
@@ -145,4 +159,89 @@ function settingNode_onChange(event){
 	if(typeof refreshSettings == "function"){
 		refreshSettings(event);
 	}
+}
+
+function simulateClick(node) {
+	let evt = new MouseEvent("click", {
+		bubbles: true,
+		cancelable: true,
+		view: window,
+	});
+	// Return true is the event haven't been canceled
+	return node.dispatchEvent(evt);
+}
+function exportPrefsToFile(){
+	let preferences = getSyncPreferences();
+	
+	let exportData = {
+		"live_notifier_version": appGlobal["version"],
+		"preferences": preferences
+	}
+	
+	let link = document.createElement("a");
+	link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData));
+	link.download = "live_notifier_preferences.json";
+	
+	simulateClick(link);
+}
+function importPrefsFromFile(event){
+	let node = document.createElement("input");
+	node.type = "file";
+	node.addEventListener("change", function(){
+		let fileLoader=new FileReader();
+		if(node.files.length == 0 || node.files.length > 1){
+			console.warn(`[Input error] ${node.files.length} file(s) selected `);
+		} else if(node.files[0].type == "" || node.files[0].type == "text/plain"|| node.files[0].type == "text/json"){
+			fileLoader.readAsText(node.files[0]);
+			fileLoader.onloadend = function(event){
+				let rawFileData = event.target.result;
+				let file_JSONData = null;
+				try{
+					file_JSONData = JSON.parse(rawFileData);
+				}
+				catch(error){
+					if(new String(error).indexOf("SyntaxError") != -1){
+						console.warn(`An error occurred when trying to parse file (Check the file you have used)`);
+					} else {
+						console.warn(`An error occurred when trying to parse file (${error})`);
+					}
+				}
+				if(file_JSONData != null){
+					if(file_JSONData.hasOwnProperty("live_notifier_version") == true){
+						for(let prefId in file_JSONData.preferences){
+							if(typeof options[prefId].type != "undefined" && options[prefId].type != "control" && options[prefId].type != "file" && typeof file_JSONData.preferences[prefId] == typeof options_default_sync[prefId]){
+								savePreference(prefId, file_JSONData.preferences[prefId]);
+								let prefNode = document.querySelector(`#${prefId}.preferenceInput`);
+								if(prefNode != null){
+									let settingType = prefNode.dataset.settingType;
+									switch(settingType){
+										case "string":
+										case "color":
+										case "menulist":
+											prefNode.value = file_JSONData.preferences[prefId];
+											break;
+										case "integer":
+											prefNode.value = parseInt(file_JSONData.preferences[prefId]);
+											break;
+										case "bool":
+											prefNode.checked = getBooleanFromVar(file_JSONData.preferences[prefId]);
+											break;
+										case "control":
+										case "file":
+											// Nothing to update, no value
+											break;
+									}
+								}
+							} else {
+								console.warn(`Erreur trying to import ${prefId}`);
+							}
+						}
+					}
+				}
+			}
+		} else {
+			console.warn("Wrong file type");
+		}
+	});
+	simulateClick(node);
 }

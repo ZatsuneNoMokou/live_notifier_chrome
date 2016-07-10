@@ -322,8 +322,12 @@ function newPreferenceNode(parent, id, prefObj){
 			prefNode.addEventListener("change", settingNode_onChange);
 			break;
 		case "control":
-			if(id.indexOf("_import") != -1){
-				prefNode.addEventListener("click", import_onClick, false);
+			if(id == "export_preferences"){
+				prefNode.addEventListener("click", exportPrefsToFile);
+			} else if(id == "import_preferences"){
+				prefNode.addEventListener("click", importPrefsFromFile);
+			} else if(id.indexOf("_import") != -1){
+				prefNode.addEventListener("click", import_onClick);
 			}
 			break;
 	}
@@ -460,12 +464,14 @@ function updatePanelData(data){
 				}
 				
 				if(JSON.stringify(liveStatus[website][id]) == "{}"){
-					let streamData = channelInfos[website][id];
-					let contentId = id;
-					
-					console.info(`No data found, using channel infos: ${id} (${website})`);
-					
-					listener(website, id, contentId, "channel", streamList[id], channelInfos[website][id]);
+					if(typeof channelInfos[website][id] != "undefined"){
+						let streamData = channelInfos[website][id];
+						let contentId = id;
+						
+						console.info(`No data found, using channel infos: ${id} (${website})`);
+						
+						listener(website, id, contentId, "channel", streamList[id], channelInfos[website][id]);
+					}
 				} else {
 					for(let contentId in liveStatus[website][id]){
 						let streamData = liveStatus[website][id][contentId];

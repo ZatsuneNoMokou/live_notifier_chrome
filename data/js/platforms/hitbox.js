@@ -26,8 +26,8 @@ websites.hitbox = {
 			return "success";
 		},
 	"checkLiveStatus":
-		function(id, contentId, data){
-			let streamData = liveStatus["hitbox"][id][contentId];
+		function(id, contentId, data, currentLiveStatus){
+			let streamData = currentLiveStatus;
 			if(data.hasOwnProperty("livestream") == false){
 				if(data.error_msg="no_media_found"){
 					streamData.online = false;
@@ -75,22 +75,25 @@ websites.hitbox = {
 			}
 		},
 	"importStreamWebsites":
-		function(id, data, pageNumber){
-			let streamListSetting = new streamListFromSetting("hitbox");
-			let streamList = streamListSetting.objData;
+		function(id, data, streamListSetting, pageNumber){
+			let obj = {
+				list: []
+			}
+			
 			if(typeof data.following == "object"){
 				for(let item of data.following){
-					streamListSetting.addStream("hitbox", item["user_name"], "");
+					obj.list.push(item["user_name"]);
 				}
-				streamListSetting.update();
 				
 				if(data.following.length > 0){
-					let next_url = websites.hitbox.importAPI(id).url;
-					let next_page_number = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
-					importStreams("hitbox", id, next_url + "&offset=" + next_page_number, next_page_number);
+					let nextPageNumber = ((typeof pageNumber == "number")? pageNumber : 1) + 1;
+					let nextUrl = websites.hitbox.importAPI(id).url + "&offset=" + nextPageNumber;
+					obj.next = {"url": nextUrl, "pageNumber": nextPageNumber};
 				} else {
-					importStreamsEnd(id);
+					obj.next = null;
 				}
 			}
+			
+			return obj;
 		}
 }
