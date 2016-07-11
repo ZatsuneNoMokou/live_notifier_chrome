@@ -1,10 +1,10 @@
-# 7.0.0-pre5
+# 7.0.0-pre6
 * i: Now display offline streams in panel by default
 * i: Moved JS files
 * +: loadJS, to load JS files
 * +: Moved stream platforms related code to other script files
 * +: Custom Request function to act alike Firefox Request API (return null when response cannot be parsed in JSON)
-* +: Import and export of preferences (only in panel for Firefox)
+* +: Import and export of preferences (functions use the panel in Firefox)
 
 # 6.3.3
 * -: Old settings, option-data.js
