@@ -59,8 +59,8 @@
 	"is_already_configured": {
 		"message": "is already configured."
 	},
-	"wasnt_configured_but_not_detected_as_channel": {
-		"message": "wasn't configured, but not detected as channel."
+	"wasnt_configured_but_error_retrieving_data": {
+		"message": "wasn't configured, but an error occurred when retrieving data."
 	},
 	"wasnt_configured_and_have_been_added": {
 		"message": "wasn't configured, and have been added."
@@ -337,6 +337,15 @@
 	},
 	"save_sync": {
 		"message": "Save"
+	},
+	"debugInfo": {
+		"message": ""
+	},
+	"debugDataLabel": {
+		"message": "Error(s):"
+	},
+	"noErrorToShow": {
+		"message": "No error to show."
 	},
 	"footer_title": {
 		"message": "Addon under GPL v3 licence."

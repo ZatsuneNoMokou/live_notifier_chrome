@@ -102,6 +102,10 @@ class streamListFromSetting{
 					let cleanEndingSpace = /(.*)\s+$/;
 					
 					let result=reg.exec(myTable[i]);
+					if(result == null){
+						console.warn(`Error with ${myTable[i]}`);
+						continue;
+					}
 					let website = result[1];
 					let id = result[2];
 					let data = result[3];
@@ -323,7 +327,7 @@ function refreshStreamsFromPanel(){
 let addStreamFromPanel_pageListener = new Array();
 
 let addStream_URLpatterns = {"dailymotion": [/^(?:http|https):\/\/games\.dailymotion\.com\/(?:live|video)\/([a-zA-Z0-9]+).*$/, /^(?:http|https):\/\/www\.dailymotion\.com\/(?:embed\/)?video\/([a-zA-Z0-9]+).*$/, /^(?:http|https):\/\/games\.dailymotion\.com\/[^\/]+\/v\/([a-zA-Z0-9]+).*$/],
-		"channel::dailymotion": [/^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/user\/([^\s\t\/]+).*$/, /^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/(?!user\/|monetization\/|archived\/|fr\/|en\/|legal\/|stream|rss)([^\s\t\/]+).*$/],
+		"channel::dailymotion": [/^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/user\/([^\s\t\/]+).*$/, /^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/(?!user\/|monetization\/|archived\/|fr\/|en\/|us\/|legal\/|stream|rss)([^\s\t\/]+).*$/],
 		"hitbox": [/^(?:http|https):\/\/www\.hitbox\.tv\/(?:embedchat\/)?([^\/\?\&]+).*$/],
 		"twitch": [/^(?:http|https):\/\/www\.twitch\.tv\/([^\/\?\&]+).*$/,/^(?:http|https):\/\/player\.twitch\.tv\/\?channel\=([\w\-]+).*$/],
 		"beam": [/^(?:http|https):\/\/beam\.pro\/([^\/\?\&]+)/]
@@ -419,23 +423,24 @@ function addStreamFromPanel(data){
 								console.dir(data);
 								console.groupEnd();
 								
-								if(isValidResponse(website, data) == false){
-									if(website == "dailymotion" && (website_channel_id.test(source_website) || data.mode == "vod")){
+								let responseValidity = checkResponseValidity(website, data);
+								
+								if(website == "dailymotion" && responseValidity.indexOf("error") == -1){
 										let username = (data.mode == "vod")? data["user.username"] : data.username;
 										let id_username = `channel::${username}`;
 										let id_owner = `channel::${(data.mode == "vod")? data.owner : data.id}`;
 										
 										// Use username (login) as channel id
-										id = id_username;
+										id = id_owner;
 										if(streamListSetting.streamExist(website, id_username) || streamListSetting.streamExist(website, id_owner)){
 											doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
 											return true;
 										}
-									} else {
-										doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_but_not_detected_as_channel")}`);
-										return null;
-									}
+								} else if(checkResponseValidity(website, data) != "success"){
+									doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_but_error_retrieving_data")}`);
+									return null;
 								}
+								
 								if(getPreference("confirm_addStreamFromPanel")){
 									let addstreamNotifAction = new notifAction("addStream", {id: id, website: website, url: ((type == "embed")? active_tab_url : "")});
 									doActionNotif(`Live notifier`, `${display_id(id)} ${_("wasnt_configured_and_can_be_added")}`, addstreamNotifAction);
@@ -1016,7 +1021,7 @@ function getCleanedStreamStatus(website, id, contentId, streamSetting, isStreamO
 		}
 		
 	}
-	streamData.online_cleaned = isStreamOnline;
+	streamData.liveStatus.filteredStatus = isStreamOnline;
 	return isStreamOnline;
 }
 appGlobal["getCleanedStreamStatus"] = getCleanedStreamStatus;
@@ -1025,7 +1030,7 @@ function doStreamNotif(website, id, contentId, streamSetting){
 	let streamList = (new streamListFromSetting(website)).objData;
 	let streamData = liveStatus[website][id][contentId];
 	
-	let online = streamData.online;
+	let online = streamData.liveStatus.API_Status;
 	
 	let streamName = streamData.streamName;
 	let streamOwnerLogo = streamData.streamOwnerLogo;
@@ -1036,10 +1041,10 @@ function doStreamNotif(website, id, contentId, streamSetting){
 		streamLogo  = streamOwnerLogo;
 	}
 	
-	let isStreamOnline_cleaned = getCleanedStreamStatus(website, id, contentId, streamSetting, online);
+	let isStreamOnline_filtered = getCleanedStreamStatus(website, id, contentId, streamSetting, online);
 	
-	if(isStreamOnline_cleaned){
-		if(((typeof streamList[id].notifyOnline == "boolean")? streamList[id].notifyOnline : getPreference("notify_online")) == true && streamData.notificationStatus == false){
+	if(isStreamOnline_filtered){
+		if(((typeof streamList[id].notifyOnline == "boolean")? streamList[id].notifyOnline : getPreference("notify_online")) == true && streamData.liveStatus.notifiedStatus == false){
 			let streamStatus = ((streamData.streamStatus != "")? ": " + streamData.streamStatus : "") + ((streamData.streamGame != "")? (" (" + streamData.streamGame + ")") : "");
 				if(streamLogo != ""){
 					doNotifUrl(_("Stream online"), `${streamName}${streamStatus}`, getStreamURL(website, id, contentId, true), streamLogo);
@@ -1048,7 +1053,7 @@ function doStreamNotif(website, id, contentId, streamSetting){
 				}
 		}
 	} else {
-		if(((typeof streamList[id].notifyOffline == "boolean")? streamList[id].notifyOffline : getPreference("notify_offline")) == true && streamData.notificationStatus == true){
+		if(((typeof streamList[id].notifyOffline == "boolean")? streamList[id].notifyOffline : getPreference("notify_offline")) == true && streamData.liveStatus.notifiedStatus == true){
 			if(streamLogo != ""){
 				doNotif(_("Stream offline"),streamName, streamLogo);
 			} else {
@@ -1056,7 +1061,7 @@ function doStreamNotif(website, id, contentId, streamSetting){
 			}
 		}
 	}
-	streamData.notificationStatus = isStreamOnline_cleaned;
+	streamData.liveStatus.notifiedStatus = isStreamOnline_filtered;
 }
 appGlobal["doStreamNotif"] = doStreamNotif;
 
@@ -1078,7 +1083,7 @@ function getOfflineCount(){
 					offlineCount = offlineCount + 1;
 				} else {
 					for(let contentId in liveStatus[website][id]){
-						if(!liveStatus[website][id][contentId].online_cleaned && streamList.hasOwnProperty(id)){
+						if(!liveStatus[website][id][contentId].liveStatus.filteredStatus && streamList.hasOwnProperty(id)){
 							offlineCount = offlineCount + 1;
 						}
 					}
@@ -1103,7 +1108,7 @@ function setIcon() {
 				continue;
 			} else {
 				for(let contentId in liveStatus[website][id]){
-					if(liveStatus[website][id][contentId].online_cleaned && streamList.hasOwnProperty(id)){
+					if(liveStatus[website][id][contentId].liveStatus.filteredStatus && streamList.hasOwnProperty(id)){
 						appGlobal["onlineCount"] = appGlobal["onlineCount"] + 1;
 					}
 				}
@@ -1144,31 +1149,35 @@ let website_channel_id = /channel\:\:(.*)/;
 let facebookID_from_url = /(?:http|https):\/\/(?:www\.)?facebook.com\/([^\/]+)(?:\/.*)?/;
 let twitterID_from_url = /(?:http|https):\/\/(?:www\.)?twitter.com\/([^\/]+)(?:\/.*)?/;
 
-function isValidResponse(website, data){
+function checkResponseValidity(website, data){
 	if(data == null || typeof data != "object" || JSON.stringify == "{}"){
 		console.warn("Unable to get stream state (no connection).");
-		return false;
+		return "parse_error";
 	}
-	let state = websites[website].isValidResponse(data);
+	let state = websites[website].checkResponseValidity(data);
 	switch(state){
 		case "error":
 			console.warn(`[${website}] Unable to get stream state (error detected).`);
-			return false;
+			return "error";
+			break;
+		case "vod":
+			console.warn(`[${website}] Unable to get stream state (vod detected).`);
+			return "vod";
 			break;
 		case "notstream":
 			console.warn(`[${website}] Unable to get stream state (not a stream).`);
-			return false;
+			return "notstream";
 			break;
 		case "":
 		case "success":
-			return true
+			return "success";
 		default:
-			console.warn(`[${website}] Unknown validation state (${state}).`);
-			return true;
+			console.warn(`[${website}] Unable to get stream state (${state}).`);
+			return state;
 			break;
 	}
 	
-	return true;
+	return "success";
 }
 
 function checkLives(){
@@ -1220,7 +1229,7 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 			}
 			
 			if(website_channel_id.test(id) == true){
-				if(isValidResponse(website, data) == true){
+				if(checkResponseValidity(website, data) == "success"){
 					let streamListData;
 					if(typeof pageNumber == "number"){
 						streamListData = websites[website].channelList(id, website, data, pageNumber);
@@ -1263,9 +1272,10 @@ function channelListEnd(website, id){
 
 function processPrimary(id, contentId, website, streamSetting, data){
 	if(typeof liveStatus[website][id][contentId] == "undefined"){
-		let defaultStatus = liveStatus[website][id][contentId] = {"online": false, "notificationStatus": false, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+		let defaultStatus = liveStatus[website][id][contentId] = {"liveStatus": {"API_Status": false, "filteredStatus": false, "notifiedStatus": false, "lastCheckStatus": ""}, "streamName": contentId, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
-	if(isValidResponse(website, data) == true){
+	let responseValidity = liveStatus[website][id][contentId].liveStatus.lastCheckStatus = checkResponseValidity(website, data);
+	if(responseValidity == "success"){
 		let liveState = websites[website].checkLiveStatus(id, contentId, data, liveStatus[website][id][contentId]);
 		if(liveState !== null){
 			if(websites[website].hasOwnProperty("API_second") == true){
@@ -1302,9 +1312,9 @@ function getChannelInfo(website, id){
 	let channelInfos_API = websites[website].API_channelInfos(id);
 	
 	if(typeof channelInfos[website][id] == "undefined"){
-		let defaultChannelInfos = channelInfos["dailymotion"][id] = {"online": false, "notificationStatus": false, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+		let defaultChannelInfos = channelInfos[website][id] = {"liveStatus": {"API_Status": false, "notificationStatus": false, "lastCheckStatus": ""}, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
-	if(websites[website].hasOwnProperty("API_second") == true){
+	if(websites[website].hasOwnProperty("API_channelInfos") == true){
 		Request_Get({
 			url: channelInfos_API.url,
 			overrideMimeType: channelInfos_API.overrideMimeType,
@@ -1314,7 +1324,8 @@ function getChannelInfo(website, id){
 				console.info(`${website} - ${id} (${response.url})`);
 				console.dir(data_channelInfos);
 				
-				if(isValidResponse(website, data_channelInfos) == true){
+				let responseValidity = channelInfos[website][id].liveStatus.lastCheckStatus = checkResponseValidity(website, data_channelInfos);
+				if(responseValidity == "success"){
 					websites[website].channelInfosProcess(id, data_channelInfos, channelInfos[website][id]);
 				}
 			}
@@ -1330,7 +1341,7 @@ function importButton(website){
 			onComplete: function (response) {
 				let data = response.json;
 				
-				if(!isValidResponse(website, data)){
+				if(checkResponseValidity(website, data) != "success"){
 					console.warn(`Sometimes bad things just happen - ${website} - https://beam.pro/api/v1/channels/${getPreference(`${website}_user_id`)}`);
 					doNotif("Live notifier", _("beam import error"));
 				} else {

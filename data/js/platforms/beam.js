@@ -15,7 +15,7 @@ websites.beam = {
 			}
 			return obj;
 		},
-	"isValidResponse":
+	"checkResponseValidity":
 		function(data){
 			if(data == "Channel not found." || data.statusCode == 404){
 				return "error";
@@ -38,8 +38,8 @@ websites.beam = {
 				streamData.twitterID = twitterID_from_url.exec(data.user.social["twitter"])[1];
 			}
 			
-			streamData.online = data["online"];
-			return streamData.online;
+			streamData.liveStatus.API_Status = data["online"];
+			return streamData.liveStatus.API_Status;
 		},
 	"importStreamWebsites":
 		function(id, data, streamListSetting){

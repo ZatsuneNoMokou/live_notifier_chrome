@@ -59,8 +59,8 @@
 	"is_already_configured": {
 		"message": "est déjà configuré."
 	},
-	"wasnt_configured_but_not_detected_as_channel": {
-		"message": "n'était pas configuré(e), mais n'est pas détecté comme chaîne."
+	"wasnt_configured_but_error_retrieving_data": {
+		"message": "n'était pas configuré(e), mais une erreur s'est produite lors de la récupération des données."
 	},
 	"wasnt_configured_and_have_been_added": {
 		"message": "n'était pas configuré(e), et a été ajouté."
@@ -340,6 +340,15 @@
 	},
 	"save_sync": {
 		"message": "Enregistrer"
+	},
+	"debugInfo": {
+		"message": "Les erreurs sont en Anglais (principalement parce que les APIs sont en Anglais). "
+	},
+	"debugDataLabel": {
+		"message": "Erreur(s):"
+	},
+	"noErrorToShow": {
+		"message": "Aucune erreur à afficher."
 	},
 	"footer_title": {
 		"message": "Addon sous licence GPL v3."

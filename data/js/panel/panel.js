@@ -128,7 +128,7 @@ function searchContainer_Toggle(){
 	searchInput.value = "";
 	searchInput_onInput();
 	
-	scrollbar_streamList_update();
+	scrollbar_update("streamList");
 }
 toggle_search_button.addEventListener("click", searchContainer_Toggle);
 
@@ -150,7 +150,7 @@ function searchInput_onInput(){
 	} else {
 		searchCSS_Node.textContent = "";
 	}
-	scrollbar_streamList_update();
+	scrollbar_update("streamList");
 }
 
 /*				---- Settings ----				*/
@@ -162,31 +162,66 @@ function unhideClassNode(node){
 function hideClassNode(node){
 	node.classList.add("hide");
 }
-function setting_Toggle(){
+function selectSection(sectionNodeId){
 	let streamList = document.querySelector("#streamList");
 	let streamEditor = document.querySelector("#streamEditor");
 	let settings_node = document.querySelector("#settings_container");
+	let debugSection = document.querySelector("section#debugSection");
 	
-	hideClassNode(streamEditor);
-	
+	if(typeof sectionNodeId == "string" && sectionNodeId != ""){
+		let sectionList = [streamList, streamEditor, settings_node, debugSection];
+		
+		let sectionEnabled = false;
+		for(let i in sectionList){
+			if(sectionList[i].id == sectionNodeId){
+				sectionEnabled = true;
+				unhideClassNode(sectionList[i]);
+				scrollbar_update(sectionNodeId);
+				
+				switch(sectionNodeId){
+					case "streamList":
+						setting_Enabled = false;
+						sendDataToMain("refreshPanel", "");
+						break;
+					case "settings_container":
+						setting_Enabled = true;
+						break;
+				}
+			} else {
+				hideClassNode(sectionList[i]);
+			}
+		}
+		if(sectionEnabled == false){
+			unhideClassNode(streamList);
+		}
+	}
+}
+function setting_Toggle(sectionNodeId){
 	if(setting_Enabled){
-		setting_Enabled = false;
-		
-		sendDataToMain("refreshPanel","");
-		
-		unhideClassNode(streamList);
-		hideClassNode(settings_node);
-		
-		scrollbar_streamList_update();
+		//setting_Enabled = false;
+		selectSection("streamList");
 	} else {
-		setting_Enabled = true;
-		unhideClassNode(settings_node);
-		hideClassNode(streamList);
-		
-		scrollbar_settings_container_update();
+		//setting_Enabled = true;
+		selectSection("settings_container");
 	}
 }
 settings_button.addEventListener("click", setting_Toggle, false);
+
+/*				---- Debug section ----				*/
+
+let close_debugSection = document.querySelector("#close_debugSection");
+close_debugSection.addEventListener("click", function(event){
+	selectSection("streamList");
+}, false);
+
+let versionNode = document.querySelector("#current_version");
+versionNode.addEventListener("dblclick", enableDebugSection);
+
+function enableDebugSection(){
+	selectSection("debugSection");
+}
+
+/*				---- End Debug section ----				*/
 
 /*				---- Setting nodes generator ----				*/
 function loadPreferences(){
@@ -385,15 +420,7 @@ window.addEventListener('storage', refreshSettings);
 
 let closeEditorButton = document.querySelector("#closeEditor");
 closeEditorButton.addEventListener("click", function(event){
-	let streamList = document.querySelector("#streamList");
-	let streamEditor = document.querySelector("#streamEditor");
-	let settings_node = document.querySelector("#settings_container");
-	
-	sendDataToMain("refreshPanel","");
-	
-	unhideClassNode(streamList);
-	hideClassNode(streamEditor);
-	hideClassNode(settings_node);
+	selectSection(streamList);
 }, false);
 
 let saveEditedStreamButton = document.querySelector("#saveEditedStream");
@@ -476,10 +503,10 @@ function updatePanelData(data){
 					for(let contentId in liveStatus[website][id]){
 						let streamData = liveStatus[website][id][contentId];
 						
-						getCleanedStreamStatus(website, id, contentId, streamList[id], streamData.online);
+						getCleanedStreamStatus(website, id, contentId, streamList[id], streamData.liveStatus.API_Status);
 						
-						if(streamData.online_cleaned || (getPreference("show_offline_in_panel") && !streamData.online_cleaned)){
-							doStreamNotif(website, id, contentId, streamList[id], streamData.online);
+						if(streamData.liveStatus.filteredStatus || (getPreference("show_offline_in_panel") && !streamData.liveStatus.filteredStatus)){
+							doStreamNotif(website, id, contentId, streamList[id], streamData.liveStatus.API_Status);
 							
 							listener(website, id, contentId, "live", streamList[id], liveStatus[website][id][contentId]);
 						}
@@ -555,6 +582,10 @@ function initList(data){
 			}
 		}
 	}
+	
+	unhideClassNode(document.querySelector("#noErrorToShow"));
+	removeAllChildren(document.querySelector("#debugData"));
+	
 	document.querySelector("#streamListOffline").classList.toggle("hide", !showOffline)
 }
 
@@ -648,7 +679,7 @@ function newEditStreamButton_onClick(event){
 	document.querySelector("#streamEditor #notifyOffline").checked = (typeof streamSettings.notifyOffline == "boolean")? streamSettings.notifyOffline : false;
 	
 	unhideClassNode(streamEditor);
-	scrollbar_streamEditor_update();
+	scrollbar_update("streamEditor");
 }
 function newEditStreamButton(id, contentId, website, title, streamSettings){
 	let node = document.createElement("span");
@@ -739,7 +770,8 @@ function insertStreamNode(newLine, website, id, contentId, type, streamData, onl
 }
 
 function listener(website, id, contentId, type, streamSettings, streamData){
-	let online = (type == "channel")? streamData.online : streamData.online_cleaned;
+	let online = (type == "channel")? streamData.liveStatus.API_Status : streamData.liveStatus.filteredStatus;
+	let liveStatus = streamData.liveStatus;
 	
 	let streamName = streamData.streamName;
 	let streamStatus = streamData.streamStatus;
@@ -875,7 +907,30 @@ function listener(website, id, contentId, type, streamSettings, streamData){
 	newLine.draggable = true;
 	
 	showNonEmptySitesBlocks();
-	scrollbar_streamList_update();
+	scrollbar_update("streamList");
+	
+	if(typeof liveStatus.lastCheckStatus == "string" && liveStatus.lastCheckStatus != "" && liveStatus.lastCheckStatus != "success"){
+		let debugDataNode = document.querySelector("#debugData");
+		let newDebugItem = document.createElement('div');
+		newDebugItem.classList.add("debugItem");
+		newDebugItem.dataset.streamWebsite = website;
+		
+		let newDebugItem_title = document.createElement('span');
+		newDebugItem_title.classList.add("debugTitle");
+		newDebugItem_title.textContent = streamName;
+		newDebugItem.appendChild(newDebugItem_title);
+		
+		let newDebugItem_status = document.createElement('span');
+		newDebugItem_status.textContent = `${liveStatus.lastCheckStatus}`;
+		newDebugItem.appendChild(newDebugItem_status);
+		
+		debugDataNode.appendChild(newDebugItem);
+		
+		let noErrorToShow = document.querySelector("#noErrorToShow");
+		hideClassNode(noErrorToShow);
+		
+		scrollbar_update("debugSection");
+	}
 }
 function streamItemClick(){
 	let node = this;
@@ -937,6 +992,8 @@ function load_scrollbar(id){
 		scroll_node = document.querySelector('#settings_container');
 	} else if(id == "streamEditor"){
 		scroll_node = document.querySelector('#streamEditor');
+	} else if(id == "debugSection"){
+		scroll_node = document.querySelector('#debugSection');
 	} else {
 		console.warn(`[Live notifier] Unkown scrollbar id (${id})`);
 		return null;
@@ -948,17 +1005,13 @@ function load_scrollbar(id){
 	});
 }
 
-function scrollbar_streamList_update(){
-	let scroll_node = document.querySelector('#streamList');
-	Ps.update(scroll_node);
-}
-function scrollbar_streamEditor_update(){
-	let scroll_node = document.querySelector('#streamEditor');
-	Ps.update(scroll_node);
-}
-function scrollbar_settings_container_update(){
-	let scroll_node = document.querySelector('#settings_container');
-	Ps.update(scroll_node);
+function scrollbar_update(nodeId){
+	if(typeof nodeId == "string" && nodeId != ""){
+		let scrollbar_node = document.querySelector(`#${nodeId}`);
+		if(scrollbar_node != null){
+			Ps.update(scrollbar_node);
+		}
+	}
 }
 
 //document.addEventListener('DOMContentLoaded', function () {
@@ -970,10 +1023,12 @@ function scrollbar_settings_container_update(){
 	load_scrollbar("streamList");
 	load_scrollbar("streamEditor");
 	load_scrollbar("settings_container");
+	load_scrollbar("debugSection");
 	
 	window.onresize = function(){
-		scrollbar_streamList_update();
-		scrollbar_streamEditor_update();
-		scrollbar_settings_container_update();
+		scrollbar_update("streamList");
+		scrollbar_update("streamEditor");
+		scrollbar_update("settings_container");
+		scrollbar_update("debugSection");
 	}
 //});

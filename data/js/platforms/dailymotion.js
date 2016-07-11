@@ -33,12 +33,19 @@ websites.dailymotion = {
 		}
 		return obj;
 	},
-	"isValidResponse":
+	"checkResponseValidity":
 		function(data){
 			if(typeof data.error == "object"){
-				return "error";
+				if(typeof data.error.type == "string"){
+					// Error types: https://developer.dailymotion.com/api#error-types
+					return data.error.type;
+				} else {
+					return "error";
+				}
 			} else if(typeof data.id == "string"){
 				return "success";
+			} else if(data.mode == "vod"){
+				return "vod";
 			} else if(data.mode != "live" && typeof data.list == "undefined"){
 				return "notstream";
 			} else {
@@ -52,8 +59,8 @@ websites.dailymotion = {
 			streamData.streamCurrentViewers = JSON.parse(data.audience);
 			streamData.streamURL = data.url;
 			if(typeof data.onair == "boolean"){
-				streamData.online = data.onair;
-				return streamData.online;
+				streamData.liveStatus.API_Status = data.onair;
+				return streamData.liveStatus.API_Status;
 			} else {
 				return null;
 			}
