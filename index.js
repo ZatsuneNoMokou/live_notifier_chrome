@@ -132,10 +132,10 @@ class streamListFromSetting{
 								scan_string = scan_string.substring(current_filter_result.index+current_filter_result[0].length, scan_string.length);
 								
 								let next_filter_result = scan_string.match(filter_id);
-								let next_pos = (next_filter_result !== null)? next_filter_result.index : scan_string.length;
+								let next_pos = (next_filter_result != null)? next_filter_result.index : scan_string.length;
 								
 								let current_data;
-								if(next_filter_result !== null){
+								if(next_filter_result != null){
 									current_data = scan_string.substring(current_filter_result.index, next_filter_result.index);
 								} else {
 									current_data = scan_string.substring(current_filter_result.index, scan_string.length);
@@ -282,7 +282,7 @@ function getStreamURL(website, id, contentId, usePrefUrl){
 				}
 			}
 			if(typeof channelInfos[website][id] != "undefined"){
-				if(typeof channelInfos[website][id].streamURL == "string" && channelInfos.streamURL != ""){
+				if(typeof channelInfos[website][id].streamURL == "string" && channelInfos[website][id].streamURL != ""){
 						return channelInfos[website][id].streamURL
 				}
 			}
@@ -778,7 +778,6 @@ function doActionNotif_onClick(action, message){
 			break;
 		default:
 			// Nothing - Unknown action
-			void(0);
 	}
 }
 let chromeAPI_button_availability = true;
@@ -1180,8 +1179,60 @@ function checkResponseValidity(website, data){
 	return "success";
 }
 
+let checkingLivesState = appGlobal["checkingLivesState"] = null;
+function checkLivesProgress_init(){
+	if(checkingLivesState != null){
+		console.warn("[checkLivesProgress_init] Previous progress wasn't finished?");
+	}
+	checkingLivesState = {};
+}
+function checkLivesProgress_initStream(website, id){
+	if(checkingLivesState == null){
+		checkingLivesState = {};
+	}
+	if(!checkingLivesState.hasOwnProperty(website)){
+		checkingLivesState[website] = {};
+	}
+	if(!checkingLivesState[website].hasOwnProperty(id)){
+		checkingLivesState[website][id] = {};
+	}
+}
+function checkLivesProgress_addContent(website, id, contentId){
+
+	if(typeof checkingLivesState[website][id] != "object"){
+		checkLivesProgress_initStream(website, id);
+	}
+	checkingLivesState[website][id][contentId] = "";
+}
+function checkLivesProgress_removeContent(website, id, contentId){
+	if(typeof checkingLivesState[website][id][contentId] == "string"){
+		delete checkingLivesState[website][id][contentId];
+	}
+	checkLivesProgress_checkStreamEnd(website, id);
+}
+function checkLivesProgress_checkStreamEnd(website, id){
+	if(JSON.stringify(checkingLivesState[website][id]) == "{}"){
+		delete checkingLivesState[website][id];
+	}
+	checkLivesProgress_checkLivesEnd();
+}
+function checkLivesProgress_checkLivesEnd(){
+	for(let website in websites){
+		if(JSON.stringify(checkingLivesState[website]) == "{}"){
+			delete checkingLivesState[website];
+		}
+	}
+	
+	if(JSON.stringify(checkingLivesState) == "{}"){
+		checkingLivesState = null;
+		console.info("[Live notifier] Live check end");
+	}
+}
+
 function checkLives(){
 	console.group();
+	
+	checkLivesProgress_init();
 	
 	for(let website in websites){
 		let streamList = (new streamListFromSetting(website)).objData;
@@ -1207,6 +1258,8 @@ function checkLives(){
 }
 
 function getPrimary(id, website, streamSetting, url, pageNumber){
+	checkLivesProgress_initStream(website, id);
+	
 	let current_API = websites[website].API(id);
 	if(typeof url == "string"){
 		current_API.url = url;
@@ -1223,6 +1276,7 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 			console.group();
 			console.info(`${website} - ${id} (${response.url})`);
 			console.dir(data);
+			console.groupEnd();
 			
 			if(typeof liveStatus[website][id] == "undefined"){
 				liveStatus[website][id] = {};
@@ -1240,9 +1294,12 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 					if(JSON.stringify(streamListData.streamList) == "{}"){
 						getChannelInfo(website, id);
 						channelListEnd(website, id);
+						
+						checkLivesProgress_checkStreamEnd(website, id);
 					} else {
 						for(let i in streamListData.streamList){
 							let contentId = i;
+							checkLivesProgress_addContent(website, id, contentId);
 							processPrimary(id, contentId, website, streamSetting, streamListData.streamList[i]);
 						}
 						if(streamListData.hasOwnProperty("next") == true){
@@ -1257,7 +1314,9 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 					channelListEnd(website, id);
 				}
 			} else {
-				processPrimary(id, id, website, streamSetting, data);
+				let contentId = id;
+				checkLivesProgress_addContent(website, id, contentId);
+				processPrimary(id, contentId, website, streamSetting, data);
 			}
 		}
 	});
@@ -1277,7 +1336,7 @@ function processPrimary(id, contentId, website, streamSetting, data){
 	let responseValidity = liveStatus[website][id][contentId].liveStatus.lastCheckStatus = checkResponseValidity(website, data);
 	if(responseValidity == "success"){
 		let liveState = websites[website].checkLiveStatus(id, contentId, data, liveStatus[website][id][contentId]);
-		if(liveState !== null){
+		if(liveState != null){
 			if(websites[website].hasOwnProperty("API_second") == true){
 				let second_API = websites[website].API_second(contentId);
 				
@@ -1292,16 +1351,21 @@ function processPrimary(id, contentId, website, streamSetting, data){
 						
 						websites[website].seconderyInfo(id, contentId, data_second, liveStatus[website][id][contentId], liveState);
 						
+						checkLivesProgress_removeContent(website, id, contentId);
 						doStreamNotif(website, id, contentId, streamSetting, liveState);
 						setIcon();
 					}
 				});
 			} else {
+				checkLivesProgress_removeContent(website, id, contentId);
 				doStreamNotif(website, id, contentId, streamSetting, liveState);
 			}
 		} else {
 			console.warn("Unable to get stream state.");
+			checkLivesProgress_removeContent(website, id, contentId);
 		}
+	} else {
+		checkLivesProgress_removeContent(website, id, contentId);
 	}
 	setIcon();
 	
@@ -1321,8 +1385,10 @@ function getChannelInfo(website, id){
 			onComplete: function (response) {
 				let data_channelInfos = response.json;
 				
+				console.group();
 				console.info(`${website} - ${id} (${response.url})`);
 				console.dir(data_channelInfos);
+				console.groupEnd();
 				
 				let responseValidity = channelInfos[website][id].liveStatus.lastCheckStatus = checkResponseValidity(website, data_channelInfos);
 				if(responseValidity == "success"){
@@ -1425,7 +1491,7 @@ let offline_badgeData = null;
 
 function loadBadges(){
 	let old_node = document.querySelector('#canvas_online');
-	if(old_node !== null){
+	if(old_node != null){
 		old_node.parentNode.removeChild(old_node);
 	}
 	let canvas_online = document.createElement('canvas');
@@ -1443,7 +1509,7 @@ function loadBadges(){
 	});
 	
 	old_node = document.querySelector('#canvas_offline');
-	if(old_node !== null){
+	if(old_node != null){
 		old_node.parentNode.removeChild(old_node);
 	}
 	let canvas_offline = document.createElement('canvas');

@@ -350,6 +350,9 @@
 	"noErrorToShow": {
 		"message": "Aucune erreur à afficher."
 	},
+	"debug_checkingLivesState": {
+		"message": "Etat de vérification des streams"
+	},
 	"footer_title": {
 		"message": "Addon sous licence GPL v3."
 	},

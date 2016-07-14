@@ -1,3 +1,11 @@
+# 7.1.1
+* Fix: Forgotten test
+* Fix: Stream refresh end init
+
+# 7.1.0
+* +: Detection of the end when checking streams (used in the panel debug only, for now)
+* Fix: Various fixes
+
 # 7.0.0
 * i: Now display offline streams in panel by default
 * i: Moved JS files

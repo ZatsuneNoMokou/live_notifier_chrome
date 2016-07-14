@@ -55,7 +55,7 @@ function allowDrop(event){
 }
 function drag(event) {
 	let node = event.target;
-	if(node.draggable = true && node.dataset.streamId !== null){
+	if(node.draggable == true && node.dataset.streamId != null){
 		let id = node.dataset.streamId;
 		let website = node.dataset.streamWebsite;
 		
@@ -552,6 +552,8 @@ function updatePanelData(data){
 		listenerOfflineCount("");
 	}
 	
+	let debug_checkingLivesState_node = document.querySelector("#debug_checkingLivesState");
+	debug_checkingLivesState_node.className = (appGlobal["checkingLivesState"] == null);
 	
 	//Update Live notifier version displayed in the panel preferences
 	if(typeof appGlobal["version"] == "string"){

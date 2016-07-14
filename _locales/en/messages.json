@@ -347,6 +347,9 @@
 	"noErrorToShow": {
 		"message": "No error to show."
 	},
+	"debug_checkingLivesState": {
+		"message": "State of the stream refresh"
+	},
 	"footer_title": {
 		"message": "Addon under GPL v3 licence."
 	},
