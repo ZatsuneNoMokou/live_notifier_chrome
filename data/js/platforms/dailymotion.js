@@ -1,4 +1,27 @@
 websites.dailymotion = {
+	"addStream_URLpatterns": {
+		"dailymotion": [
+			/^(?:http|https):\/\/games\.dailymotion\.com\/(?:live|video)\/([a-zA-Z0-9]+).*$/,
+			/^(?:http|https):\/\/www\.dailymotion\.com\/(?:embed\/)?video\/([a-zA-Z0-9]+).*$/,
+			/^(?:http|https):\/\/games\.dailymotion\.com\/[^\/]+\/v\/([a-zA-Z0-9]+).*$/
+		],
+		"channel::dailymotion": [
+			/^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/user\/([^\s\t\/]+).*$/
+		]
+	},
+	"addStream_URLpatterns_strings": {
+		"dailymotion": [
+			"*://games.dailymotion.com/live/*",
+			"*://games.dailymotion.com/video/*",
+			"*://www.dailymotion.com/video/*",
+			"*://www.dailymotion.com/live/*",
+			"*://games.dailymotion.com/v/.*"
+		],
+		"channel::dailymotion": [
+			"*://www.dailymotion.com/*",
+			"*://games.dailymotion.com/*"
+		]
+	},
 	"API":
 		function(id){
 			let obj = {

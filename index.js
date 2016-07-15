@@ -55,7 +55,7 @@ function Request_Get(options){
 			xhr.overrideMimeType(options.overrideMimeType);
 		}
 		
-		xhr.addEventListener("load", function(){
+		xhr.addEventListener("loadend", function(){
 			let response = {
 				"url": xhr.responseURL,
 				"text": xhr.responseText,
@@ -145,7 +145,7 @@ class streamListFromSetting{
 								}
 								
 								if(typeof obj[website][id][current_filter_id] == "undefined"){
-									obj[website][id][current_filter_id] = new Array();
+									obj[website][id][current_filter_id] = [];
 								}
 								
 								if(current_filter_id == "hide" || current_filter_id == "ignore" || current_filter_id == "notifyOnline" || current_filter_id == "notifyOffline"){
@@ -220,7 +220,7 @@ class streamListFromSetting{
 		}
 	}
 	update(){
-		let array = new Array();
+		let array = [];
 		for(let website in this.objDataAll){
 			for(let id in this.objDataAll[website]){
 				let filters = "";
@@ -324,35 +324,7 @@ function refreshStreamsFromPanel(){
 	}
 	setTimeout(waitToUpdatePanel, 5000);
 }
-let addStreamFromPanel_pageListener = new Array();
 
-let addStream_URLpatterns = {"dailymotion": [/^(?:http|https):\/\/games\.dailymotion\.com\/(?:live|video)\/([a-zA-Z0-9]+).*$/, /^(?:http|https):\/\/www\.dailymotion\.com\/(?:embed\/)?video\/([a-zA-Z0-9]+).*$/, /^(?:http|https):\/\/games\.dailymotion\.com\/[^\/]+\/v\/([a-zA-Z0-9]+).*$/],
-		"channel::dailymotion": [/^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/user\/([^\s\t\/]+).*$/, /^(?:http|https):\/\/(?:games\.|www\.)dailymotion\.com\/(?!user\/|monetization\/|archived\/|fr\/|en\/|us\/|legal\/|stream|rss)([^\s\t\/]+).*$/],
-		"hitbox": [/^(?:http|https):\/\/www\.hitbox\.tv\/(?:embedchat\/)?([^\/\?\&]+).*$/],
-		"twitch": [/^(?:http|https):\/\/www\.twitch\.tv\/([^\/\?\&]+).*$/,/^(?:http|https):\/\/player\.twitch\.tv\/\?channel\=([\w\-]+).*$/],
-		"beam": [/^(?:http|https):\/\/beam\.pro\/([^\/\?\&]+)/]
-	};
-let addStream_URLpatterns_strings = {"dailymotion": ["*://games.dailymotion.com/live/*", "*://games.dailymotion.com/video/*", "*://www.dailymotion.com/video/*", "*://www.dailymotion.com/live/*", "*://games.dailymotion.com/v/.*"],
-		"channel::dailymotion": ["*://www.dailymotion.com/*", "*://games.dailymotion.com/*"],
-		"hitbox": ["*://www.hitbox.tv/*"],
-		"twitch": ["*://www.twitch.tv/*","*://player.twitch.tv/?channel=*"],
-		"beam": ["*://beam.pro/*"]
-	};
-let URLContext_Array = new Array();
-for(let website in addStream_URLpatterns_strings){
-	URLContext_Array = URLContext_Array.concat(addStream_URLpatterns_strings[website]);
-}
-chrome.contextMenus.create({
-	"title": _("Add_this"),
-	"contexts": ["link"],
-	"targetUrlPatterns": URLContext_Array,
-	"onclick": function(info, tab){
-		activeTab = tab;
-		let data = info.linkUrl;
-		console.info(`[ContextMenu] URL: ${data}`);
-		addStreamFromPanel({"ContextMenu_URL": data});
-	}
-});
 function display_id(id){
 	if(website_channel_id.test(id)){
 		return _("The_channel", website_channel_id.exec(id)[1]);
@@ -389,73 +361,69 @@ function addStreamFromPanel(data){
 		url_list = [active_tab_url];
 	}
 	for(let url of url_list){
-		for(let source_website in addStream_URLpatterns){
-			let website = source_website;
-			if(website_channel_id.test(source_website)){
-				website = website_channel_id.exec(source_website)[1];
-			}
-			
-			let streamListSetting = new streamListFromSetting(website);
-			let streamList = streamListSetting.objData;
-			for(let pattern of addStream_URLpatterns[source_website]){
-				let id = "";
-				if(pattern.test(url)){
-					id = pattern.exec(url)[1];
-					if(streamListSetting.streamExist(website, id)){
-						doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
-						return true;
-					} else {
-						let id_toChecked = id;
-						let current_API = websites[website].API(id);
-						
-						if(website_channel_id.test(source_website)){
-							current_API = websites[website].API_channelInfos(`channel::${id}`);
-						}
-						
-						Request_Get({
-							url: current_API.url,
-							overrideMimeType: current_API.overrideMimeType,
-							onComplete: function (response) {
-								let data = response.json;
-								
-								console.group()
-								console.info(`${website} - ${response.url}`);
-								console.dir(data);
-								console.groupEnd();
-								
-								let responseValidity = checkResponseValidity(website, data);
-								
-								if(website == "dailymotion" && responseValidity.indexOf("error") == -1){
-										let username = (data.mode == "vod")? data["user.username"] : data.username;
-										let id_username = `channel::${username}`;
-										let id_owner = `channel::${(data.mode == "vod")? data.owner : data.id}`;
-										
-										// Use username (login) as channel id
-										id = id_owner;
-										if(streamListSetting.streamExist(website, id_username) || streamListSetting.streamExist(website, id_owner)){
-											doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
-											return true;
-										}
-								} else if(checkResponseValidity(website, data) != "success"){
-									doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_but_error_retrieving_data")}`);
-									return null;
-								}
-								
-								if(getPreference("confirm_addStreamFromPanel")){
-									let addstreamNotifAction = new notifAction("addStream", {id: id, website: website, url: ((type == "embed")? active_tab_url : "")});
-									doActionNotif(`Live notifier`, `${display_id(id)} ${_("wasnt_configured_and_can_be_added")}`, addstreamNotifAction);
-								} else {
-									streamListSetting.addStream(website, id, ((type == "embed")? active_tab_url : ""));
-									streamListSetting.update();
-									doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_and_have_been_added")}`);
-									// Update the panel for the new stream added
-									setTimeout(function(){
-										refreshPanel(false);
-									}, 5000);
-								}
+		for(let website in websites){
+			for(let source_website in websites[website].addStream_URLpatterns){
+				let streamListSetting = new streamListFromSetting(website);
+				let streamList = streamListSetting.objData;
+				for(let pattern of websites[website].addStream_URLpatterns[source_website]){
+					let id = "";
+					if(pattern.test(url)){
+						id = pattern.exec(url)[1];
+						if(streamListSetting.streamExist(website, id)){
+							doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
+							return true;
+						} else {
+							let current_API = websites[website].API(id);
+							
+							if(website_channel_id.test(source_website)){
+								current_API = websites[website].API_channelInfos(`channel::${id}`);
 							}
-						})
-						return true;
+							
+							Request_Get({
+								url: current_API.url,
+								overrideMimeType: current_API.overrideMimeType,
+								onComplete: function (response) {
+									let data = response.json;
+									
+									console.group()
+									console.info(`${website} - ${response.url}`);
+									console.dir(data);
+									console.groupEnd();
+									
+									let responseValidity = checkResponseValidity(website, data);
+									
+									if(website == "dailymotion" && responseValidity.indexOf("error") == -1){
+											let username = (typeof data.mode == "string")? data["user.username"] : data.username;
+											let id_username = `channel::${username}`;
+											let id_owner = `channel::${(typeof data.mode == "string")? data.owner : data.id}`;
+											
+											// Use username (login) as channel id
+											id = id_owner;
+											if(streamListSetting.streamExist(website, id_username) || streamListSetting.streamExist(website, id_owner)){
+												doNotif("Live notifier",`${display_id(id)} ${_("is_already_configured")}`);
+												return true;
+											}
+									} else if(checkResponseValidity(website, data) != "success"){
+										doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_but_error_retrieving_data")}`);
+										return null;
+									}
+									
+									if(getPreference("confirm_addStreamFromPanel")){
+										let addstreamNotifAction = new notifAction("addStream", {id: id, website: website, url: ((type == "embed")? active_tab_url : "")});
+										doActionNotif(`Live notifier`, `${display_id(id)} ${_("wasnt_configured_and_can_be_added")}`, addstreamNotifAction);
+									} else {
+										streamListSetting.addStream(website, id, ((type == "embed")? active_tab_url : ""));
+										streamListSetting.update();
+										doNotif("Live notifier", `${display_id(id)} ${_("wasnt_configured_and_have_been_added")}`);
+										// Update the panel for the new stream added
+										setTimeout(function(){
+											refreshPanel(false);
+										}, 5000);
+									}
+								}
+							})
+							return true;
+						}
 					}
 				}
 			}
@@ -790,14 +758,12 @@ function chromeAPINotification(title, message, action, imgurl){
 		iconUrl: ((typeof imgurl == "string" && imgurl != "")? imgurl : myIconURL),
 		isClickable: true
 	}
-	let openUrl = {title: _("Open_in_browser"), iconUrl: "/data/images/ic_open_in_browser_black_24px.svg"};
-	let close = {title: _("Close"), iconUrl: "/data/images/ic_close_black_24px.svg"};
 	
-	let addItem = {title: _("Add"), iconUrl: "/data/images/ic_add_circle_black_24px.svg"};
-	let deleteItem = {title: _("Delete"), iconUrl: "/data/images/ic_delete_black_24px.svg"};
-	let cancel = {title: _("Cancel"), iconUrl: "/data/images/ic_cancel_black_24px.svg"};
-	
-	let ok = {title: _("Ok"), iconUrl: "/data/images/ic_check_black_24px.svg"};
+	let openUrl = {title: _("Open_in_browser"), iconUrl: "/data/images/ic_open_in_browser_black_24px.svg"},
+		close = {title: _("Close"), iconUrl: "/data/images/ic_close_black_24px.svg"},
+		addItem = {title: _("Add"), iconUrl: "/data/images/ic_add_circle_black_24px.svg"},
+		deleteItem = {title: _("Delete"), iconUrl: "/data/images/ic_delete_black_24px.svg"},
+		cancel = {title: _("Cancel"), iconUrl: "/data/images/ic_cancel_black_24px.svg"};
 	
 	if(chromeAPI_button_availability == true){
 		// 2 buttons max per notification
@@ -1184,11 +1150,11 @@ function checkLivesProgress_init(){
 	if(checkingLivesState != null){
 		console.warn("[checkLivesProgress_init] Previous progress wasn't finished?");
 	}
-	checkingLivesState = {};
+	checkingLivesState = appGlobal["checkingLivesState"] = {};
 }
 function checkLivesProgress_initStream(website, id){
 	if(checkingLivesState == null){
-		checkingLivesState = {};
+		checkLivesProgress_init();
 	}
 	if(!checkingLivesState.hasOwnProperty(website)){
 		checkingLivesState[website] = {};
@@ -1224,7 +1190,7 @@ function checkLivesProgress_checkLivesEnd(){
 	}
 	
 	if(JSON.stringify(checkingLivesState) == "{}"){
-		checkingLivesState = null;
+		checkingLivesState = appGlobal["checkingLivesState"] = null;
 		console.info("[Live notifier] Live check end");
 	}
 }
@@ -1247,6 +1213,7 @@ function checkLives(){
 				//console.info(`Ignoring ${id}`);
 				continue;
 			}
+			checkLivesProgress_initStream(website, id);
 			getPrimary(id, website, streamList[id]);
 		}
 	}
@@ -1532,11 +1499,31 @@ loadJS("/data/js/", ["canvg/rgbcolor.js", "canvg/StackBlur.js", "canvg/canvg.js"
 // Begin to check lives
 var interval
 loadJS("/data/js/platforms/", ["beam.js", "dailymotion.js", "hitbox.js", "twitch.js"], function(){
+	let URLContext_Array = [];
+	
+	for(let website in websites){
+		for(let source_website in websites[website].addStream_URLpatterns_strings){
+			URLContext_Array = URLContext_Array.concat(websites[website].addStream_URLpatterns_strings[source_website]);
+		}
+	}
+	chrome.contextMenus.removeAll();
+	chrome.contextMenus.create({
+		"title": _("Add_this"),
+		"contexts": ["link"],
+		"targetUrlPatterns": URLContext_Array,
+		"onclick": function(info, tab){
+			activeTab = tab;
+			let data = info.linkUrl;
+			console.info(`[ContextMenu] URL: ${data}`);
+			addStreamFromPanel({"ContextMenu_URL": data});
+		}
+	});
+	
 	/* 		----- Importation/Removal of old preferences -----		*/
 	if(getPreference("stream_keys_list") == ""){
 		let importSreamsFromOldVersion = function(){
 			let somethingElseThanSpaces = /[^\s]+/;
-			let newPrefTable = new Array();
+			let newPrefTable = [];
 			for(let website in websites){
 				let pref = getPreference(`${website}_keys_list`);
 				if(typeof pref != "undefined" && pref != "" && somethingElseThanSpaces.test(pref)){

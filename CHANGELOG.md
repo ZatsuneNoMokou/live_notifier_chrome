@@ -1,3 +1,12 @@
+# 7.2.0
+* i: Avoid using unrecommended "new Array()"
+* +: Moved URL patterns to the websites JS
+* Fix: checkingLivesState not updated well in appGlobal
+* Fix: Avoid re-requesting refresh if checkingLivesState not null (previous refresh not ended, or not well)
+* Fix: Request_Get now use "loadend" on the XMLHttpRequest addEventListener event, to execute onComplete on errors too, alike Firefox Request API
+* Fix: Avoid duplicates of the contextMenu "Add this", removing all previous ones
+* Fix: Adding Dailymotion channels
+
 # 7.1.1
 * Fix: Forgotten test
 * Fix: Stream refresh end init

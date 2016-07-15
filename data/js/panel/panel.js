@@ -518,26 +518,28 @@ function updatePanelData(data){
 			}
 		}
 	}
-	let notCheckedYet = false;
-	for(let website in websites){
-		var streamList = (new streamListFromSetting(website)).objData;
-		for(let id in streamList){
-			if(!(id in liveStatus[website])){
-				notCheckedYet = true;
-				console.info(`${id} from ${website} is not checked yet`);
-				try{
-					getPrimary(id, website, id);
-				}
-				catch(error){
-					console.warn(`[Live notifier] ${error}`);
+	if(appGlobal["checkingLivesState"] == null){
+		let notCheckedYet = false;
+		for(let website in websites){
+			var streamList = (new streamListFromSetting(website)).objData;
+			for(let id in streamList){
+				if(!(id in liveStatus[website])){
+					notCheckedYet = true;
+					console.info(`${id} from ${website} is not checked yet`);
+					try{
+						getPrimary(id, website, id);
+					}
+					catch(error){
+						console.warn(`[Live notifier] ${error}`);
+					}
 				}
 			}
 		}
-	}
-	if(notCheckedYet == true){
-		setTimeout(function(){
-			sendDataToMain("refreshPanel", "");
-		}, 5000);
+		if(notCheckedYet == true){
+			setTimeout(function(){
+				sendDataToMain("refreshPanel", "");
+			}, 5000);
+		}
 	}
 	setIcon();
 	
@@ -553,7 +555,7 @@ function updatePanelData(data){
 	}
 	
 	let debug_checkingLivesState_node = document.querySelector("#debug_checkingLivesState");
-	debug_checkingLivesState_node.className = (appGlobal["checkingLivesState"] == null);
+	debug_checkingLivesState_node.className = (appGlobal["checkingLivesState"] == null); console.log(appGlobal["checkingLivesState"] == null);
 	
 	//Update Live notifier version displayed in the panel preferences
 	if(typeof appGlobal["version"] == "string"){

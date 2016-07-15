@@ -1,4 +1,14 @@
 websites.beam = {
+	"addStream_URLpatterns": {
+		"beam": [
+			/^(?:http|https):\/\/beam\.pro\/([^\/\?\&]+)/
+		]
+	},
+	"addStream_URLpatterns_strings": {
+		"beam": [
+			"*://beam.pro/*"
+		]
+	},
 	"API":
 		function(id){
 			let obj = {

@@ -1,4 +1,14 @@
 websites.hitbox = {
+	"addStream_URLpatterns": {
+		"hitbox": [
+			/^(?:http|https):\/\/www\.hitbox\.tv\/(?:embedchat\/)?([^\/\?\&]+).*$/
+		]
+	},
+	"addStream_URLpatterns_strings": {
+		"hitbox": [
+			"*://www.hitbox.tv/*"
+		],
+	},
 	"API":
 		function(id){
 			let obj = {

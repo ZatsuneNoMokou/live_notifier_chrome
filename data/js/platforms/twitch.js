@@ -1,4 +1,15 @@
 websites.twitch = {
+	"addStream_URLpatterns": {
+		"twitch": [
+			/^(?:http|https):\/\/www\.twitch\.tv\/([^\/\?\&]+).*$/,/^(?:http|https):\/\/player\.twitch\.tv\/\?channel\=([\w\-]+).*$/
+		]
+	},
+	"addStream_URLpatterns_strings": {
+		"twitch": [
+			"*://www.twitch.tv/*",
+			"*://player.twitch.tv/?channel=*"
+		],
+	},
 	"API":
 		function(id){
 			let obj = {
