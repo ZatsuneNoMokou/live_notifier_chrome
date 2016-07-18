@@ -198,10 +198,8 @@ function selectSection(sectionNodeId){
 }
 function setting_Toggle(sectionNodeId){
 	if(setting_Enabled){
-		//setting_Enabled = false;
 		selectSection("streamList");
 	} else {
-		//setting_Enabled = true;
 		selectSection("settings_container");
 	}
 }
@@ -420,7 +418,7 @@ window.addEventListener('storage', refreshSettings);
 
 let closeEditorButton = document.querySelector("#closeEditor");
 closeEditorButton.addEventListener("click", function(event){
-	selectSection(streamList);
+	selectSection("streamList");
 }, false);
 
 let saveEditedStreamButton = document.querySelector("#saveEditedStream");
@@ -523,6 +521,9 @@ function updatePanelData(data){
 		for(let website in websites){
 			var streamList = (new streamListFromSetting(website)).objData;
 			for(let id in streamList){
+				if(typeof streamList[id].ignore == "boolean" && streamList[id].ignore == true){
+					continue;
+				}
 				if(!(id in liveStatus[website])){
 					notCheckedYet = true;
 					console.info(`${id} from ${website} is not checked yet`);
@@ -555,7 +556,7 @@ function updatePanelData(data){
 	}
 	
 	let debug_checkingLivesState_node = document.querySelector("#debug_checkingLivesState");
-	debug_checkingLivesState_node.className = (appGlobal["checkingLivesState"] == null); console.log(appGlobal["checkingLivesState"] == null);
+	debug_checkingLivesState_node.className = (appGlobal["checkingLivesState"] == null);
 	
 	//Update Live notifier version displayed in the panel preferences
 	if(typeof appGlobal["version"] == "string"){
