@@ -1193,7 +1193,7 @@ function checkLivesProgress_checkStreamEnd(website, id){
 function checkLivesProgress_checkLivesEnd(){
 	if(checkingLivesState_wait == false){
 		for(let website in websites){
-			if((checkingLivesState.hasOwnProperty(website) == true && JSON.stringify(checkingLivesState[website]) == "{}"){
+			if(checkingLivesState.hasOwnProperty(website) == true && JSON.stringify(checkingLivesState[website]) == "{}"){
 				delete checkingLivesState[website];
 			}
 		}
@@ -1230,6 +1230,10 @@ function checkLives(){
 	}
 	
 	checkingLivesState_wait = false;
+	if(JSON.stringify(checkingLivesState) == "{}"){
+		checkLivesProgress_checkLivesEnd();
+		setIcon();
+	}
 	console.groupEnd();
 	
 	clearInterval(interval);

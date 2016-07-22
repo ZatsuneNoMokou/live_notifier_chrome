@@ -1,5 +1,7 @@
 # 7.2.5
+* Fix: "Detection" of the end when checking streams when no stream is configured
 * Fix: Stream check end (checkLivesProgress_checkLivesEnd)
+* Fix: Refresh streams after importation
 
 # 7.2.4
 * Fix: Better fix to delete data from content disapearing from channels (A live id not returned anymore in the live list for a channel)

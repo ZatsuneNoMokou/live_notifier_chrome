@@ -233,9 +233,10 @@ function importPrefsFromFile(event){
 									}
 								}
 							} else {
-								console.warn(`Erreur trying to import ${prefId}`);
+								console.warn(`Error trying to import ${prefId}`);
 							}
 						}
+						sendDataToMain("refreshStreams","");
 					}
 				}
 			}
