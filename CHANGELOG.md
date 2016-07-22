@@ -1,3 +1,6 @@
+# 7.2.5
+* Fix: Stream check end (checkLivesProgress_checkLivesEnd)
+
 # 7.2.4
 * Fix: Better fix to delete data from content disapearing from channels (A live id not returned anymore in the live list for a channel)
 * Fix: Stream check end (checkLivesProgress_checkStreamEnd)

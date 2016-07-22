@@ -1193,7 +1193,7 @@ function checkLivesProgress_checkStreamEnd(website, id){
 function checkLivesProgress_checkLivesEnd(){
 	if(checkingLivesState_wait == false){
 		for(let website in websites){
-			if(JSON.stringify(checkingLivesState[website]) == "{}"){
+			if((checkingLivesState.hasOwnProperty(website) == true && JSON.stringify(checkingLivesState[website]) == "{}"){
 				delete checkingLivesState[website];
 			}
 		}
