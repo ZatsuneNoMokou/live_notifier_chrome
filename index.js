@@ -110,6 +110,10 @@ class streamListFromSetting{
 					let id = result[2];
 					let data = result[3];
 					
+					if(websites.hasOwnProperty(website) == false){
+						// Skip websites not supported, or not yet
+						continue;
+					}
 					obj[website][id] = {hide: false, ignore: false, notifyOnline: getPreference("notify_online"), notifyOffline: getPreference("notify_offline"), streamURL: ""};
 					
 					if(typeof data != "undefined"){
@@ -1175,13 +1179,13 @@ function checkLivesProgress_addContent(website, id, contentId){
 	checkingLivesState[website][id][contentId] = "";
 }
 function checkLivesProgress_removeContent(website, id, contentId){
-	if(typeof checkingLivesState[website][id][contentId] == "string"){
+	if(checkingLivesState.hasOwnProperty(website) == true && checkingLivesState[website].hasOwnProperty(id) == true && typeof checkingLivesState[website][id][contentId] == "string"){
 		delete checkingLivesState[website][id][contentId];
 	}
 	checkLivesProgress_checkStreamEnd(website, id);
 }
 function checkLivesProgress_checkStreamEnd(website, id){
-	if(JSON.stringify(checkingLivesState[website][id]) == "{}"){
+	if(checkingLivesState.hasOwnProperty(website) == true && checkingLivesState[website].hasOwnProperty(id) == true && JSON.stringify(checkingLivesState[website][id]) == "{}"){
 		delete checkingLivesState[website][id];
 	}
 	checkLivesProgress_checkLivesEnd();
@@ -1258,12 +1262,21 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 			}
 			
 			if(website_channel_id.test(id) == true){
+				if(typeof channelInfos[website][id] == "undefined"){
+					let defaultChannelInfos = channelInfos[website][id] = {"liveStatus": {"API_Status": false, "notificationStatus": false, "lastCheckStatus": "", "liveList": {}}, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+				}
+				
 				if(checkResponseValidity(website, data) == "success"){
 					let streamListData;
 					if(typeof pageNumber == "number"){
 						streamListData = websites[website].channelList(id, website, data, pageNumber);
 					} else {
 						streamListData = websites[website].channelList(id, website, data);
+					}
+					
+					if(typeof pageNumber != "number"){
+						// First loop
+						channelInfos[website][id].liveStatus.liveList = {};
 					}
 					
 					if(JSON.stringify(streamListData.streamList) == "{}"){
@@ -1274,6 +1287,7 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 					} else {
 						for(let i in streamListData.streamList){
 							let contentId = i;
+							channelInfos[website][id].liveStatus.liveList[contentId] = "";
 							checkLivesProgress_addContent(website, id, contentId);
 							processPrimary(id, contentId, website, streamSetting, streamListData.streamList[i]);
 						}
@@ -1299,6 +1313,12 @@ function getPrimary(id, website, streamSetting, url, pageNumber){
 appGlobal["getPrimary"] = getPrimary;
 
 function channelListEnd(website, id){
+	for(let contentId in liveStatus[website][id]){
+		if(channelInfos[website][id].liveStatus.liveList.hasOwnProperty(contentId) == false){
+			delete liveStatus[website][id][contentId];
+		}
+	}
+	
 	setIcon();
 	console.timeEnd(`${website}::${id}`);
 	console.groupEnd();
@@ -1351,7 +1371,7 @@ function getChannelInfo(website, id){
 	let channelInfos_API = websites[website].API_channelInfos(id);
 	
 	if(typeof channelInfos[website][id] == "undefined"){
-		let defaultChannelInfos = channelInfos[website][id] = {"liveStatus": {"API_Status": false, "notificationStatus": false, "lastCheckStatus": ""}, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
+		let defaultChannelInfos = channelInfos[website][id] = {"liveStatus": {"API_Status": false, "notifiedStatus": false, "lastCheckStatus": ""}, "streamName": (website_channel_id.test(id) == true)? website_channel_id.exec(id)[1] : id, "streamStatus": "", "streamGame": "", "streamOwnerLogo": "", "streamCategoryLogo": "", "streamCurrentViewers": null, "streamURL": "", "facebookID": "", "twitterID": ""};
 	}
 	if(websites[website].hasOwnProperty("API_channelInfos") == true){
 		Request_Get({
