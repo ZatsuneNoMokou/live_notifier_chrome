@@ -44,7 +44,7 @@
 * +: Single function to load scrollbars
 
 # 6.3.3
-* -: Old settings, option-data.js
+* -: Cleaning old settings
 * Fix: No longer store live notifier version in a pref, using load or install reason to make update notification
 * Fix: When the settings has no default value, getPreference return directly the value from localeStorage, if any
 
@@ -76,7 +76,7 @@
 
 # 6.0.0
 * i: Moved panel data update to panel script, reducing port usage
-* +: Fused website preferences, avoiding one pref per website
+* +: Fused website preferences, avoiding one preference per website
 * +: streamListFromSetting use a variable as cache to not re-process each time
 * Fix: Header min height
 * Fix: Load canvas sooner to avoid icon/badge load problems
